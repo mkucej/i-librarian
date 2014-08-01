@@ -357,8 +357,10 @@ if (isset($_GET['file'])) {
         $annotation = '';
         if (isset($_SESSION['auth'])) {
             $result = $dbHandle->query("SELECT annotation FROM annotations WHERE userID=" . intval($_SESSION['user_id']) . " AND filename='" . $paper['file'] . "' ORDER BY id ASC");
-            while ($annotations = $result->fetch(PDO::FETCH_ASSOC)) {
-                $annotation .= '<div>' . htmlspecialchars($annotations['annotation']) . '</div><br>';
+            if (is_object($result)) {
+                while ($annotations = $result->fetch(PDO::FETCH_ASSOC)) {
+                    $annotation .= '<div>' . htmlspecialchars($annotations['annotation']) . '</div><br>';
+                }
             }
             $result = null;
         }

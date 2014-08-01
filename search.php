@@ -271,8 +271,8 @@ if (!empty($_GET['searchmode'])) {
             ), array(
         'full_text'
     ));
-
     if (isset($_GET['from'])) {
+
         $cache_name = cache_name();
         cache_start($db_change);
     }
@@ -325,10 +325,10 @@ if (!empty($_GET['searchmode'])) {
     }
 
 ######### PUBLICATION TYPE ################
-    
+
     $type_search = '';
     if (!empty($_GET['reference_type'])) {
-        
+
         $type_quoted = $dbHandle->quote($_GET['reference_type']);
         $type_search = 'reference_type=' . $type_quoted . 'AND';
     }
@@ -430,18 +430,7 @@ if (!empty($_GET['searchmode'])) {
     } elseif (isset($_GET['searchmode']) && $_GET['searchmode'] == 'expert') {
         include 'expertsearch.php';
     }
-    $search_query_array = array_merge((array) $anywhere_array,
-            (array) $authors_array,
-            (array) $journal_array,
-            (array) $secondary_title_array,
-            (array) $affiliation_array,
-            (array) $keywords_array,
-            (array) $title_array,
-            (array) $abstract_array,
-            (array) $year_array,
-            (array) $search_id_array,
-            (array) $fulltext_array,
-            (array) $notes_array);
+    $search_query_array = array_merge((array) $anywhere_array, (array) $authors_array, (array) $journal_array, (array) $secondary_title_array, (array) $affiliation_array, (array) $keywords_array, (array) $title_array, (array) $abstract_array, (array) $year_array, (array) $search_id_array, (array) $fulltext_array, (array) $notes_array);
 
     $search_query = join(' ', $search_query_array);
     $_GET['search_query'] = $search_query;

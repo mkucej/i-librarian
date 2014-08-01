@@ -2227,19 +2227,16 @@ function update_notes($notesID, $fileID, $new_notes, $dbHandle) {
 
 function delete_record($dbHandle, $files) {
 
+    global $database_path;
     settype($files, "array");
 
-    $dbHandle->beginTransaction();
+    // get PDF filenames of deleted items
+    $result = $dbHandle->query("SELECT file FROM library WHERE id IN (" . join(',', $files) . ")");
+    $filenames = $result->fetchAll(PDO::FETCH_COLUMN);
+    $result = null;
 
-    while (list(, $file) = each($files)) {
-        $user = array();
-        $file = intval($file);
-
-        ##########	files	##########
-
-        $result = $dbHandle->query("SELECT file FROM library WHERE id=$file");
-        $filename = $result->fetchColumn();
-        $result = null;
+    // delete PDFs, supplementary files and PNGs
+    while (list(, $filename) = each($filenames)) {
 
         if (is_file('library' . DIRECTORY_SEPARATOR . $filename))
             unlink('library' . DIRECTORY_SEPARATOR . $filename);
@@ -2258,86 +2255,50 @@ function delete_record($dbHandle, $files) {
                 @unlink($png_file);
             }
         }
-        ##########	library	##########
-
-        $dbHandle->exec("DELETE FROM library WHERE id=$file");
-
-        ##########	shelves	##########
-
-        $dbHandle->exec("DELETE FROM shelves WHERE fileID=$file");
-
-        ##########	categories	##########
-
-        $dbHandle->exec("DELETE FROM filescategories WHERE fileID=$file");
-
-        ##########	desktop	##########
-
-        $dbHandle->exec("DELETE FROM projectsfiles WHERE fileID=$file");
-
-        ##########	notes	##########
-
-        $dbHandle->exec("DELETE FROM notes WHERE fileID=$file");
-
-        ##########	PDF annotations ##########
-
-        $dbHandle->exec("DELETE FROM yellowmarkers WHERE filename='$filename'");
-        $dbHandle->exec("DELETE FROM annotations WHERE filename='$filename'");
-
-        ##########	clipboard	##########
-
-        if (!empty($_SESSION['session_clipboard'])) {
-            $key = array_search($file, $_SESSION['session_clipboard']);
-            unset($_SESSION['session_clipboard'][$key]);
-        }
     }
 
-    $dbHandle->commit();
-
-    reset($files);
-
-    ##########	attach full text	##########
-
-    $fdatabase = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'fulltext.sq3';
-    $fdatabase_query = $dbHandle->quote($fdatabase);
-    $dbHandle->exec("ATTACH DATABASE " . $fdatabase_query . " AS database2");
-
-    ##########	attach discussion	##########
-
-    $ddatabase = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'discussions.sq3';
-    if (file_exists($ddatabase)) {
-        $ddatabase_query = $dbHandle->quote($ddatabase);
-        $dbHandle->exec("ATTACH DATABASE " . $ddatabase_query . " AS database3");
+    // delete from clipboard, make sure session_write_close was not called before this
+    if (!empty($_SESSION['session_clipboard'])) {
+        $_SESSION['session_clipboard'] = array_diff($_SESSION['session_clipboard'], $files);
     }
 
-    ##########	attach PDF bookmarks	##########
-
-    $hdatabase = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'history.sq3';
-    if (file_exists($hdatabase)) {
-        $hdatabase_query = $dbHandle->quote($hdatabase);
-        $dbHandle->exec("ATTACH DATABASE " . $hdatabase_query . " AS database4");
-    }
-
+    // delete from main database
     $dbHandle->beginTransaction();
+    $dbHandle->exec("DELETE FROM library WHERE id IN (" . join(',', $files) . ")");
+    $dbHandle->exec("DELETE FROM shelves WHERE fileID IN (" . join(',', $files) . ")");
+    $dbHandle->exec("DELETE FROM filescategories WHERE fileID IN (" . join(',', $files) . ")");
+    $dbHandle->exec("DELETE FROM projectsfiles WHERE fileID IN (" . join(',', $files) . ")");
+    $dbHandle->exec("DELETE FROM notes WHERE fileID IN (" . join(',', $files) . ")");
+    $dbHandle->exec("DELETE FROM yellowmarkers WHERE filename IN ('" . join("','", $filenames) . "')");
+    $dbHandle->exec("DELETE FROM annotations WHERE filename IN ('" . join("','", $filenames) . "')");
+    $dbHandle->commit();
+    $dbHandle = null;
 
-    while (list(, $value) = each($files)) {
+    // delete full texts
+    $fdbHandle = database_connect($database_path, 'fulltext');
+    $fdbHandle->exec("DELETE FROM full_text WHERE fileID IN (" . join(',', $files) . ")");
+    $fdbHandle = null;
 
-        $file_query = $dbHandle->quote($value);
+    // delete discussions
+    if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'discussions.sq3')) {
 
-        $dbHandle->exec("DELETE FROM database2.full_text WHERE fileID=$file_query");
-        if (file_exists($ddatabase))
-            $dbHandle->exec("DELETE FROM database3.discussion WHERE fileID=$file_query");
-        if (file_exists($hdatabase))
-            $dbHandle->exec("DELETE FROM database4.bookmarks WHERE file='$filename'");
+        $fdbHandle = database_connect($database_path, 'discussions');
+        $fdbHandle->exec("DELETE FROM filediscussion WHERE fileID IN (" . join(',', $files) . ")");
+        $fdbHandle = null;
     }
 
-    $dbHandle->commit();
+    // delete PDF bookmarks and history
+    if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'history.sq3')) {
 
-    $dbHandle->exec("DETACH DATABASE database2");
-    if (file_exists($ddatabase))
-        $dbHandle->exec("DETACH DATABASE database3");
-    if (file_exists($hdatabase))
-        $dbHandle->exec("DETACH DATABASE database4");
+        $fdbHandle = database_connect($database_path, 'history');
+        $fdbHandle->beginTransaction();
+        $fdbHandle->exec("DELETE FROM usersfiles WHERE fileID IN (" . join(',', $files) . ")");
+        $fdbHandle->exec("DELETE FROM bookmarks WHERE file IN ('" . join("','", $filenames) . "')");
+        $fdbHandle->commit();
+        $fdbHandle = null;
+    }
 
+    // update export files cache
     $export_files = read_export_files(0);
     $export_files = array_diff($export_files, $files);
     $export_files = array_values($export_files);

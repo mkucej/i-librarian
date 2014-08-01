@@ -959,6 +959,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 foreach ($file_records as $record) {
 
                     $record = trim($record);
+                    $record = str_replace('={', ' = {', $record);
                     $record = preg_replace('/ {2,}/um', ' ', $record);
                     $record = preg_replace('/\},\s*\r?\n/um', "},\n", $record);
 
@@ -1296,7 +1297,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $dbHandle = null;
         $fdbHandle = null;
         $ids = array();
-
+        
+        // load data into main database
+        
         database_connect($database_path, 'library');
 
         $dbHandle->exec("PRAGMA journal_mode = DELETE");
@@ -1355,9 +1358,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         for ($i = 1; $i <= $item_count; $i = $i + 1000) {
 
-            $dbHandle->exec("BEGIN DEFERRED TRANSACTION");
-
             $tmpresult = $dbHandle->query("SELECT * FROM tempdb.library WHERE id >= $i AND id < $i + 1000 ORDER BY id ASC");
+            
+            $dbHandle->exec("BEGIN DEFERRED TRANSACTION");
 
             while ($tmprow = $tmpresult->fetch(PDO::FETCH_ASSOC)) {
 

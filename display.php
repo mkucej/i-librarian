@@ -549,5 +549,7 @@ if (isset($_GET['browse'])) {
     ?>
 </div>
 <?php
-if (isset($_GET['from'])) cache_store();
+if (isset($_GET['from']) && !isset($_GET['browse']['No PDF']) && !isset($_GET['browse']['Not Indexed'])) {
+    cache_store();
+}
 ?>

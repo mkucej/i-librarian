@@ -28,6 +28,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         "Pages" => "pages",
         "Abstract" => "abstract",
         "Secondary Title" => "secondary_title",
+        "Tertiary Title" => "tertiary_title",
         "Affiliation" => "affiliation",
         "Editor" => "editor",
         "Publisher" => "publisher",
@@ -360,6 +361,12 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 }
                 $authors = join(" and ", $new_authors);
                 $add_item['authors'] = $authors;
+            }
+            
+            // bibtex does not have a journal abbreviation tag, but if user wants it, put abbreviation in journal tag
+            if (isset($add_item['journal']) && !isset($add_item['secondary_title'])) {
+
+                $add_item['secondary_title'] = $add_item['journal'];
             }
 
             if (isset($add_item['editor'])) {
@@ -734,6 +741,15 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                                 <input type="checkbox" name="column[]" value="Secondary Title" style="display:none">
                                 <i class="fa fa-square-o"></i>
                                 Secondary Title
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Tertiary Title" style="display:none">
+                                <i class="fa fa-square-o"></i>
+                                Tertiary Title
                             </td>
                         </tr>
                     </table>

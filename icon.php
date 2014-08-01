@@ -20,7 +20,7 @@ header("Expires: $ts");
 header("Pragma: private");
 header("Cache-Control: max-age=$seconds_to_cache");
 header("Cache-Control: private");
-header('Last-Modified: ' . gmdate(DATE_RFC1123, filemtime($path . DIRECTORY_SEPARATOR . $file)));
+header('Last-Modified: ' . gmdate(DATE_RFC1123, filemtime($pdf_path . DIRECTORY_SEPARATOR . $file)));
 
 // Content type
 header('Content-Type: image/png');

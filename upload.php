@@ -595,6 +595,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 preg_match('/(?<=arXiv:)\S+/ui', $string, $arxiv_id);
                 $arxiv_id = current($arxiv_id);
+                
             }
 
             if (empty($doi) && empty($arxiv_id)) {
@@ -649,7 +650,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $pmid = '';
         $nasa_id = '';
-        $arxiv_id = '';
 
         if (!empty($_POST['doi'])) {
             $doi = trim($_POST['doi']);

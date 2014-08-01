@@ -1,7 +1,6 @@
 <?php
 include_once 'data.php';
 include_once 'functions.php';
-session_write_close();
 
 if (isset($_GET['file']))
     $_GET['file'] = intval($_GET['file']);
@@ -31,6 +30,8 @@ if (isset($_GET['checkitem']) && isset($_GET['files'])) {
     echo json_encode($diff);
     die();
 }
+
+session_write_close();
 
 $export_files = read_export_files(0);
 if (empty($export_files)) {

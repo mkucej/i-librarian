@@ -86,10 +86,13 @@ if (isset($_SESSION['auth'])) {
                                 <?php
                             } else {
                                 ?>
-                                <td style="width:16.5em;text-align:right">
+                                <td style="width:25em;text-align:right">
                                     No extractable text.
                                     <div class="ui-state-highlight ocr" style="float:right;padding:1px 4px;margin-left:0.5em">
                                         <i class="fa fa-file-text-o"></i> Try OCR
+                                    </div>
+                                    <div class="ui-state-highlight reindex" id="reindex-<?php print $_GET['file'] ?>" style="float:right;padding:1px 4px;margin-left:0.5em">
+                                        <i class="fa fa-refresh"></i> Reindex
                                     </div>
                                 </td>
                                 <?php

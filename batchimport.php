@@ -399,6 +399,7 @@ if (!isset($_GET['commence'])) {
             $title = '';
             $abstract = '';
             $secondary_title = '';
+            $tertiary_title = '';
             $year = '';
             $volume = '';
             $issue = '';
@@ -609,7 +610,7 @@ if (!isset($_GET['commence'])) {
                     }
 
                     if (!empty($title)) {
-
+                        
                         database_connect($database_path, 'library');
 
                         if (!empty($authors))
@@ -667,7 +668,7 @@ if (!isset($_GET['commence'])) {
                         $last_insert = null;
                         $id = $last_row['last_insert_rowid()'];
                         $new_file = $last_row['max(file)'];
-
+                        
                         if (isset($_GET['shelf']) && !empty($userID)) {
                             $user_query = $dbHandle->quote($userID);
                             $file_query = $dbHandle->quote($id);
