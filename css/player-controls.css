@@ -1,0 +1,89 @@
+.jp-gui {
+	position:relative;
+	padding:5px;
+	width:420px;
+        margin:auto
+}
+.jp-gui.jp-no-volume {
+	width:332px
+}
+.jp-gui ul {
+	margin:0;
+	padding:0;
+}
+.jp-gui ul li {
+	position:relative;
+	float:left;
+	list-style:none;
+	margin:2px;
+	padding:4px 0;
+	cursor:pointer;
+}
+.jp-gui ul li a {
+	margin:0 4px;
+}
+.jp-gui li.jp-repeat,
+.jp-gui li.jp-repeat-off {
+	margin-left:164px;
+}
+.jp-gui li.jp-mute,
+.jp-gui li.jp-unmute {
+	margin-left:205px;
+}
+.jp-gui li.jp-volume-max {
+	margin-left:90px;
+}
+li.jp-pause,
+li.jp-repeat-off,
+li.jp-unmute,
+.jp-no-solution {
+	display:none;
+}
+.jp-progress-slider {
+	position:absolute;
+	top:14px;
+	left:80px;
+	width:180px;
+}
+.jp-progress-slider .ui-slider-handle {
+	cursor:pointer;
+}
+.jp-volume-slider {
+	position:absolute;
+	top:17px;
+	left:308px;
+	width:70px;
+	height:.4em;
+}
+.jp-volume-slider .ui-slider-handle {
+	height:.8em;
+	width:.8em;
+	cursor:pointer;
+}
+.jp-gui.jp-no-volume .jp-volume-slider {
+	display:none;
+}
+.jp-current-time,
+.jp-duration {
+	position:absolute;
+	top:26px;
+	font-size:10px;
+	cursor:default;
+}
+.jp-current-time {
+	left:75px;
+}
+.jp-duration {
+	right:170px;
+}
+.jp-gui.jp-no-volume .jp-duration {
+	right:70px;
+}
+.jp-clearboth {
+	clear:both;
+}
+
+#jquery_jplayer_1 {
+    margin:auto;
+    background-color: #000;
+}
