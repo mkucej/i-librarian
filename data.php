@@ -6,7 +6,7 @@ $version = '3.1';
 // initial PHP settings
 ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
 ini_set('default_charset', 'UTF-8');
-ini_set('error_reporting', E_ALL);
+ini_set('error_reporting', E_ERROR);
 ini_set('display_errors', true);
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '512M');
