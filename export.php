@@ -112,10 +112,30 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         }
 
         if ($_GET['format'] == 'citations') {
+            
+            $authors = array();
+            $id = '';
+            $title = '';
+            $secondary_title = '';
+            $pages = '';
+            $volume = '';
+            $issue = '';
+            $doi = '';
+            $journal = '';
+            
+            if (!empty($add_item['authors'])) $authors = $add_item['authors'];
+            if (!empty($add_item['id'])) $id = $add_item['id'];
+            if (!empty($add_item['title'])) $title = $add_item['title'];
+            if (!empty($add_item['secondary_title'])) $secondary_title = $add_item['secondary_title'];
+            if (!empty($add_item['pages'])) $pages = $add_item['pages'];
+            if (!empty($add_item['volume'])) $volume = $add_item['volume'];
+            if (!empty($add_item['issue'])) $issue = $add_item['issue'];
+            if (!empty($add_item['doi'])) $doi = $add_item['doi'];
+            if (!empty($add_item['journal'])) $journal = $add_item['journal'];
 
             $i = 0;
             $new_authors = array();
-            $array = explode(';', $add_item['authors']);
+            $array = explode(';', $authors);
             $array = array_filter($array);
             if (!empty($array)) {
                 foreach ($array as $author) {
@@ -131,15 +151,15 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             }
 
             $json[$add_item['id']] = array(
-                "id" => $add_item['id'],
+                "id" => $id,
                 "type" => "article-journal",
-                "title" => $add_item['title'],
-                "container-title" => $add_item['secondary_title'],
-                "page" => $add_item['pages'],
-                "volume" => $add_item['volume'],
-                "issue" => $add_item['issue'],
-                "DOI" => $add_item['doi'],
-                "journalAbbreviation" => $add_item['journal'],
+                "title" => $title,
+                "container-title" => $secondary_title,
+                "page" => $pages,
+                "volume" => $volume,
+                "issue" => $issue,
+                "DOI" => $doi,
+                "journalAbbreviation" => $journal,
                 "author" => $new_authors
             );
         }
