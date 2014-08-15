@@ -52,7 +52,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
     }
 
     $orderby = 'id DESC';
-    if ($_GET['format'] == 'list')
+    if ($_GET['format'] == 'citations')
         $orderby = 'authors COLLATE NOCASE ASC';
 
     database_connect($database_path, 'library');
@@ -111,10 +111,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             $add_item['id'] = str_replace(' ', '', $add_item['id']);
         }
 
-        if ($_GET['format'] == 'list') {
+        if ($_GET['format'] == 'citations') {
 
+            $i = 0;
             $new_authors = array();
-            $array = explode(';', $item['authors']);
+            $array = explode(';', $add_item['authors']);
             $array = array_filter($array);
             if (!empty($array)) {
                 foreach ($array as $author) {
@@ -123,20 +124,24 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $last = substr($array2[0], 3, -1);
                     $first = trim($array2[1]);
                     $first = substr($array2[1], 3, -1);
-                    $new_authors[] = $last . ', ' . $first;
+                    $new_authors[$i]['family'] = $last;
+                    $new_authors[$i]['given'] = $first;
+                    $i++;
                 }
-                $authors = join('; ', $new_authors);
             }
 
-            $paper .= '<p>' . $authors
-                    . ' (' . trim($item['year']) . '). '
-                    . trim($item['title']) . ' '
-                    . preg_replace('/(^[A-Z]|\s[A-Z]|[a-z])(\s)/u', '$1.$2', trim($item['journal'])) . '.';
-            if (!empty($item['volume']))
-                $paper .= ' <i>' . $item['volume'] . '</i>, ';
-            if (!empty($item['pages']))
-                $paper .= $item['pages'];
-            $paper .= '.</p>' . PHP_EOL;
+            $json[$add_item['id']] = array(
+                "id" => $add_item['id'],
+                "type" => "article-journal",
+                "title" => $add_item['title'],
+                "container-title" => $add_item['secondary_title'],
+                "page" => $add_item['pages'],
+                "volume" => $add_item['volume'],
+                "issue" => $add_item['issue'],
+                "DOI" => $add_item['doi'],
+                "journalAbbreviation" => $add_item['journal'],
+                "author" => $new_authors
+            );
         }
 
         if ($_GET['format'] == 'zip') {
@@ -362,7 +367,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 $authors = join(" and ", $new_authors);
                 $add_item['authors'] = $authors;
             }
-            
+
             // bibtex does not have a journal abbreviation tag, but if user wants it, put abbreviation in journal tag
             if (isset($add_item['journal']) && !isset($add_item['secondary_title'])) {
 
@@ -545,16 +550,76 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         }
     }
 
-    if ($_GET['format'] == 'list') {
+    if ($_GET['format'] == 'citations') {
 
-        $content_type = 'text/html';
-        $filename = 'library.html';
+        $content_type = 'text/json';
+        $filename = 'export.json';
 
-        $content = '<!DOCTYPE html><html>
-                <head>
-                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                 <title>I, Librarian</title>
-                </head><body style="margin:20px">' . $paper . '</body></html>';
+        $content = json_encode($json, JSON_HEX_APOS);
+        $content = str_replace('"', '\"', $content);
+
+        try {
+            $dbHandle = new PDO('sqlite:' . __DIR__ . DIRECTORY_SEPARATOR . 'styles.sq3');
+        } catch (PDOException $e) {
+            print "Error: " . $e->getMessage() . "<br/>";
+            print "PHP extensions PDO and PDO_SQLite must be installed.";
+            die();
+        }
+        $title_q = $dbHandle->quote(strtolower($_GET['citation-style']));
+        $result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
+        $style = $result->fetchColumn();
+        $style = gzuncompress($style);
+        $style = str_replace(array("\r\n", "\r", "\n"), "", $style);
+
+        // print citations to a browser window
+        ?>
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <title>I, Librarian</title>
+                <style type="text/css">
+                    div {margin:1em 0}
+                </style>
+            </head>
+            <body style="padding:0.75in 1in;line-height: 1.5em">
+                <script src="js/jquery.js"></script>
+                <script src="js/csl/citeproc.min.js"></script>
+                <script type="text/javascript">
+                    // fetch list of citations in json format
+                    var citations = JSON.parse('<?php echo $content ?>');
+                    // extract all citation keys
+                    var itemIDs = [];
+                    for (var key in citations) {
+                        itemIDs.push(key);
+                    }
+                    var style = '<?php echo $style ?>';
+
+                    // initialize citeproc object
+                    citeprocSys = {
+                        retrieveLocale: function(lang) {
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('GET', 'js/csl/locales/locales-' + lang + '.xml', false);
+                            xhr.send(null);
+                            return xhr.responseText;
+                        },
+                        retrieveItem: function(id) {
+                            return citations[id];
+                        }
+                    };
+
+                    // render citations
+                    var citeproc = new CSL.Engine(citeprocSys, style);
+                    citeproc.updateItems(itemIDs);
+                    var bibResult = citeproc.makeBibliography();
+
+                    // load them into a container
+                    $('body').html(bibResult[1]);
+                </script>
+            </body>
+        </html>
+        <?php
+        die();
     }
 
     if ($_GET['format'] == 'zip') {
@@ -648,7 +713,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
     <form id="exportform" action="export.php" method="GET">
         <table style="margin: auto;margin:10px auto">
             <tr>
-                <td style="width:17em">
+                <td style="width:25em">
                     <input type="hidden" name="export_files" value="<?php print $get_post_export_files ?>">
                     <input type="hidden" name="export" value="1">
                     <b>Include:</b><br><br>
@@ -826,7 +891,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         </tr>
                     </table>
                 </td>
-                <td style="width:17em">
+                <td style="width:25em">
                     <b>Export format:</b><br><br>
                     <table>
                         <tr>
@@ -875,13 +940,13 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         </tr>
                         <tr>
                             <td class="select_span">
-                                <input type="radio" name="format" value="list" style="display:none">
+                                <input type="radio" name="format" value="citations" style="display:none">
                                 <i class="fa fa-circle-o"></i>
-                                Citations
+                                Citation style:
                                 <table style="margin-left: 1em">
                                     <tr>
                                         <td class="select_span">
-                                            <input type="text" placeholder=" style">
+                                            <input type="text" name="citation-style" id="citation-style" placeholder=" e.g. Cell" style="width:24em">
                                         </td>
                                     </tr>
                                 </table>

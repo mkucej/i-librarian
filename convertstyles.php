@@ -45,12 +45,12 @@ try {
 //$dbHandle->commit();
 // select a style
 
-$title_q = $dbHandle->quote(strtolower($_GET['title']));
-$result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
-print_r($dbHandle->errorInfo());
-$style = $result->fetchColumn();
-$a = gzuncompress($style);
-
-var_dump(htmlspecialchars($a));
+//$title_q = $dbHandle->quote(strtolower($_GET['title']));
+//$result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
+//print_r($dbHandle->errorInfo());
+//$style = $result->fetchColumn();
+//$a = gzuncompress($style);
+//
+//var_dump(htmlspecialchars($a));
 
 $dbHandle = null;

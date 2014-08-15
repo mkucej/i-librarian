@@ -1930,6 +1930,7 @@ var items = {
                 $('#exportdialog').load('export.php?export_files=' + file, function() {
                     $(this).dialog('option', 'title', 'Export').dialog('open');
                     common.init();
+                    exportitems.init();
                     $('#selectall').click(function() {
                         $('input[name="column\\[\\]"]').prop('checked', true);
                         $('input[name="column\\[\\]"]').next().removeClass('fa-square-o').addClass('fa-check-square');
@@ -1979,6 +1980,15 @@ var items = {
         }).bind('keydown', 'q', function() {
             if ($('.backbutton').is(':visible') && $('.ui-dialog:visible').length === 0)
                 $('.backbutton').click();
+        });
+    }
+};
+
+var exportitems = {
+    init: function() {
+        $('#citation-style').autocomplete({
+            source: "ajaxstyles.php",
+            minLength: 1
         });
     }
 };
@@ -2785,7 +2795,7 @@ var displaywindow = {
         });
         $('#exportdialog').dialog({
             autoOpen: false,
-            width: '550',
+            width: '60em',
             open: function() {
                 $('#pdf-div').css('visibility', 'hidden');
             },
@@ -2829,6 +2839,7 @@ var displaywindow = {
                 $('#exportdialog').load('export.php', function() {
                     $(this).dialog('option', 'title', ttl).dialog('open');
                     common.init();
+                    exportitems.init();
                     $('#selectall').click(function() {
                         $('input[name="column\\[\\]"]').prop('checked', true);
                         $('input[name="column\\[\\]"]').next().removeClass('fa-square-o').addClass('fa-check-square');
