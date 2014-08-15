@@ -873,17 +873,15 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                                 CSV (Office)
                             </td>
                         </tr>
-                        <tr style="display:none">
+                        <tr>
                             <td class="select_span">
                                 <input type="radio" name="format" value="list" style="display:none">
                                 <i class="fa fa-circle-o"></i>
-                                Formatted List<sup>&beta;</sup>
-                                <table style="margin-left: 30px">
+                                Citations
+                                <table style="margin-left: 1em">
                                     <tr>
                                         <td class="select_span">
-                                            <input type="radio" name="style" value="text" style="display:none" checked>
-                                            <i class="fa fa-circle"></i>
-                                            Cell Press
+                                            <input type="text" placeholder=" style">
                                         </td>
                                     </tr>
                                 </table>
