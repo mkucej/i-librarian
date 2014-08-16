@@ -115,7 +115,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             
             if(empty($_GET['citation-style'])) die('Citation style required.');
             
-            $authors = array();
+            $authors = '';
             $id = '';
             $title = '';
             $secondary_title = '';
@@ -591,6 +591,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         $style = $result->fetchColumn();
         $style = gzuncompress($style);
         $style = str_replace(array("\r\n", "\r", "\n"), "", $style);
+        $style = str_replace("'", "\'", $style);
 
         // print citations to a browser window
         ?>
@@ -608,6 +609,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         border-spacing:0;
                     }
                     td {
+                        font-family: serif;
+                        font-size: 12pt;
                         padding:0;
                         padding-bottom:1em;
                         vertical-align: top;
@@ -655,17 +658,17 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $.each(bibResult[1], function(key,val){
                         // two columns vs one column layout
                         if($(val).children("div").length===2) {
-                            $('tbody').append('<tr><td class="td-csl-left">'
-                                    + $(val).children("div").eq(0).html() + '</td><td>'
+                            $('tbody').append('<tr><td class="td-csl-left" valign="top" width="80">'
+                                    + $(val).children("div").eq(0).html() + '</td><td valign="top">'
                                     + $(val).children("div").eq(1).html() + '</td></tr>');
                         } else if ($(val).children("div").length===0) {
-                            $('tbody').append('<tr><td>' + $(val).html() + '</td></tr>');
+                            $('tbody').append('<tr><td valign="top">' + $(val).html() + '</td></tr>');
                         }
                     });
                     // final formatting
                     $('td').css('line-height', 1.2 * bibResult[0]['linespacing'] + 'em')
                         .css('padding-bottom', bibResult[0]['entryspacing'] + 'em');
-                    $('.td-csl-left').css('width', bibResult[0]['maxoffset'] + 'em');
+                    $('.td-csl-left').css('width', bibResult[0]['maxoffset'] + 'em').attr('width', 16 * bibResult[0]['maxoffset']);
                 </script>
             </body>
         </html>
