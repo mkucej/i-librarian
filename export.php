@@ -124,7 +124,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             $issue = '';
             $doi = '';
             $journal = '';
-            
+            $date_parts = array();
+                    
             if (!empty($add_item['authors'])) $authors = $add_item['authors'];
             if (!empty($add_item['id'])) $id = $add_item['id'];
             if (!empty($add_item['title'])) $title = $add_item['title'];
@@ -134,6 +135,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             if (!empty($add_item['issue'])) $issue = $add_item['issue'];
             if (!empty($add_item['doi'])) $doi = $add_item['doi'];
             if (!empty($add_item['journal'])) $journal = $add_item['journal'];
+            if (!empty($add_item['year'])) $date_parts['date-parts'][] = explode("-", $add_item['year']);
 
             $i = 0;
             $new_authors = array();
@@ -162,7 +164,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "issue" => $issue,
                 "DOI" => $doi,
                 "journalAbbreviation" => $journal,
-                "author" => $new_authors
+                "author" => $new_authors,
+                "issued" => $date_parts
             );
         }
 
@@ -574,9 +577,6 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
     if ($_GET['format'] == 'citations') {
 
-        $content_type = 'text/json';
-        $filename = 'export.json';
-
         $content = json_encode($json, JSON_HEX_APOS);
         $content = str_replace('"', '\"', $content);
 
@@ -600,22 +600,41 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
                 <title>I, Librarian</title>
                 <style type="text/css">
-                    div {margin-bottom:1em}
+                    body {
+                        padding:0.75in 1in;
+                    }
+                    table {
+                        margin:0;
+                        border-spacing:0;
+                    }
+                    td {
+                        padding:0;
+                        padding-bottom:1em;
+                        vertical-align: top;
+                        line-height: 1.8em
+                    }
+                    .td-csl-left {
+                        width: 5em
+                    }
                 </style>
-            </head>
-            <body style="padding:0.75in 1in;line-height: 1.5em">
                 <script src="js/jquery.js"></script>
                 <script src="js/csl/citeproc.min.js"></script>
+            </head>
+            <body>
+                <table>
+                    <tbody>
+                    </tbody>
+                </table>
                 <script type="text/javascript">
-                    // fetch list of citations in json format
+                    // list of citations in json format
                     var citations = JSON.parse('<?php echo $content ?>');
                     // extract all citation keys
                     var itemIDs = [];
                     for (var key in citations) {
                         itemIDs.push(key);
                     }
+                    // user-selected style
                     var style = '<?php echo $style ?>';
-
                     // initialize citeproc object
                     citeprocSys = {
                         retrieveLocale: function(lang) {
@@ -628,14 +647,25 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             return citations[id];
                         }
                     };
-
                     // render citations
                     var citeproc = new CSL.Engine(citeprocSys, style);
                     citeproc.updateItems(itemIDs);
                     var bibResult = citeproc.makeBibliography();
-
-                    // load them into a container
-                    $('body').html(bibResult[1]);
+                    // load them into a container, convert to table
+                    $.each(bibResult[1], function(key,val){
+                        // two columns vs one column layout
+                        if($(val).children("div").length===2) {
+                            $('tbody').append('<tr><td class="td-csl-left">'
+                                    + $(val).children("div").eq(0).html() + '</td><td>'
+                                    + $(val).children("div").eq(1).html() + '</td></tr>');
+                        } else if ($(val).children("div").length===0) {
+                            $('tbody').append('<tr><td>' + $(val).html() + '</td></tr>');
+                        }
+                    });
+                    // final formatting
+                    $('td').css('line-height', 1.2 * bibResult[0]['linespacing'] + 'em')
+                        .css('padding-bottom', bibResult[0]['entryspacing'] + 'em');
+                    $('.td-csl-left').css('width', bibResult[0]['maxoffset'] + 'em');
                 </script>
             </body>
         </html>
