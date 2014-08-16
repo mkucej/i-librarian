@@ -668,7 +668,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     // final formatting
                     $('td').css('line-height', 1.2 * bibResult[0]['linespacing'] + 'em')
                         .css('padding-bottom', bibResult[0]['entryspacing'] + 'em');
-                    $('.td-csl-left').css('width', bibResult[0]['maxoffset'] + 'em').attr('width', 16 * bibResult[0]['maxoffset']);
+                    $('.td-csl-left').css('width', bibResult[0]['maxoffset'] + 'em')
+                        .attr('width', 16 * bibResult[0]['maxoffset']);
                 </script>
             </body>
         </html>
