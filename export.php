@@ -113,6 +113,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
         if ($_GET['format'] == 'citations') {
             
+            if(empty($_GET['citation-style'])) die('Citation style required.');
+            
             $authors = array();
             $id = '';
             $title = '';
@@ -581,8 +583,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         try {
             $dbHandle = new PDO('sqlite:' . __DIR__ . DIRECTORY_SEPARATOR . 'styles.sq3');
         } catch (PDOException $e) {
-            print "Error: " . $e->getMessage() . "<br/>";
-            print "PHP extensions PDO and PDO_SQLite must be installed.";
+            print "Error: " . $e->getMessage();
             die();
         }
         $title_q = $dbHandle->quote(strtolower($_GET['citation-style']));
@@ -599,7 +600,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
                 <title>I, Librarian</title>
                 <style type="text/css">
-                    div {margin:1em 0}
+                    div {margin-bottom:1em}
                 </style>
             </head>
             <body style="padding:0.75in 1in;line-height: 1.5em">
