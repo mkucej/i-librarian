@@ -577,9 +577,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
     if ($_GET['format'] == 'citations') {
 
+        // encode items in JSON
         $content = json_encode($json, JSON_HEX_APOS);
         $content = str_replace('"', '\"', $content);
 
+        // fetch citation style
         try {
             $dbHandle = new PDO('sqlite:' . __DIR__ . DIRECTORY_SEPARATOR . 'styles.sq3');
         } catch (PDOException $e) {
@@ -589,6 +591,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         $title_q = $dbHandle->quote(strtolower($_GET['citation-style']));
         $result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
         $style = $result->fetchColumn();
+        if(empty($style)) die('This citation style does not exist.');
         $style = gzuncompress($style);
         $style = str_replace(array("\r\n", "\r", "\n"), "", $style);
         $style = str_replace("'", "\'", $style);
@@ -971,6 +974,13 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             </td>
                         </tr>
                         <tr>
+                            <td class="select_span">
+                                <input type="radio" name="format" value="csv" style="display:none">
+                                <i class="fa fa-circle-o"></i>
+                                CSV (Office)
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="select_span <?php print $nozip ? '' : ' ui-state-disabled'  ?>">
                                 <input type="radio" name="format" value="zip" <?php print $nozip ? '' : 'disabled'  ?> style="display:none">
                                 <i class="fa fa-circle-o"></i>
@@ -984,13 +994,6 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                                         </td>
                                     </tr>
                                 </table>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="select_span">
-                                <input type="radio" name="format" value="csv" style="display:none">
-                                <i class="fa fa-circle-o"></i>
-                                CSV (Office)
                             </td>
                         </tr>
                         <tr>
