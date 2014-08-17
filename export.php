@@ -113,6 +113,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
         if ($_GET['format'] == 'citations') {
             
+            // TODO: implement publication types
+            
             if(empty($_GET['citation-style'])) die('Citation style required.');
             
             $authors = '';
