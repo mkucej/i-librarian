@@ -1502,12 +1502,15 @@ var rename_journal = {
         });
         $(".rename-journal-button").unbind().click(function() {
             if ($(this).next('span').is(':hidden')) {
-                var oldj = $(this).next('span').text(), newj = $(this).next().next(':text').val();
+                var oldj = $(this).next('span').text(),
+                newj = $(this).next().next(':text').val(),
+                parentst = $(this).parent('div').prev('div').text();
                 $(this).parent('div').css('padding-left', '12px').html('<img src="img/ajaxloader.gif">');
                 $('#rename-journal-form').ajaxSubmit({
                     data: {
                         'new_journal': newj,
                         'old_journal': oldj,
+                        'parent_secondary_title': parentst,
                         'change_journal': 1
                     },
                     success: function() {
@@ -1525,12 +1528,15 @@ var rename_journal = {
         });
         $(".rename-secondary-title-button").unbind().click(function() {
             if ($(this).next('span').is(':hidden')) {
-                var oldj = $(this).next('span').text(), newj = $(this).next().next(':text').val();
+                var oldj = $(this).next('span').text(),
+                newj = $(this).next().next(':text').val(),
+                parentj = $(this).parent('div').prev('div').text();
                 $(this).parent('div').css('padding-left', '12px').html('<img src="img/ajaxloader.gif">');
                 $('#rename-journal-form').ajaxSubmit({
                     data: {
                         'new_secondary_title': newj,
                         'old_secondary_title': oldj,
+                        'parent_journal': parentj,
                         'change_journal': 1
                     },
                     success: function() {

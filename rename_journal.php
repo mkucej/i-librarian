@@ -69,15 +69,19 @@ if (!empty($_GET['details'])) {
 }
 
 if (!empty($_GET['change_journal'])) {
-	if (!empty($_GET['new_journal']) && !empty($_GET['old_journal'])) {
+	if (!empty($_GET['new_journal']) && !empty($_GET['old_journal']) &&  !empty($_GET['parent_secondary_title'])) {
 		$old_journal_query = $dbHandle->quote($_GET['old_journal']);
 		$new_journal_query = $dbHandle->quote($_GET['new_journal']);
-		$journal_changed = $dbHandle->exec("UPDATE library SET journal=$new_journal_query WHERE journal=$old_journal_query");
+                $parent_secondary_title_query = $dbHandle->quote($_GET['parent_secondary_title']);
+		$dbHandle->exec("UPDATE library SET journal=" . $new_journal_query 
+                        . " WHERE journal=" . $old_journal_query. " AND secondary_title=" . $parent_secondary_title_query);
 	}
-	if (!empty($_GET['new_secondary_title']) && !empty($_GET['old_secondary_title'])) {
+	if (!empty($_GET['new_secondary_title']) && !empty($_GET['old_secondary_title']) &&  !empty($_GET['parent_journal'])) {
 		$old_secondary_title_query = $dbHandle->quote($_GET['old_secondary_title']);
 		$new_secondary_title_query = $dbHandle->quote($_GET['new_secondary_title']);
-		$journal_changed = $dbHandle->exec("UPDATE library SET secondary_title=$new_secondary_title_query WHERE secondary_title=$old_secondary_title_query");
+                $parent_journal_query = $dbHandle->quote($_GET['parent_journal']);
+		$dbHandle->exec("UPDATE library SET secondary_title=" . $new_secondary_title_query
+                        . " WHERE secondary_title=" . $old_secondary_title_query . " AND journal=" . $parent_journal_query);
 	}
     die();
 }
