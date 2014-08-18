@@ -396,7 +396,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             }
 
             // bibtex does not have a journal abbreviation tag, but if user wants it, put abbreviation in journal tag
-            if (isset($add_item['journal']) && !isset($add_item['secondary_title'])) {
+            if ($item['reference_type'] == 'article' && isset($add_item['journal']) && !isset($add_item['secondary_title'])) {
 
                 $add_item['secondary_title'] = $add_item['journal'];
             }
@@ -431,6 +431,23 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
                 $add_item['pages'] = str_replace('-', '--', $add_item['pages']);
             }
+            
+            if ($item['reference_type'] == 'conference' || $item['reference_type'] == 'chapter') {
+                unset($bibtex_translation['journal = ']);
+                $bibtex_translation['booktitle = '] = 'secondary_title';
+            } elseif ($item['reference_type'] == 'book') {
+                unset($bibtex_translation['journal = ']);
+                $bibtex_translation['seriestitle = '] = 'secondary_title';
+            } elseif ($item['reference_type'] == 'thesis') {
+                unset($bibtex_translation['journal = ']);
+                $bibtex_translation['school = '] = 'secondary_title';
+            } elseif ($item['reference_type'] == 'manual') {
+                unset($bibtex_translation['journal = ']);
+                $bibtex_translation['section = '] = 'secondary_title';
+            } elseif ($item['reference_type'] == 'patent') {
+                unset($bibtex_translation['journal = ']);
+                $bibtex_translation['source = '] = 'secondary_title';
+            }
 
             while (list($key, $value) = each($add_item)) {
 
@@ -441,7 +458,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 if ($bibtex_name && !empty($value))
                     $columns[] = $bibtex_name . '{' . $value . '}';
             }
-
+            
             reset($add_item);
 
             $type = convert_type($item['reference_type'], 'ilib', 'bibtex');
@@ -454,18 +471,6 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             }
             $paper .= '}' . PHP_EOL . PHP_EOL;
             $columns = null;
-
-            if ($item['reference_type'] == 'conference' || $item['reference_type'] == 'chapter') {
-                $paper = str_replace('journal = {', 'booktitle = {', $paper);
-            } elseif ($item['reference_type'] == 'book') {
-                $paper = str_replace('journal = {', 'seriestitle = {', $paper);
-            } elseif ($item['reference_type'] == 'thesis') {
-                $paper = str_replace('journal = {', 'school = {', $paper);
-            } elseif ($item['reference_type'] == 'manual') {
-                $paper = str_replace('journal = {', 'section = {', $paper);
-            } elseif ($item['reference_type'] == 'patent') {
-                $paper = str_replace('journal = {', 'source = {', $paper);
-            }
         }
 
         if ($_GET['format'] == 'RIS') {
