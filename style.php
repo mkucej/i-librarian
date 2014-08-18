@@ -320,7 +320,7 @@ sub {
 input[type="text"],input[type="password"],textarea
 {
     margin: 0;
-    padding: 1px 0;
+    padding: 1px;
     border-radius:3px;
     border-left: 1px solid #a6a8ac;
     border-top: 1px solid #a6a8ac;
