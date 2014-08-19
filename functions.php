@@ -127,55 +127,64 @@ function convert_type($input, $from, $to) {
             'ilib' => 'article',
             'bibtex' => 'article',
             'ris' => 'JOUR',
-            'endnote' => 'Journal Article'
+            'endnote' => 'Journal Article',
+            'csl' => 'article-journal'
         ),
         array(
             'ilib' => 'book',
             'bibtex' => 'book',
             'ris' => 'BOOK',
-            'endnote' => 'Book'
+            'endnote' => 'Book',
+            'csl' => 'book'
         ),
         array(
             'ilib' => 'chapter',
             'bibtex' => 'incollection',
             'ris' => 'CHAP',
-            'endnote' => 'Book Section'
+            'endnote' => 'Book Section',
+            'csl' => 'chapter'
         ),
         array(
             'ilib' => 'conference',
             'bibtex' => 'inproceedings',
             'ris' => 'CONF',
-            'endnote' => 'Conference Paper'
+            'endnote' => 'Conference Paper',
+            'csl' => 'paper-conference'
         ),
         array(
             'ilib' => 'manual',
             'bibtex' => 'manual',
             'ris' => 'STAND',
-            'endnote' => 'Standard'
+            'endnote' => 'Standard',
+            'csl' => 'article-journal'
         ),
         array(
             'ilib' => 'thesis',
             'bibtex' => 'phdthesis',
             'ris' => 'THES',
-            'endnote' => 'Thesis'
+            'endnote' => 'Thesis',
+            'csl' => 'thesis'
         ),
         array(
             'ilib' => 'patent',
             'bibtex' => 'patent',
             'ris' => 'PAT',
-            'endnote' => 'Patent'
+            'endnote' => 'Patent',
+            'csl' => 'patent'
         ),
         array(
             'ilib' => 'electronic',
             'bibtex' => 'electronic',
             'ris' => 'ELEC',
-            'endnote' => 'Electronic Source'
+            'endnote' => 'Electronic Source',
+            'csl' => 'webpage'
         ),
         array(
             'ilib' => 'unpublished',
             'bibtex' => 'unpublished',
             'ris' => 'UNPB',
-            'endnote' => 'Unpublished Work'
+            'endnote' => 'Unpublished Work',
+            'csl' => 'manuscript'
         )
     );
     foreach ($types as $type) {

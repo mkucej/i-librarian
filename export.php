@@ -113,14 +113,13 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
         if ($_GET['format'] == 'citations') {
             
-            // TODO: implement publication types
-            
             if(empty($_GET['citation-style'])) die('Citation style required.');
             
             $authors = '';
             $id = '';
             $title = '';
             $secondary_title = '';
+            $tertiary_title = '';
             $pages = '';
             $volume = '';
             $issue = '';
@@ -132,6 +131,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             if (!empty($add_item['id'])) $id = $add_item['id'];
             if (!empty($add_item['title'])) $title = $add_item['title'];
             if (!empty($add_item['secondary_title'])) $secondary_title = $add_item['secondary_title'];
+            if (!empty($add_item['tertiary_title'])) $tertiary_title = $add_item['tertiary_title'];
             if (!empty($add_item['pages'])) $pages = $add_item['pages'];
             if (!empty($add_item['volume'])) $volume = $add_item['volume'];
             if (!empty($add_item['issue'])) $issue = $add_item['issue'];
@@ -155,12 +155,21 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $i++;
                 }
             }
+            
+            $type = convert_type($item['reference_type'], 'ilib', 'csl');
 
+            // CSL book type, shift secondary title to tertiary title
+            if ($item['reference_type'] == 'book') {
+                $tertiary_title = $secondary_title;
+                $secondary_title = '';
+            }
+            
             $json[$add_item['id']] = array(
                 "id" => $id,
-                "type" => "article-journal",
+                "type" => $type,
                 "title" => $title,
                 "container-title" => $secondary_title,
+                "collection-title" => $tertiary_title,
                 "page" => $pages,
                 "volume" => $volume,
                 "issue" => $issue,
