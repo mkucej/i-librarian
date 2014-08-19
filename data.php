@@ -114,7 +114,6 @@ session_save_path($temp_dir . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions');
 session_start();
 
 // PREVENT ACCESSING PAGES WHEN SIGNED OUT, SENDS FLAG TO JAVASCRIPT CLIENT
-// TODO: MOVE TO RESPECTIVE FILES, DEGRADES PERFORMANCE
 // READ OPEN-ACCESS LINKS
 $ini_array = parse_ini_file("ilibrarian.ini");
 $stablelinks = $ini_array['stablelinks'];
