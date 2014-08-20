@@ -36,8 +36,8 @@ session_write_close();
 $export_files = read_export_files(0);
 if (empty($export_files)) {
     //HACK, SOMETIMES CLIENT IS REFRESHING EXPORT FILES
-    for($i=1;$i<=10;$i++) {
-        if (empty($export_files))  {
+    for ($i = 1; $i <= 10; $i++) {
+        if (empty($export_files)) {
             sleep(1);
             $export_files = read_export_files(0);
         } else {
@@ -111,80 +111,79 @@ if (empty($export_files))
     ?>
 </div>
 <div class="alternating_row middle-panel"
-     style="float:left;width:6px;height:100%;overflow:hidden;border-right:1px solid #b5b6b8;cursor:pointer">
+     style="float:left;width:6px;height:100%;overflow:hidden;border-right:1px solid rgba(0,0,0,0.2);border-left:1px solid rgba(0,0,0,0.2);cursor:pointer">
     <i class="fa fa-caret-left" style="position:relative;left:1px;top:48%"></i>
 </div>
 <div style="width:auto;height:100%;overflow:hidden" id="items-right" data-file="<?php echo $_GET['file'] ?>">
     <?php
     if (!empty($_GET['file'])) {
         ?>
-        <table cellspacing="0" class="top" style="margin-top:0px;margin-bottom:1px">
+        <table class="noprint" style="float:left;width:4em;height:100%">
             <tr>
-                <td class="top">
-                    <div class="ui-state-highlight" id="file-item" style="float:left;padding:2px 5px;border-right:1px solid #aaabaf">
-                        <i class="fa fa-home"></i> Item
+                <td class="ui-state-highlight"
+                    style="border:0;padding:0;
+                    line-height: 1.1em;
+                    border-top:1px solid rgba(0,0,0,0.1);
+                    border-right:1px solid rgba(0,0,0,0.1);
+                    text-align: center">
+                    <div class="tab" id="file-item" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <i class="fa fa-home" style="font-size:16px"></i><br>Item
+                    </div>
+                    <div class="tab" id="file-pdf" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <i class="fa fa-file-pdf-o" style="font-size:16px"></i><br>PDF
+                    </div>
+                    <div class="tab" id="file-notes" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <i class="fa fa-pencil" style="font-size:16px"></i><br>Notes
+                    </div>
+                    <div class="tab" id="file-files" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <i class="fa fa-paperclip" style="font-size:16px"></i><br>Files
+                    </div>
+                    <div class="tab" id="file-categories" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <i class="fa fa-tags" style="font-size:16px"></i><br>Tags
                     </div>
                     <?php
-                    if (isset($_SESSION['auth'])) {
+                    if ($_SESSION['permissions'] != 'G') {
                         ?>
-                        <div class="ui-state-highlight" id="file-pdf" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                            <i class="fa fa-file-pdf-o"></i> PDF
+                        <div class="tab" id="file-edit" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                            <i class="fa fa-cog" style="font-size:16px"></i><br>Edit
                         </div>
-                        <?php
-                        if ($_SESSION['permissions'] != 'G') {
-                            ?>
-                            <div class="ui-state-highlight" id="file-edit" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                                <i class="fa fa-cog"></i> Edit
-                            </div>
-                            <?php
-                        }
-                        ?>
-                        <div class="ui-state-highlight" id="file-notes" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                            <i class="fa fa-pencil"></i> Notes
-                        </div>
-                        <div class="ui-state-highlight" id="file-categories" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                            <i class="fa fa-tags"></i> Categories
-                        </div>
-                        <div class="ui-state-highlight" id="file-files" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                            <i class="fa fa-paperclip"></i> Files
-                        </div>
-                        <div class="ui-state-highlight" id="file-discussion" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                            <i class="fa fa-comments-o"></i> Discuss
-                        </div>
-                        <div id="emailbutton" class="ui-state-highlight" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                            <a href="" target="_blank" style="color:black;display:inline-block">
-                                <i class="fa fa-envelope-o"></i> E-Mail</a>
-                        </div>
-                        <div id="exportfilebutton" class="ui-state-highlight" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf">
-                            <i class="fa fa-briefcase"></i> Export
-                        </div>
-                        <div class="ui-state-highlight" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf" id="printbutton">
-                            <i class="fa fa-print"></i> Print
-                        </div>
-                        <?php
-                        if (isset($_SESSION['auth'])) {
-                            if ($_SESSION['permissions'] == 'A') {
-                                ?>
-                                <div class="ui-state-highlight" style="float:left;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf" id="deletebutton">
-                                    <i class="fa fa-trash-o"></i> Delete
-                                </div>
-                                <?php
-                            }
-                        }
-                        ?>
-                        <div class="ui-state-highlight backbutton" style="float:right;padding:2px 5px;border-left:1px solid #fff;width:1.7em" title="Back to list view (Q)">
-                            <i class="ui-state-error-text fa fa-times-circle"></i>
-                        </div>
-                        <div title="Next Item (S)" style="float:right;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf;width:1.7em" class="nextrecord ui-state-highlight<?php print empty($nextrecord) ? ' ui-state-disabled' : ''  ?>" id="next-item-<?php print $nextrecord ?>">
-                            <i class="fa fa-chevron-circle-down"></i>
-                        </div>
-                        <div title="Previous Item (W)" style="float:right;padding:2px 5px;border-left:1px solid #fff;border-right:1px solid #aaabaf;width:1.7em" class="prevrecord ui-state-highlight<?php print empty($prevrecord) ? ' ui-state-disabled' : ''  ?>" id="prev-item-<?php print $prevrecord ?>">
-                            <i class="fa fa-chevron-circle-up"></i>
-                        </div>
-
                         <?php
                     }
                     ?>
+                    <div class="tab" id="file-discussion" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <i class="fa fa-comments-o" style="font-size:16px"></i><br>Discuss
+                    </div>
+                    <div id="exportfilebutton" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <i class="fa fa-briefcase" style="font-size:16px"></i><br>Export
+                    </div>
+                    <div id="emailbutton" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)">
+                        <a href="" target="_blank" style="color:black;display:inline-block">
+                            <i class="fa fa-envelope-o" style="font-size:16px"></i><br>E-Mail
+                        </a>
+                    </div>
+                    <div style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)" id="printbutton">
+                        <i class="fa fa-print" style="font-size:16px"></i><br>Print
+                    </div>
+                    <?php
+                    if (isset($_SESSION['auth'])) {
+                        if ($_SESSION['permissions'] == 'A') {
+                            ?>
+                            <div style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)" id="deletebutton">
+                                <i class="fa fa-trash-o" style="font-size:16px"></i><br>Delete
+                            </div>
+                            <?php
+                        }
+                    }
+                    ?>
+                    <div title="Previous Item (W)" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)" class="prevrecord <?php print empty($prevrecord) ? ' ui-state-disabled' : ''  ?>" id="prev-item-<?php print $prevrecord ?>">
+                        <i class="fa fa-chevron-circle-up" style="font-size:16px"></i><br>Prev
+                    </div>
+                    <div title="Next Item (S)" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)" class="nextrecord <?php print empty($nextrecord) ? ' ui-state-disabled' : ''  ?>" id="next-item-<?php print $nextrecord ?>">
+                        <i class="fa fa-chevron-circle-down" style="font-size:16px"></i><br>Next
+                    </div>
+                    <div class="backbutton" style="padding:6px 0;border-bottom:0px solid rgba(0,0,0,0.1)" title="Back to list view (Q)">
+                        <i class="ui-state-error-text fa fa-times-circle" style="font-size:16px"></i><br> Close
+                    </div>
                 </td>
             </tr>
         </table>
