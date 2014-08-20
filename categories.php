@@ -124,7 +124,7 @@ if (isset($_SESSION['auth'])) {
         <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;height:100%;margin-top: 0px">
             <tr>
                 <td class="alternating_row" style="width: 190px;padding: 5px">
-                    <input type="text" size="25" id="filter_categories" value="" placeholder="Filter" style="width:190px;margin-bottom:6px">
+                    <input type="text" size="25" id="filtercategories" value="" placeholder="Filter" style="width:190px;margin-bottom:6px">
                     <div class="separator" style="margin:0"></div>
                     <input type="submit" value="Save" style="display:none">
                     

@@ -132,7 +132,7 @@ if (empty($export_files))
                 <i class="fa fa-paperclip"></i><br>Files
             </div>
             <div class="tab" id="file-categories">
-                <i class="fa fa-tags"></i><br>Tags
+                <i class="fa fa-tags"></i><br>Categ.
             </div>
             <?php
             if ($_SESSION['permissions'] != 'G') {
@@ -150,7 +150,7 @@ if (empty($export_files))
                 <i class="fa fa-briefcase"></i><br>Export
             </div>
             <div id="emailbutton">
-                <a href="" target="_blank" style="display:inline-block">
+                <a href="" target="_blank" style="display:inline-block;color:inherit">
                     <i class="fa fa-envelope-o"></i><br>E-Mail
                 </a>
             </div>
@@ -161,7 +161,7 @@ if (empty($export_files))
             if (isset($_SESSION['auth'])) {
                 if ($_SESSION['permissions'] == 'A') {
                     ?>
-                    <div id="deletebutton">
+                    <div id="deletebutton" title="Permanently delete this record (Del)">
                         <i class="fa fa-trash-o"></i><br>Delete
                     </div>
                     <?php

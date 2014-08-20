@@ -1504,15 +1504,18 @@ var rename_journal = {
             if ($(this).next('span').is(':hidden')) {
                 var oldj = $(this).next('span').text(),
                 newj = $(this).next().next(':text').val(),
-                parentst = $(this).parent('div').prev('div').text();
+                parentstr = $(this).parent('div').prev('div').text(), parenttype;
+                if ($(this).parent('div').parent('div').is('#edit-journal-list')) parenttype = 'parent_journal';
+                if ($(this).parent('div').parent('div').is('#edit-secondary-title-list')) parenttype = 'parent_secondary_title';
+                var formdata = {
+                    'new_journal': newj,
+                    'old_journal': oldj,
+                    'change_journal': 1
+                };
+                formdata[parenttype] = parentstr;
                 $(this).parent('div').css('padding-left', '12px').html('<img src="img/ajaxloader.gif">');
                 $('#rename-journal-form').ajaxSubmit({
-                    data: {
-                        'new_journal': newj,
-                        'old_journal': oldj,
-                        'parent_secondary_title': parentst,
-                        'change_journal': 1
-                    },
+                    data: formdata,
                     success: function() {
                         $('#right-panel').load('rename_journal.php', function() {
                             rename_journal.init();
@@ -1530,15 +1533,18 @@ var rename_journal = {
             if ($(this).next('span').is(':hidden')) {
                 var oldj = $(this).next('span').text(),
                 newj = $(this).next().next(':text').val(),
-                parentj = $(this).parent('div').prev('div').text();
+                parentstr = $(this).parent('div').prev('div').text(), parenttype;
+                if ($(this).parent('div').parent('div').is('#edit-journal-list')) parenttype = 'parent_journal';
+                if ($(this).parent('div').parent('div').is('#edit-secondary-title-list')) parenttype = 'parent_secondary_title';
+                var formdata = {
+                    'new_secondary_title': newj,
+                    'old_secondary_title': oldj,
+                    'change_journal': 1
+                };
+                formdata[parenttype] = parentstr;
                 $(this).parent('div').css('padding-left', '12px').html('<img src="img/ajaxloader.gif">');
                 $('#rename-journal-form').ajaxSubmit({
-                    data: {
-                        'new_secondary_title': newj,
-                        'old_secondary_title': oldj,
-                        'parent_journal': parentj,
-                        'change_journal': 1
-                    },
+                    data: formdata,
                     success: function() {
                         $('#right-panel').load('rename_journal.php', function() {
                             rename_journal.init();
@@ -1734,7 +1740,7 @@ var items = {
                     icmarg = Math.max(4, (iconswidth - iconnum * 360) / (iconnum + 1));
             $('#icon-container').find('.thumb-items').css('margin-left', icmarg);
         }).tipsy({
-            gravity: 'ne'
+            gravity: 'w'
         });
         if (selfile === '' || selfile === undefined)
             selfile = $('#items-left > div.listleft:first').data('id');
@@ -1832,6 +1838,8 @@ var items = {
         $("#deletebutton").click(function() {
             $("#delete-file").html('<p><div class="ui-state-error-text fa fa-exclamation-triangle" style="float:left;margin:2px 6px 2em 0"></div> This record and all associated files will be permanently deleted. Are you sure?</p>')
                     .dialog('open');
+        }).tipsy({
+            gravity: 'w'
         });
         $("#printbutton").click(function() {
             if ($('#file-pdf').hasClass('tabclicked')) {
@@ -1857,7 +1865,7 @@ var items = {
                 }, 1000);
             }
         }).tipsy({
-            gravity: 'ne'
+            gravity: 'w'
         });
         $('.nextrecord').click(function() {
             var file = $(this).attr('id').split('-').pop();
@@ -1876,7 +1884,7 @@ var items = {
                 }, 1000);
             }
         }).tipsy({
-            gravity: 'ne'
+            gravity: 'w'
         });
         $('#file-item').click(function() {
             var file = $('#items-right').data('file');
@@ -2000,7 +2008,7 @@ var categories = {
     init: function() {
         common.init();
         var file = $('#categoriesform input[name="file"]').val();
-        $("#filter_categories").keyup(function() {
+        $("#filtercategories").keyup(function() {
             var str = $(this).val(), $container = $(':checkbox').closest('tr');
             if (str !== '') {
                 str = str.replace(/([^a-zA-Z0-9])/g, '\\$1');
