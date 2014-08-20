@@ -178,6 +178,17 @@ if (empty($export_files))
                 <i class="ui-state-error-text fa fa-times-circle"></i><br> Close
             </div>
         </div>
+        <div id="items-pdf-menu">
+            <?php
+            if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
+                print '<i class="fa fa-external-link"></i> <a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" class="pdf_link">
+				<span class="ui-state-highlight" style="padding:0px 2px 0px 2px;margin-right:2px">Open PDF in new window</span></a>';
+
+            if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
+                print '<i class="fa fa-external-link"></i> <a href="' . htmlspecialchars('viewpdf.php?file=' . urlencode($item['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" class="pdf_link">
+				<span class="ui-state-highlight ui-corner-all" style="padding:0px 2px 0px 2px;margin-right:2px">Open PDF in new window</span></a>';
+            ?>
+        </div>
         <div id="file-panel" style="width:auto;height:48%;border-top:1px solid #c6c8cc;overflow:auto">
         </div>
         <?php
