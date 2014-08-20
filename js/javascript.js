@@ -863,7 +863,7 @@ var addarticle = {
                         pg3 = '', scrpt = 'download_arxiv';
             }
             $.getJSON('flagged.php?database=' + db, function(answer) {
-                if (answer === '') {
+                if (answer.length === 0) {
                     $.jGrowl('No flagged items for this database');
                     $('#addarticle-right').load(pg, function() {
                         window[scrpt].init();

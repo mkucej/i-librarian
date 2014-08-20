@@ -774,21 +774,21 @@ if (isset($_SESSION['auth'])) {
                                 <tr>
                                     <td class="select_span">
                                         <input type="checkbox" name="hasabstract" style="display:none" <?php print !empty($_SESSION['session_download_hasabstract']) ? 'checked' : ''; ?>>
-                                        &nbsp;<i class="fa fa-check<?php print !empty($_SESSION['session_download_hasabstract']) ? '-sign' : '-empty'  ?>"></i>
+                                        &nbsp;<i class="fa fa-<?php print !empty($_SESSION['session_download_hasabstract']) ? 'check-square' : 'square-o'  ?>"></i>
                                         have abstracts (hasabstract)
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="select_span">
                                         <input type="checkbox" name="review" style="display:none" <?php print !empty($_SESSION['session_download_review']) ? 'checked' : ''; ?>>
-                                        &nbsp;<i class="fa fa-check<?php print !empty($_SESSION['session_download_review']) ? '-sign' : '-empty'  ?>"></i>
+                                        &nbsp;<i class="fa fa-<?php print !empty($_SESSION['session_download_review']) ? 'check-square' : 'square-o'  ?>"></i>
                                         are reviews (review [PT])
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="select_span">
                                         <input type="checkbox" name="english" style="display:none" <?php print !empty($_SESSION['session_download_english']) ? 'checked' : ''; ?>>
-                                        &nbsp;<i class="fa fa-check<?php print !empty($_SESSION['session_download_english']) ? '-sign' : '-empty'  ?>"></i>
+                                        &nbsp;<i class="fa fa-<?php print !empty($_SESSION['session_download_english']) ? 'check-square' : 'square-o' ?>"></i>
                                         are in English (english [LA])
                                     </td>
                                 </tr>
