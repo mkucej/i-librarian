@@ -157,7 +157,7 @@ $number_of_users = count($users);
             <form action="ajaxdesk.php" method="GET">
                 <input type="hidden" name="rename" value="Rename">
                 <input type="hidden" name="id" value="<?php print htmlspecialchars($project['projectID']) ?>">
-                <input type="text" name="project" value="<?php print htmlspecialchars($project['project']) ?>" style="width:48%">
+                <input type="text" name="project" value="<?php print htmlspecialchars($project['project']) ?>" style="width:47%">
                 <button class="renamebutton" style="margin:0;width:49%">Rename</button><br>
             </form>
             <?php
