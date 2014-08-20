@@ -1706,10 +1706,10 @@ var items = {
             $('#items-left').hide();
             $('#items-container .middle-panel i').removeClass('fa-caret-left').addClass('fa-caret-right');
         }
-        $('#file-panel').height($('#items-right').height() - 25);
+        $('#file-panel').height($('#items-right').height() - 1);
         $(window).resize(function() {
             $('#items-right iframe').height(0);
-            $('#file-panel').height($('#items-right').height() - 25);
+            $('#file-panel').height($('#items-right').height() - 1);
             $('#items-right iframe').height($('iframe').parent().height());
         });
         $("#items-container .middle-panel").click(function() {
@@ -1754,9 +1754,9 @@ var items = {
                 var file = $target.data('id'), pdf = $target.data('file');
                 $('#items-right').data('file', file).data('pdf', pdf);
                 if ($('#items-container').data('tab') !== undefined) {
-                    $('#' + $('#items-container').data('tab')).click().addClass('clicked');
+                    $('#' + $('#items-container').data('tab')).click();
                 } else {
-                    $('#file-item').click().addClass('clicked');
+                    $('#file-item').click();
                 }
                 $.get('history.php?file=' + file);
                 $.get('items.php?neighbors=1&file=' + file, function(answer) {
@@ -1825,12 +1825,16 @@ var items = {
                 $("#pdf-div").css('visibility', '');
             }
         });
+        $('#items-menu').find('.tab').click(function(){
+            $(this).siblings('.tab').removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+        });
         $("#deletebutton").click(function() {
             $("#delete-file").html('<p><div class="ui-state-error-text fa fa-exclamation-triangle" style="float:left;margin:2px 6px 2em 0"></div> This record and all associated files will be permanently deleted. Are you sure?</p>')
                     .dialog('open');
         });
         $("#printbutton").click(function() {
-            if ($('#file-pdf').hasClass('clicked')) {
+            if ($('#file-pdf').hasClass('tabclicked')) {
                 $.jGrowl('PDFs cannot be printed from here.');
                 return false;
             }
@@ -1876,7 +1880,6 @@ var items = {
         });
         $('#file-item').click(function() {
             var file = $('#items-right').data('file');
-            $(this).addClass('clicked').siblings().removeClass('clicked');
             $('#items-container').data('tab', 'file-item');
             $('#file-panel').load('file_top.php?file=' + file, function() {
                 filetop.init(sel);
@@ -1884,7 +1887,6 @@ var items = {
         });
         $('#file-pdf').click(function() {
             var file = $('#items-right').data('pdf');
-            $(this).addClass('clicked').siblings().removeClass('clicked');
             $('#items-container').data('tab', 'file-pdf');
             $('#file-panel').load('pdf_top.php?inline=1&file=' + file, function() {
                 $('#items-right iframe').height($('iframe').parent().height());
@@ -1892,7 +1894,6 @@ var items = {
         });
         $('#file-edit').click(function() {
             var file = $('#items-right').data('file');
-            $(this).addClass('clicked').siblings().removeClass('clicked');
             $('#items-container').data('tab', 'file-edit');
             $('#file-panel').load('edit.php?file=' + file, function() {
                 edit.init();
@@ -1900,7 +1901,6 @@ var items = {
         });
         $('#file-notes').click(function() {
             var file = $('#items-right').data('file');
-            $(this).addClass('clicked').siblings().removeClass('clicked');
             $('#items-container').data('tab', 'file-notes');
             $('#file-panel').load('notes.php?file=' + file, function() {
                 notes.init(file);
@@ -1908,7 +1908,6 @@ var items = {
         });
         $('#file-categories').click(function() {
             var file = $('#items-right').data('file');
-            $(this).addClass('clicked').siblings().removeClass('clicked');
             $('#items-container').data('tab', 'file-categories');
             $('#file-panel').load('categories.php?file=' + file, function() {
                 categories.init();
@@ -1916,7 +1915,6 @@ var items = {
         });
         $('#file-files').click(function() {
             var file = $('#items-right').data('file');
-            $(this).addClass('clicked').siblings().removeClass('clicked');
             $('#items-container').data('tab', 'file-files');
             $('#file-panel').load('files.php?file=' + file, function() {
                 filemanager.init();
@@ -1924,7 +1922,6 @@ var items = {
         });
         $('#file-discussion').click(function() {
             var file = $('#items-right').data('file');
-            $(this).addClass('clicked').siblings().removeClass('clicked');
             $('#items-container').data('tab', 'file-discussion');
             $('#file-panel').load('file_discussion.php?file=' + file, function() {
                 filediscussion.init();
@@ -1963,9 +1960,9 @@ var items = {
             });
         });
         if ($('#items-container').data('tab') !== undefined) {
-            $('#' + $('#items-container').data('tab')).click().addClass('clicked');
+            $('#' + $('#items-container').data('tab')).click();
         } else {
-            $('#file-item').click().addClass('clicked');
+            $('#file-item').click();
         }
         //HOTKEYS
         $(document).unbind('keydown').bind('keydown', 's', function() {

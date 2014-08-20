@@ -167,6 +167,14 @@ a.topindex_clicked {
     background-color: rgba(0,0,0,0.15);
 }
 
+#items-menu > div:hover,
+#items-menu > div:focus,
+#items-menu > div.tabclicked {
+    background-color: #" . $top_window_background_color . ";
+    color: #" . $top_window_color . ";
+    text-shadow: none
+}
+
 #keyboardswitch {
     text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
 }
@@ -446,6 +454,27 @@ table.threed	{
     padding:2px 4px;
     margin:2px 0;
     width:180px;
+}
+
+#items-menu {
+    float:left;
+    width:4em;
+    height:100%;
+    border:0;
+    padding:0;
+    line-height: 1.1em;
+    border-top:1px solid rgba(0,0,0,0.1);
+    border-right:1px solid rgba(0,0,0,0.1);
+    text-align: center
+}
+
+#items-menu > div {
+    padding:6px 0;
+    border-bottom:0px solid rgba(0,0,0,0.1)
+}
+
+#items-menu .fa {
+    font-size: 16px
 }
 
 div.file-title  {
