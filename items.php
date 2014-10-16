@@ -119,6 +119,15 @@ if (empty($export_files))
     if (!empty($_GET['file'])) {
         ?>
         <div class="noprint ui-state-highlight" id="items-menu">
+            <div class="backbutton" title="Back to list view (Q)">
+                <i class="ui-state-error-text fa fa-times-circle"></i><br> Close
+            </div>
+            <div title="Previous Item (W)" class="prevrecord <?php print empty($prevrecord) ? ' ui-state-disabled' : ''  ?>" id="prev-item-<?php print $prevrecord ?>">
+                <i class="fa fa-chevron-circle-up"></i><br>Prev
+            </div>
+            <div title="Next Item (S)" class="nextrecord <?php print empty($nextrecord) ? ' ui-state-disabled' : ''  ?>" id="next-item-<?php print $nextrecord ?>">
+                <i class="fa fa-chevron-circle-down"></i><br>Next
+            </div>
             <div class="tab" id="file-item">
                 <i class="fa fa-home"></i><br>Item
             </div>
@@ -168,17 +177,8 @@ if (empty($export_files))
                 }
             }
             ?>
-            <div title="Previous Item (W)" class="prevrecord <?php print empty($prevrecord) ? ' ui-state-disabled' : ''  ?>" id="prev-item-<?php print $prevrecord ?>">
-                <i class="fa fa-chevron-circle-up"></i><br>Prev
-            </div>
-            <div title="Next Item (S)" class="nextrecord <?php print empty($nextrecord) ? ' ui-state-disabled' : ''  ?>" id="next-item-<?php print $nextrecord ?>">
-                <i class="fa fa-chevron-circle-down"></i><br>Next
-            </div>
-            <div class="backbutton" title="Back to list view (Q)">
-                <i class="ui-state-error-text fa fa-times-circle"></i><br> Close
-            </div>
         </div>
-        <div id="items-pdf-menu">
+        <div id="items-pdf-menu" style="display:none">
             <?php
             if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
                 print '<i class="fa fa-external-link"></i> <a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" class="pdf_link">
