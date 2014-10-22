@@ -342,7 +342,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "editor = " => "editor",
                 "publisher = " => "publisher",
                 "address = " => "place_published",
-                "doi = " => "doi");
+                "doi = " => "doi",
+                "url = " => "url");
 
             if (isset($add_item['authors'])) {
 
