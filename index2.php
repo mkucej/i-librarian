@@ -88,10 +88,11 @@ $ldap_port = $ini_array['ldap_port'];
 $ldap_basedn = $ini_array['ldap_basedn'];
 $ldap_binduser_rdn = $ini_array['ldap_binduser_rdn'];
 $ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
-$ldap_rdn = $ini_array['ldap_rdn'];
-$ldap_cn = $ini_array['ldap_cn'];
-$ldap_user_cn = $ini_array['ldap_user_cn'];
-$ldap_admin_cn = $ini_array['ldap_admin_cn'];
+$ldap_user_rdn = $ini_array['ldap_user_rdn'];
+$ldap_group_rdn = $ini_array['ldap_group_rdn'];
+$ldap_username_attr = $ini_array['ldap_username_attr'];
+$ldap_usergroup_cn = $ini_array['ldap_usergroup_cn'];
+$ldap_admingroup_cn = $ini_array['ldap_admingroup_cn'];
 $ldap_filter = $ini_array['ldap_filter'];
 if (!extension_loaded('ldap'))
     $ldap_active = false;
@@ -334,9 +335,9 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
          */
 
         $ldap_filter_string = '(&(|(objectClass=user)(objectClass=iNetOrgPerson))' .
-            '(' . $ldap_cn . '=' . $username . '))';
+            '(' . $ldap_username_attr . '=' . $username . '))';
 
-        if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_rdn[0] . ',' . $ldap_basedn, $ldap_filter_string, array($ldap_cn)))
+        if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_user_rdn . ',' . $ldap_basedn, $ldap_filter_string, array($ldap_username_attr)))
             die("Bad username or password.");
         $ldap_num_entries = ldap_count_entries($ldap_connect, $ldap_sr);
         if ($ldap_num_entries != 1)
@@ -349,19 +350,19 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
 
             /* AUTHORIZE */
             /* Check if user is in admin group */
-            $ldap_admin_group_dn = $ldap_admin_cn . ',' . $ldap_rdn[1] . ',' . $ldap_basedn;
+            $ldap_admin_group_dn = $ldap_admingroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
             $ldap_sr = @ldap_read($ldap_connect, $ldap_admin_group_dn, '(' . $ldap_filter . '=' . $ldap_user_dn . ')', array('member'));
             $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
 
             if ($ldap_info_group['count'] > 0) {
                 $permissions = 'A';
             } else {
-                /* If we don't have a ldap_user_cn setting, assume all
+                /* If we don't have a ldap_usergroup_cn setting, assume all
                  * users under the search base are eligible */
-                if (is_null($ldap_user_cn)) {
+                if (is_null($ldap_usergroup_cn)) {
                     $permissions = 'U';
                 } else {
-                    $ldap_user_group_dn = $ldap_user_cn . ',' . $ldap_rdn[1] . ',' . $ldap_basedn;
+                    $ldap_user_group_dn = $ldap_usergroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
                     $ldap_sr = @ldap_read($ldap_connect, $ldap_user_group_dn, '(' . $ldap_filter . '=' . $user_dn . ')', array('member'));
                     $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
                     if ($ldap_info_group['count'] > 0) {
