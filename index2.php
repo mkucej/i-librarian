@@ -90,6 +90,7 @@ $ldap_binduser_rdn = $ini_array['ldap_binduser_rdn'];
 $ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
 $ldap_rdn = $ini_array['ldap_rdn'];
 $ldap_cn = $ini_array['ldap_cn'];
+$ldap_user_cn = $ini_array['ldap_user_cn'];
 $ldap_admin_cn = $ini_array['ldap_admin_cn'];
 $ldap_filter = $ini_array['ldap_filter'];
 if (!extension_loaded('ldap'))
@@ -346,14 +347,30 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
         /* AUTHENTICATE */
         if ($ldap_bind = @ldap_bind($ldap_connect, $ldap_user_dn, $password)) {
 
-            /* AUTHORIZE ADMIN */
+            /* AUTHORIZE */
+            /* Check if user is in admin group */
             $ldap_admin_group_dn = $ldap_admin_cn . ',' . $ldap_rdn[1] . ',' . $ldap_basedn;
             $ldap_sr = @ldap_read($ldap_connect, $ldap_admin_group_dn, '(' . $ldap_filter . '=' . $ldap_user_dn . ')', array('member'));
             $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
 
-            $permissions = 'U';
-            if ($ldap_info_group['count'] > 0)
+            if ($ldap_info_group['count'] > 0) {
                 $permissions = 'A';
+            } else {
+                /* If we don't have a ldap_user_cn setting, assume all
+                 * users under the search base are eligible */
+                if (is_null($ldap_user_cn)) {
+                    $permissions = 'U';
+                } else {
+                    $ldap_user_group_dn = $ldap_user_cn . ',' . $ldap_rdn[1] . ',' . $ldap_basedn;
+                    $ldap_sr = @ldap_read($ldap_connect, $ldap_user_group_dn, '(' . $ldap_filter . '=' . $user_dn . ')', array('member'));
+                    $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
+                    if ($ldap_info_group['count'] > 0) {
+                        $permissions = 'U';
+                    } else {
+                        die("Bad username or password.");
+                    }
+                }
+            }
 
             $dbHandle->beginTransaction();
 
