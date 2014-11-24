@@ -41,6 +41,9 @@ Contents:
     <Directory "C:\I, Librarian\library">
         Order allow,deny
     </Directory>
+    <Files "C:\I, Librarian\ilibrarian.ini">
+        Order allow,deny
+    </Files>
 
     You may change "C:\I, Librarian" to any directory where you want to have
     I, Librarian, including an external drive. For a groupware use, you need to
@@ -100,6 +103,9 @@ Contents:
     <Directory "/var/www/html/librarian/library">
         Order allow,deny
     </Directory>
+    <Files "/var/www/html/librarian/ilibrarian.ini">
+        Order allow,deny
+    </Files>
 
     To enable access from the Network, you need to allow access to more
     IP numbers or domain names. Just add more Allow from directives (Allow from
@@ -128,6 +134,9 @@ Contents:
     <Directory /Users/Yourusername/Sites/librarian/library>
         Order allow,deny
     </Directory>
+    <Files "/Users/Yourusername/Sites/librarian/ilibrarian.ini">
+        Order allow,deny
+    </Files>
 
     Don't forget to change "yourusername" to your actual user name. You can find
     out your user name by typing whoami in Terminal.

@@ -40,6 +40,8 @@ $ldap_version = $ini_array['ldap_version'];
 $ldap_server = $ini_array['ldap_server'];
 $ldap_port = $ini_array['ldap_port'];
 $ldap_basedn = $ini_array['ldap_basedn'];
+$ldap_binduser_rdn = $ini_array['ldap_binduser_rdn'];
+$ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
 $ldap_rdn = $ini_array['ldap_rdn'];
 $ldap_cn = $ini_array['ldap_cn'];
 $ldap_admin_cn = $ini_array['ldap_admin_cn'];
@@ -127,20 +129,42 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
     /* IS THE USER AN LDAP USER? */
     if ($ldap_active) {
 
+        /* CONNECT */
         if (!$ldap_connect = ldap_connect($ldap_server, $ldap_port))
             die("Could not connect to LDAP server");
 
         if (!ldap_set_option($ldap_connect, LDAP_OPT_PROTOCOL_VERSION, $ldap_version))
             die("Failed to set version to protocol $ldap_version");
 
-        $ldap_dn = $ldap_cn . $username . ',' . $ldap_rdn['users'] . ',' . $ldap_basedn;
+        /* BIND */
+        $ldap_binduser_dn = $ldap_binduser_rdn . ',' . $ldap_basedn;
+        if (!$ldap_bind = @ldap_bind($ldap_connect, $ldap_binduser_dn, $ldap_binduser_pw))
+            die("Failed to bind as proxy user.");
+
+        /* LOOKUP */
+        /* Users matching the following criteria are eligible:
+         * - must be a person object of class user or iNetOrgPerson
+         * - username must match the CN attribute specified in INI file
+         * - must be situated below the base search DN
+         */
+
+        $ldap_filter_string = '(&(|(objectClass=user)(objectClass=iNetOrgPerson))' .
+            '(' . $ldap_cn . '=' . $username . '))';
+
+        if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_rdn[0] . ',' . $ldap_basedn, $ldap_filter_string, array($ldap_cn)))
+            die("Bad username or password.");
+        $ldap_num_entries = ldap_count_entries($ldap_connect, $ldap_sr);
+        if ($ldap_num_entries != 1)
+            die("Bad username or password.");
+        $ldap_user_sr = ldap_first_entry($ldap_connect, $ldap_sr);
+        $ldap_user_dn = ldap_get_dn($ldap_connect, $ldap_user_sr);
 
         /* AUTHENTICATE */
-        if ($ldap_bind = @ldap_bind($ldap_connect, $ldap_dn, $password)) {
+        if ($ldap_bind = @ldap_bind($ldap_connect, $ldap_user_dn, $password)) {
 
             /* AUTHORIZE ADMIN */
-            $ldap_dn = $ldap_admin_cn . ',' . $ldap_rdn['groups'] . ',' . $ldap_basedn;
-            $ldap_sr = @ldap_read($ldap_connect, $ldap_dn, '(' . $ldap_filter . $username . ')', array('memberUid'));
+            $ldap_admin_group_dn = $ldap_admin_cn . ',' . $ldap_rdn[1] . ',' . $ldap_basedn;
+            $ldap_sr = @ldap_read($ldap_connect, $ldap_admin_group_dn, '(' . $ldap_filter . '=' . $ldap_user_dn . ')', array('member'));
             $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
 
             $permissions = 'U';
