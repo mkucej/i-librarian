@@ -64,7 +64,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
         <div class="separator" style="margin:0"></div>
         <div class="alternating_row items ui-corner-bottom">
             <button class="open-dirs-button" title="Browse directories"><i class="fa fa-folder-open"></i></button>
-            <form action="synchronize.php" method="GET">
+            <form action="synchronize.php" method="GET" id="form-synchronize">
                 <input type="text" size="50" style="width:420px" name="directory" value="<?php if (!empty($backup_dir)) print $backup_dir; ?>"><br>
                 <span class="ui-state-error-text">The backup must be newer then this library.</span><br>
                 <input type="submit" value="Proceed">

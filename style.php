@@ -167,6 +167,10 @@ a.topindex_clicked {
     background-color: rgba(0,0,0,0.15);
 }
 
+#items-menu > div {
+    padding: 8px 0
+}
+
 #items-menu > div:hover,
 #items-menu > div:focus,
 #items-menu > div.tabclicked {

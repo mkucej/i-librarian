@@ -114,7 +114,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
             </div>
             <div class="separator" style="margin:0"></div>
             <div class="alternating_row items ui-corner-bottom">
-                <form action="backup.php" method="GET">
+                <form action="backup.php" method="GET" class="form-backup">
                     <input type="hidden" name="backup" value="1">
                     <button class="open-dirs-button" title="Browse directories"><i class="fa fa-folder-open"></i></button>
                     <input type="text" size="50" style="width:420px" name="directory" value="<?php if (!empty($backup_dir)) print $backup_dir; ?>"><br>
@@ -195,7 +195,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
             </div>
             <div class="separator" style="margin:0"></div>
             <div class="alternating_row items ui-corner-bottom">
-                <form action="backup.php" method="GET">
+                <form action="backup.php" method="GET" class="form-backup">
                     <input type="hidden" name="restore" value="1">
                     <button class="open-dirs-button" title="Browse directories"><i class="fa fa-folder-open"></i></button>
                     <input type="text" size="50" style="width:420px" name="directory" value="<?php if (!empty($backup_dir)) print $backup_dir; ?>"><br>

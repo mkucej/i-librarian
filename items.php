@@ -49,6 +49,22 @@ if (empty($export_files))
     die('Error! No files to display.');
 ?>
 <div id="items-left" class="noprint alternating_row" style="position:relative;float:left;width:233px;height:100%;overflow:scroll;border:0;margin:0">
+
+    <div style="padding:4px 0;border:0;background-color:rgba(0,0,0,0.75);color:white;position:fixed;bottom:40px;left:60px;width:100px;text-align: center;border-radius: 16px;cursor:pointer">
+        <div class="backbutton" title="Back to list view (Q)" style="float:left;width:calc(33% - 4px);padding:2px">
+            <i class="fa fa-times-circle"></i>
+        </div>
+        <div title="Previous Item (W)" style="float:left;width:calc(33% - 4px);padding:2px"
+             class="prevrecord <?php print empty($prevrecord) ? ' ui-state-disabled' : ''  ?>" id="prev-item-<?php print $prevrecord ?>">
+            <i class="fa fa-chevron-circle-up"></i>
+        </div>
+        <div title="Next Item (S)"  style="float:left;width:calc(33% - 4px);padding:2px"
+             class="nextrecord <?php print empty($nextrecord) ? ' ui-state-disabled' : ''  ?>" id="next-item-<?php print $nextrecord ?>">
+            <i class="fa fa-chevron-circle-down"></i>
+        </div>
+        <div style="clear:both"></div>
+    </div>
+
     <?php
     if (empty($_GET['file']))
         $_GET['file'] = $export_files[0];
@@ -119,15 +135,6 @@ if (empty($export_files))
     if (!empty($_GET['file'])) {
         ?>
         <div class="noprint ui-state-highlight" id="items-menu">
-            <div class="backbutton" title="Back to list view (Q)">
-                <i class="ui-state-error-text fa fa-times-circle"></i><br> Close
-            </div>
-            <div title="Previous Item (W)" class="prevrecord <?php print empty($prevrecord) ? ' ui-state-disabled' : ''  ?>" id="prev-item-<?php print $prevrecord ?>">
-                <i class="fa fa-chevron-circle-up"></i><br>Prev
-            </div>
-            <div title="Next Item (S)" class="nextrecord <?php print empty($nextrecord) ? ' ui-state-disabled' : ''  ?>" id="next-item-<?php print $nextrecord ?>">
-                <i class="fa fa-chevron-circle-down"></i><br>Next
-            </div>
             <div class="tab" id="file-item">
                 <i class="fa fa-home"></i><br>Item
             </div>
@@ -136,9 +143,6 @@ if (empty($export_files))
             </div>
             <div class="tab" id="file-notes">
                 <i class="fa fa-pencil"></i><br>Notes
-            </div>
-            <div class="tab" id="file-files">
-                <i class="fa fa-paperclip"></i><br>Files
             </div>
             <div class="tab" id="file-categories">
                 <i class="fa fa-tags"></i><br>Categ.
@@ -152,6 +156,9 @@ if (empty($export_files))
                 <?php
             }
             ?>
+            <div class="tab" id="file-files">
+                <i class="fa fa-paperclip"></i><br>Files
+            </div>
             <div class="tab" id="file-discussion">
                 <i class="fa fa-comments-o"></i><br>Discuss
             </div>
