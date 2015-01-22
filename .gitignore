@@ -1,4 +1,5 @@
 /nbproject
+/fonts/*
 /library/*.pdf
 /library/database/*.sq3
 /library/pngs/*.png
