@@ -811,7 +811,7 @@ if (!empty($_GET['searchmode'])) {
 
         print "\n  </td>\n </tr>\n</table>";
     } else {
-        print '<div style="position:relative;top:43%;left:43%;color:#bfbeb9;font-size:28px;width:200px"><b>No Hits</b></div>';
+        print '<div style="position:relative;top:43%;left:0;color:#bfbeb9;font-size:28px;width:100%;text-align:center"><b>No Hits</b></div>';
     }
     print '</div>';
 

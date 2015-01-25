@@ -548,7 +548,7 @@ if (isset($_GET['browse'])) {
 
             print '</td></tr></table><br>';
         } else {
-            print '<div style="position:relative;top:43%;left:40%;color:#bfbeb9;font-size:28px;width:200px"><b>No Items</b></div>';
+            print '<div style="position:relative;top:43%;left:0;color:#bfbeb9;font-size:28px;width:100%;text-align:center"><b>No Items</b></div>';
         }
     }
     ?>
