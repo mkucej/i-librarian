@@ -56,7 +56,7 @@ if ($_GET['binary'] == 'pdftotext') {
     }
 } elseif ($_GET['binary'] == 'tesseract') {
 
-    exec('tesseract ' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'test.bmp "' . $temp_dir . DIRECTORY_SEPARATOR . 'test-tesseract"');
+    exec(select_tesseract() . ' "' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'test.bmp" "' . $temp_dir . DIRECTORY_SEPARATOR . 'test-tesseract"');
 
     if (is_readable($temp_dir . DIRECTORY_SEPARATOR . 'test-tesseract.txt') && filesize($temp_dir . DIRECTORY_SEPARATOR . 'test-tesseract.txt') > 0) {
         unlink($temp_dir . DIRECTORY_SEPARATOR . 'test-tesseract.txt');

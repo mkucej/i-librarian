@@ -35,6 +35,9 @@ session_write_close();
 
 empty($in) ? $and = '' : $and = 'AND';
 
+if (isset($_GET['term']))
+    $_GET['filter'] = $_GET['term'];
+
 if (isset($_GET['filter'])) {
     $filter = $_GET['filter'];
     $filter_query = $dbHandle->quote("%$filter%");
@@ -47,9 +50,12 @@ if (isset($_GET['filter'])) {
 if (isset($_GET['open']) && in_array("authors", $_GET['open'])) {
 
     $filter_arr = array();
-    if (strstr($filter, ',') !== 0) $filter_arr = explode (',', $filter);
-    if (!empty($filter_arr[0])) $author_filter = $dbHandle->quote('%L:"' . trim($filter_arr[0]) .'%');
-    if (!empty($filter_arr[1])) $author_filter = $dbHandle->quote('%L:"' . trim($filter_arr[0]) .'",F:"' . trim($filter_arr[1]) . '%');
+    if (strstr($filter, ',') !== 0)
+        $filter_arr = explode(',', $filter);
+    if (!empty($filter_arr[0]))
+        $author_filter = $dbHandle->quote('%L:"' . trim($filter_arr[0]) . '%');
+    if (!empty($filter_arr[1]))
+        $author_filter = $dbHandle->quote('%L:"' . trim($filter_arr[0]) . '",F:"' . trim($filter_arr[1]) . '%');
 
     $result = $dbHandle->query("SELECT authors || ';' || authors_ascii FROM library WHERE $in $and (authors LIKE $author_filter OR authors_ascii LIKE $author_filter)");
     $authors = $result->fetchAll(PDO::FETCH_COLUMN);
@@ -76,12 +82,19 @@ if (isset($_GET['open']) && in_array("authors", $_GET['open'])) {
     $authors_unique = array_unique($authors);
     usort($authors_unique, "strnatcasecmp");
 
+    $json_authors = array();
+    
     while (list($key, $authors) = each($authors_unique)) {
         $authors = str_replace('L:"', '', $authors);
         $authors = str_replace(',F:"', ', ', $authors);
         $authors = str_replace('"', '', $authors);
-        print PHP_EOL . '<span class="author" id="' . urlencode($authors) . '">' . htmlspecialchars($authors) . '</span><br>';
+        $json_authors[] = $authors;
+        if (!isset($_GET['term'])) print PHP_EOL . '<span class="author" id="' . urlencode($authors) . '">' . htmlspecialchars($authors) . '</span><br>';
     }
+    
+    // autocomplete
+    if (isset($_GET['term']))
+        echo json_encode($json_authors);
 }
 
 ######################################################################

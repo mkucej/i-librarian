@@ -109,7 +109,7 @@ $(window).load(function() {
         $('#bottom-panel, #addrecord-panel, #items-container').height(h);
     });
     $.extend($.ui.dialog.prototype.options, {
-        modal: true,
+        modal: false,
         resizable: false,
         draggable: false
     });
@@ -293,11 +293,13 @@ var common = {
             e.stopPropagation();
             if ($(this).hasClass('ui-state-disabled'))
                 e.stopImmediatepropagation();
-            var $input = $(this).children('input'), $span = $(this).children('i');
+            var $input = $(this).children('input'), $span = $(this).find('i');
             if ($input.is(':radio')) {
                 var rname = $input.attr('name');
                 $input.prop('checked', true);
-                $(this).closest('table').find('input[name="' + rname + '"]').next().removeClass('fa-circle').addClass('fa-circle-o');
+                $(this).closest('table').find('input[name="' + rname + '"]').each(function() {
+                    $(this).parent().find('i').removeClass('fa-circle').addClass('fa-circle-o');
+                });
                 $span.removeClass('fa-circle-o').addClass('fa-circle');
             } else if ($input.is(':checkbox')) {
                 if ($span.hasClass('fa-square-o')) {
@@ -341,6 +343,7 @@ var omnitool = {
             $(":checkbox[value=8]").parent('td').removeClass('ui-state-disabled').addClass('select_span');
             common.init();
         });
+        $('#omnitooldiv select').selectmenu();
     }
 };
 
@@ -591,7 +594,7 @@ var index2 = {
         $('#signinform').submit(function() {
             $('#signinbutton').click();
             return false;
-        });
+        }).find('select').selectmenu();
         $('#signupbutton').click(function() {
             var $form = $('#signupform'), passwd = $form.find('input[name=pass]').val(),
                     username = $form.find('input[name=user]').val(), passwd2 = $form.find('input[name=pass2]').val();
@@ -1176,10 +1179,10 @@ var batchimport = {
                                     $(this).dialog('close');
                                 }
                             }).dialog({
-                                width: 600,
-                                height: 400,
-                                title: 'Progress'
-                            }).dialog('open');
+                        width: 600,
+                        height: 400,
+                        title: 'Progress'
+                    }).dialog('open');
                     pollLog();
                 } else {
                     $.jGrowl('Batch Import is in progress.');
@@ -1404,7 +1407,7 @@ var users = {
         $("#delete-confirm").dialog({
             autoOpen: false,
             resizable: false,
-            modal: true,
+            modal: false,
             position: ['center', 200],
             buttons: {
                 'Delete User': function() {
@@ -1503,10 +1506,12 @@ var rename_journal = {
         $(".rename-journal-button").unbind().click(function() {
             if ($(this).next('span').is(':hidden')) {
                 var oldj = $(this).next('span').text(),
-                newj = $(this).next().next(':text').val(),
-                parentstr = $(this).parent('div').prev('div').text(), parenttype;
-                if ($(this).parent('div').parent('div').is('#edit-journal-list')) parenttype = 'parent_journal';
-                if ($(this).parent('div').parent('div').is('#edit-secondary-title-list')) parenttype = 'parent_secondary_title';
+                        newj = $(this).next().next(':text').val(),
+                        parentstr = $(this).parent('div').prev('div').text(), parenttype;
+                if ($(this).parent('div').parent('div').is('#edit-journal-list'))
+                    parenttype = 'parent_journal';
+                if ($(this).parent('div').parent('div').is('#edit-secondary-title-list'))
+                    parenttype = 'parent_secondary_title';
                 var formdata = {
                     'new_journal': newj,
                     'old_journal': oldj,
@@ -1532,10 +1537,12 @@ var rename_journal = {
         $(".rename-secondary-title-button").unbind().click(function() {
             if ($(this).next('span').is(':hidden')) {
                 var oldj = $(this).next('span').text(),
-                newj = $(this).next().next(':text').val(),
-                parentstr = $(this).parent('div').prev('div').text(), parenttype;
-                if ($(this).parent('div').parent('div').is('#edit-journal-list')) parenttype = 'parent_journal';
-                if ($(this).parent('div').parent('div').is('#edit-secondary-title-list')) parenttype = 'parent_secondary_title';
+                        newj = $(this).next().next(':text').val(),
+                        parentstr = $(this).parent('div').prev('div').text(), parenttype;
+                if ($(this).parent('div').parent('div').is('#edit-journal-list'))
+                    parenttype = 'parent_journal';
+                if ($(this).parent('div').parent('div').is('#edit-secondary-title-list'))
+                    parenttype = 'parent_secondary_title';
                 var formdata = {
                     'new_secondary_title': newj,
                     'old_secondary_title': oldj,
@@ -1651,58 +1658,6 @@ var rename_category = {
     }
 };
 
-var notes = {
-    init: function(file) {
-        $(".edit-notes").click(function() {
-            if (tinymce.get('notes'))
-                tinymce.get('notes').remove();
-            var divh = $('#file-panel').height() - 69;
-            $.getScript('imagelist.php?id=' + file, function() {
-                $('#file-panel').load('notes.php?editnotes=1&file=' + file, function() {
-                    notes.init(file);
-                    tinymce.init({
-                        selector: "#notes",
-                        body_id: "notes_ifr",
-                        content_css: "style.php",
-                        height: divh,
-                        menubar: false,
-                        statusbar: false,
-                        browser_spellcheck: true,
-                        plugins: ["save print table image advlist code link anchor charmap textcolor searchreplace"],
-                        toolbar1: "save print code | undo redo cut copy paste | bold italic underline strikethrough subscript superscript removeformat | alignleft aligncenter alignright alignjustify | searchreplace",
-                        toolbar2: "formatselect fontsizeselect | forecolor backcolor | table | bullist numlist outdent indent | image | charmap | link unlink anchor",
-                        save_enablewhendirty: false,
-                        save_onsavecallback: savenotes,
-                        image_list: tinymceImageList,
-                        fontsize_formats: "12px 13px 14px 15px 16px 18px 20px 26px",
-                        invalid_elements: "script,iframe,embed,object",
-                        extended_valid_elements: "math,maction,maligngroup,malignmark,menclose,merror,mfenced,mfrac,mglyph,mi,mlabeledtr,mlongdiv,mmultiscripts,mn,mo,mover,mpadded"
-                                + "mphantom,mroot,mrow,ms,mscarries,mscarry,msgroup,msline,mspace,msqrt,msrow,mstack,mstyle,msub,msup,msubsup,mtable,mtd,mtext,mtr,munder,munderover"
-                    });
-                    $(window).resize(function() {
-                        $('#notes_ifr').height($('#file-panel').height() - 69);
-                    });
-                    function savenotes() {
-                        var sel = $('body').data('sel'), ref = $('body').data('right-panel-url');
-                        var ed = tinymce.get('notes');
-                        ed.setProgressState(1);
-                        $('#form-notes').ajaxSubmit(function() {
-                            ed.setProgressState(0);
-                            ed.remove();
-                            $('#file-panel').load('notes.php?file=' + file, function() {
-                                notes.init(file);
-                            });
-                            $('#right-panel').load(ref, function() {
-                                displaywindow.init(sel, ref);
-                            });
-                        });
-                    }
-                });
-            });
-        }).button();
-    }
-};
-
 var items = {
     init: function(selfile) {
         var lw = 233, sel = $('body').data('sel');
@@ -1790,7 +1745,6 @@ var items = {
         $('#list-item-' + selfile).click();
         $("#delete-file").dialog({
             autoOpen: false,
-            position: ['center', 'center'],
             buttons: {
                 'Delete Record': function() {
                     var file = $('#items-right').data('file');
@@ -1832,7 +1786,7 @@ var items = {
                 $("#pdf-div").css('visibility', '');
             }
         });
-        $('#items-menu').find('.tab').click(function(){
+        $('#items-menu').find('.tab').click(function() {
             $(this).siblings('.tab').removeClass('tabclicked');
             $(this).addClass('tabclicked');
         });
@@ -1896,12 +1850,28 @@ var items = {
                 filetop.init(sel);
             });
         });
+        var menudelay;
         $('#file-pdf').click(function() {
             var file = $('#items-right').data('pdf');
             $('#items-container').data('tab', 'file-pdf');
             $('#file-panel').load('pdf_top.php?inline=1&file=' + file, function() {
                 $('#items-right iframe').height($('iframe').parent().height());
             });
+        }).mouseenter(function() {
+            clearTimeout(menudelay);
+            var offset = $('#file-pdf').offset();
+            $('#items-pdf-menu').css('top', offset.top).css('left', offset.left + 53).show();
+        }).mouseleave(function() {
+            menudelay = setTimeout(function() {
+                $('#items-pdf-menu').hide();
+            }, 100);
+        });
+        $('#items-pdf-menu').mouseenter(function() {
+            clearTimeout(menudelay);
+        }).mouseleave(function() {
+            menudelay = setTimeout(function() {
+                $('#items-pdf-menu').hide()
+            }, 100);
         });
         $('#file-edit').click(function() {
             var file = $('#items-right').data('file');
@@ -1910,11 +1880,48 @@ var items = {
                 edit.init();
             });
         });
+        $('#items-pdf-menu-a').click(function() {
+            var filename = $('#items-left').find('.clicked').data('file'), title = $('#items-left').find('.clicked').text();
+            var mode = $(this).data('mode');
+            if (mode === 'internal')
+                window.open('viewpdf.php?file=' + filename + '&title=' + title);
+            if (mode === 'external')
+                window.open('downloadpdf.php?file=' + filename + '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0');
+        });
+        $('#items-pdf-menu-b').click(function() {
+            var filename = $('#items-left').find('.clicked').data('file');
+            window.location.assign('downloadpdf.php?mode=download&file=' + filename);
+        });
+        var menudelay2;
         $('#file-notes').click(function() {
             var file = $('#items-right').data('file');
             $('#items-container').data('tab', 'file-notes');
-            $('#file-panel').load('notes.php?file=' + file, function() {
-                notes.init(file);
+            $('#file-panel').load('notes.php?file=' + file);
+        }).mouseenter(function() {
+            clearTimeout(menudelay2);
+            var offset = $('#file-notes').offset();
+            $('#items-notes-menu').css('top', offset.top).css('left', offset.left + 53).show();
+        }).mouseleave(function() {
+            menudelay2 = setTimeout(function() {
+                $('#items-notes-menu').hide()
+            }, 100);
+        });
+        $('#items-notes-menu').mouseenter(function() {
+            clearTimeout(menudelay2);
+        }).mouseleave(function() {
+            menudelay2 = setTimeout(function() {
+                $('#items-notes-menu').hide()
+            }, 100);
+        }).click(function() {
+            var file = $('#items-right').data('file');
+            $('#items-notes-menu').hide();
+            // if open, close open notes safely
+            if ($('#floating-notes > .ui-widget-header > .fa-times-circle').length === 1)
+                $('#floating-notes > .ui-widget-header > .fa-times-circle').click();
+            $.getScript('imagelist.php?id=' + file, function() {
+                $('#floating-notes').children('div').eq('1').load('notes.php?editnotes=1&file=' + file, function() {
+                    notes.init();
+                });
             });
         });
         $('#file-categories').click(function() {
@@ -1977,24 +1984,113 @@ var items = {
         }
         //HOTKEYS
         $(document).unbind('keydown').bind('keydown', 's', function() {
-            if ($('.ui-dialog:visible').length === 0)
-                $('.nextrecord').click();
+            $('.nextrecord').click();
         }).bind('keydown', 'w', function() {
-            if ($('.ui-dialog:visible').length === 0)
-                $('.prevrecord').click();
+            $('.prevrecord').click();
         }).bind('keydown', 'd', function() {
-            if ($('.nextpage').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('.nextpage').is(':visible'))
                 $('.nextpage').click();
         }).bind('keydown', 'a', function() {
-            if ($('.prevpage').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('.prevpage').is(':visible'))
                 $('.prevpage').click();
         }).bind('keydown', 'del', function() {
-            if ($('#deletebutton').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('#deletebutton').is(':visible'))
                 $('#deletebutton').click();
         }).bind('keydown', 'q', function() {
-            if ($('.backbutton').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('.backbutton').is(':visible'))
                 $('.backbutton').click();
         });
+    }
+};
+
+var notes = {
+    init: function() {
+        // notes window is resizable and draggable
+        $("#floating-notes").resizable({
+            handles: "all",
+            minWidth: 600,
+            start: function() {
+                $('#iframe-fix').show();
+            },
+            stop: function() {
+                $('#iframe-fix').hide();
+                localStorage.setItem('notes-height', $('#floating-notes').height());
+            },
+            resize: function() {
+                $('.mce-edit-area, #notes_ifr').height($(this).height() - $('.mce-toolbar-grp').outerHeight() - $('#floating-notes > .ui-widget-header').outerHeight() - 18);
+            }
+        }).draggable({
+            containment: 'body',
+            handle: 'div.ui-widget-header'
+        });
+        // copy title to notes window
+        $('#floating-notes > .ui-widget-header > div').text($('#items-left').find('.clicked').text());
+        // bind click handlers for utility buttons
+        $('#floating-notes > .ui-widget-header > .fa-times-circle').unbind().click(function() {
+            var ed = tinymce.get('notes');
+            if (ed)
+                ed.remove();
+            $('#floating-notes').hide().children('div').eq('1').empty();
+        });
+        $('#floating-notes > .ui-widget-header > .fa-plus-circle').unbind().click(function() {
+            var notesh = localStorage.getItem('notes-height');
+            if (!notesh)
+                notesh = 400;
+            $('#floating-notes').height(notesh).resizable("enable");
+        });
+        $('#floating-notes > .ui-widget-header > .fa-minus-circle').unbind().click(function() {
+            if ($('#floating-notes').height() > ($('#floating-notes > .ui-widget-header').outerHeight() + 10)) {
+                localStorage.setItem('notes-height', $('#floating-notes').height());
+                $('#floating-notes').height($('#floating-notes > .ui-widget-header').outerHeight()).resizable("disable");
+            }
+        });
+        // always maximize new window
+        $('#floating-notes > .ui-widget-header > .fa-plus-circle').click();
+        // show notes
+        $('#floating-notes').show();
+        // get user set height, if exists
+        var notesh = localStorage.getItem('notes-height');
+        // default height
+        if (!notesh)
+            notesh = 400;
+        // set proper height for TinyMCE
+        var divh = notesh - $('#floating-notes > .ui-widget-header').outerHeight() - 116;
+        // initiate tinyMCE
+        tinymce.init({
+            selector: "#notes",
+            body_id: "notes_ifr",
+            content_css: "style.php",
+            height: divh,
+            menubar: false,
+            statusbar: false,
+            browser_spellcheck: true,
+            plugins: ["save print table image advlist code link anchor charmap textcolor searchreplace"],
+            toolbar1: "save print code | undo redo cut copy paste | formatselect fontsizeselect ",
+            toolbar2: "bold italic underline strikethrough subscript superscript removeformat | alignleft aligncenter alignright alignjustify |  bullist numlist outdent indent",
+            toolbar3: "forecolor backcolor | table | image | charmap | link unlink anchor | searchreplace",
+            save_enablewhendirty: false,
+            save_onsavecallback: savenotes,
+            image_list: tinymceImageList,
+            fontsize_formats: "12px 13px 14px 15px 16px 18px 20px 26px",
+            invalid_elements: "script,iframe,embed,object",
+            extended_valid_elements: "math,maction,maligngroup,malignmark,menclose,merror,mfenced,mfrac,mglyph,mi,mlabeledtr,mlongdiv,mmultiscripts,mn,mo,mover,mpadded"
+                    + "mphantom,mroot,mrow,ms,mscarries,mscarry,msgroup,msline,mspace,msqrt,msrow,mstack,mstyle,msub,msup,msubsup,mtable,mtd,mtext,mtr,munder,munderover"
+        });
+        function savenotes() {
+            var sel = $('body').data('sel'), ref = $('body').data('right-panel-url');
+            var ed = tinymce.get('notes');
+            ed.setProgressState(1);
+            $('#form-notes').ajaxSubmit(function() {
+                ed.setProgressState(0);
+                $('#right-panel').load(ref, function() {
+                    displaywindow.init(sel, ref);
+                });
+                if ($('#items-container').data('tab') === 'file-notes')
+                    $('#file-notes').click();
+                if ($('#items-container').data('tab') === 'file-item')
+                    $('#file-item').click();
+            });
+        }
     }
 };
 
@@ -2004,7 +2100,7 @@ var exportitems = {
             source: "ajaxstyles.php",
             minLength: 1
         });
-        $('#citation-style').keydown(function(){
+        $('#citation-style').keydown(function() {
             $('#exportform').attr('target', 'exportwindow');
         });
     }
@@ -2208,6 +2304,14 @@ var edit = {
             });
             var author = authors.join(';');
             $(this).closest('.author-inputs').next('input[name="authors"]').val(author);
+        }).autocomplete({
+            source: 'ajaxfilter.php?open[]=authors',
+            minLength: 1,
+            select: function(e, data) {
+                var auth = data.item.value.split(', ');
+                $(e.target).val(auth[0]).next().next().val(auth[1]);
+                return false;
+            }
         });
         $('#metadataform .editor-inputs div').bind('keyup blur', function() {
             var authors = [];
@@ -2261,6 +2365,17 @@ var edit = {
                 $('.td-secondary-title').text('Secondary title:');
                 $('.td-tertiary-title').text('Tertiary title:');
             }
+        });
+        $('#metadataform input[name="journal_abbr"]').autocomplete({
+            source: "ajaxjournals.php?search=journal",
+            minLength: 1
+        });
+        $('#metadataform input[name="secondary_title"]').autocomplete({
+            source: "ajaxjournals.php?search=secondary_title",
+            minLength: 1
+        });
+        $('#file-panel').scroll(function() {
+            $('#metadataform input[name="journal_abbr"],#metadataform input[name="secondary_title"]').autocomplete('close');
         });
     }
 };
@@ -2696,46 +2811,12 @@ var displaywindow = {
                 );
             }
         });
-        $('#customization').click(function(e) {
-            var url = null, $target = $(e.target),
-                    $tr = $target.closest('tr'), $td = $target.closest('td'),
-                    position = $tr.children('td').index($td), redirection = $(this).data('redirection');
-            e.stopPropagation();
-            if ($target.hasClass('fa-circle') || $target.find('i').hasClass('fa-circle'))
-                return false;
-            if (position === 1)
-                url = 'display=brief';
-            if (position === 2)
-                url = 'display=summary';
-            if (position === 3)
-                url = 'display=abstract';
-            if (position === 4)
-                url = 'display=icons';
-            if (position === 6)
-                url = 'orderby=year';
-            if (position === 7)
-                url = 'orderby=id';
-            if (position === 8)
-                url = 'orderby=rating';
-            if (position === 9)
-                url = 'orderby=journal';
-            if (position === 10)
-                url = 'orderby=title';
-            if (position === 12)
-                url = 'limit=5';
-            if (position === 13)
-                url = 'limit=10';
-            if (position === 14)
-                url = 'limit=15';
-            if (position === 15)
-                url = 'limit=20';
-            if (position === 16)
-                url = 'limit=50';
-            if (position === 17)
-                url = 'limit=100';
-            if (url !== null) {
-                $.get('ajaxdisplay.php', url, function() {
-                    $('#right-panel').load(redirection, function() {
+        $('#select-display, #select-order, #select-number').selectmenu({
+            change: function(e, data) {
+                $.get('ajaxdisplay.php?value=' + data.item.value, function(answer) {
+                    if (answer.substr(0, 5) === 'Error')
+                        $.jGrowl(answer);
+                    $('#right-panel').load($('#display-content').data('redirection'), function() {
                         displaywindow.init(sel);
                         $('body').data('right-panel-url', redirection);
                     });
@@ -2923,22 +3004,20 @@ var displaywindow = {
         }
         //HOTKEYS
         $(document).unbind('keydown').bind('keydown', 's', function() {
-            if ($('.ui-dialog:visible').length === 0)
-                $('.nextrecord').click();
+            $('.nextrecord').click();
         }).bind('keydown', 'w', function() {
-            if ($('.ui-dialog:visible').length === 0)
-                $('.prevrecord').click();
+            $('.prevrecord').click();
         }).bind('keydown', 'd', function() {
-            if ($('.nextpage').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('.nextpage').is(':visible'))
                 $('.nextpage').click();
         }).bind('keydown', 'a', function() {
-            if ($('.prevpage').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('.prevpage').is(':visible'))
                 $('.prevpage').click();
         }).bind('keydown', 'del', function() {
-            if ($('#deletebutton').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('#deletebutton').is(':visible'))
                 $('#deletebutton').click();
         }).bind('keydown', 'q', function() {
-            if ($('.backbutton').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('.backbutton').is(':visible'))
                 $('.backbutton').click();
         });
     }
@@ -3981,18 +4060,23 @@ var upload = {
             html: true,
             gravity: 'e'
         });
-        $('.uploadform input[name="journal_abbr"]')
-                .autocomplete({
-                    source: "ajaxjournals.php?search=journal",
-                    minLength: 1
-                });
-        $('#addarticle-right').scroll(function() {
-            $('.uploadform input[name="journal_abbr"]').autocomplete('close');
+        $('.uploadform input[name="journal_abbr"]').autocomplete({
+            source: "ajaxjournals.php?search=journal",
+            minLength: 1
         });
         $('.uploadform input[name="secondary_title"]').autocomplete({
             source: "ajaxjournals.php?search=secondary_title",
             minLength: 1
         });
+        $('#addarticle-right').scroll(function() {
+            $('.uploadform input[name="journal_abbr"],.uploadform input[name="secondary_title"]').autocomplete('close');
+        });
+//        $('.uploadform').find('.author-inputs').find('.test1').each(function() {
+//            $(this).autocomplete({
+//                source: 'ajaxfilter.php?open=authors',
+//                minLength: 1
+//            });
+//        });
         $('.uploadform input[name="authors"]').each(function() {
             var authors = [];
             $(this).prev().find('div').each(function(i) {
@@ -4020,6 +4104,14 @@ var upload = {
             });
             var author = authors.join(';');
             $(this).closest('.author-inputs').next('input[name="authors"]').val(author);
+        }).autocomplete({
+            source: 'ajaxfilter.php?open[]=authors',
+            minLength: 1,
+            select: function(e, data) {
+                var auth = data.item.value.split(', ');
+                $(e.target).val(auth[0]).next().val(auth[1]);
+                return false;
+            }
         });
         $('.uploadform .editor-inputs input').unbind().bind('keyup blur', function() {
             var authors = [];
@@ -5031,10 +5123,10 @@ var downloadcommon = {
         }).button();
         //HOTKEYS
         $(document).unbind('keydown').bind('keydown', 'd', function() {
-            if ($('#addarticle-right .nextpage').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('#addarticle-right .nextpage').is(':visible'))
                 $('#addarticle-right .nextpage').click();
         }).bind('keydown', 'a', function() {
-            if ($('#addarticle-right .prevpage').is(':visible') && $('.ui-dialog:visible').length === 0)
+            if ($('#addarticle-right .prevpage').is(':visible'))
                 $('#addarticle-right .prevpage').click();
         });
     }

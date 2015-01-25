@@ -173,10 +173,19 @@ a.topindex_clicked {
 
 #items-menu > div:hover,
 #items-menu > div:focus,
-#items-menu > div.tabclicked {
+#items-menu > div.tabclicked,
+#items-notes-menu,
+#items-pdf-menu-a,
+#items-pdf-menu-b {
     background-color: #" . $top_window_background_color . ";
     color: #" . $top_window_color . ";
-    text-shadow: none
+    text-shadow: none;
+}
+
+#items-notes-menu,
+#items-pdf-menu-a,
+#items-pdf-menu-b {
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.33)
 }
 
 #keyboardswitch {
@@ -307,6 +316,11 @@ header("Content-type: text/css; charset=utf-8");
     overflow: auto;
     /* add padding to account for vertical scrollbar */
     padding-right: 10px;
+}
+
+.ui-selectmenu-button span.ui-selectmenu-text {
+    padding: 0.25em 2.1em 0.25em 1.6em;
+    line-height:1.3
 }
 
 #dialog-confirm {

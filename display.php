@@ -121,9 +121,10 @@ if (isset($_GET['browse'])) {
         $query2 = str_replace('%', '\%', $query2);
         $query2 = str_replace('_', '\_', $query2);
         $query2 = str_replace("'", "''", $query2);
-        
+
         // check column name for malarkey
-        if (preg_match('/[^a-z_0-9]/', $column) !== 0) die('Invalid query.');
+        if (preg_match('/[^a-z_0-9]/', $column) !== 0)
+            die('Invalid query.');
 
         if ($column == 'category') {
             $query = intval($query);
@@ -400,36 +401,63 @@ if (isset($_GET['browse'])) {
         $tempdbHandle->commit();
         $tempdbHandle->exec("DETACH DATABASE librarydb");
         ?>
-        <div id="display-content" style="width:100%;height:100%">
-            <table id="customization" style="border-spacing:2px 0px;cursor:pointer">
-                <tr>
-                    <td class="ui-state-highlight" id="displaybutton">&nbsp;Display&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $display == 'brief' ? '' : '-o'; ?>"></i> Title&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $display == 'summary' ? '' : '-o'; ?>"></i> Summary&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $display == 'abstract' ? '' : '-o'; ?>"></i> Abstract&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $display == 'icons' ? '' : '-o'; ?>"></i> Icons&nbsp;</td>
-                    <td class="ui-state-highlight" id="orderbybutton">&nbsp;Order by&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $orderby == 'year' ? '' : '-o'; ?>"></i> Date Published&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $orderby == 'id' ? '' : '-o'; ?>"></i> Date Added&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $orderby == 'rating' ? '' : '-o'; ?>"></i> Rating&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $orderby == 'journal' ? '' : '-o'; ?>"></i> Journal&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $orderby == 'title' ? '' : '-o'; ?>"></i> Title&nbsp;</td>
-                    <td class="ui-state-highlight" id="showbutton">&nbsp;Show&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $limit == 5 ? '' : '-o'; ?>"></i> 5&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $limit == 10 ? '' : '-o'; ?>"></i> 10&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $limit == 15 ? '' : '-o'; ?>"></i> 15&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $limit == 20 ? '' : '-o'; ?>"></i> 20&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $limit == 50 ? '' : '-o'; ?>"></i> 50&nbsp;</td>
-                    <td class="alternating_row">&nbsp;<i class="fa fa-circle<?php print $limit == 100 ? '' : '-o'; ?>"></i> 100&nbsp;</td>
-                </tr>
-            </table>
-            <script type="text/javascript">
-                $('#customization').data('redirection','<?php print preg_replace('/(from=\d*)(\&|$)/', '$2', basename($_SERVER['PHP_SELF']) . '?' . $_SERVER['QUERY_STRING']); ?>')
-                .find('i.fa-circle-o').closest('td').find("td:not([id])").addBack().hide();
-            </script>
+        <div id="display-content" style="width:100%;height:100%"
+             data-redirection="<?php print preg_replace('/(from=\d*)(\&|$)/', '$2', basename($_SERVER['PHP_SELF']) . '?' . $_SERVER['QUERY_STRING']); ?>">
+            <div style="margin: 2px;margin-top:3px">
+                <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="float:left;padding:0.2em 0.4em">
+                    &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
+                </div>
+                <div id="omnitoolbutton" class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em">
+                    &nbsp;<i class="fa fa-wrench"></i> Omnitool&nbsp;</div>
+                <?php
+                if ($_GET['select'] == 'desk') {
+                    print '<div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em">
+                <a href="rss.php?project=' . $project . '" target="_blank" style="display:block">&nbsp;<i class="fa fa-rss"></i> Project RSS</a></div>';
+                } else {
+
+                    print '<div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em">
+                <a href="rss.php" target="_blank" style="display:block">&nbsp;<i class="fa fa-rss"></i> RSS</a></div>';
+                }
+                ?>
+                <div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em" id="printlist">
+                    &nbsp;<i class="fa fa-print"></i> Print&nbsp;
+                </div>
+            </div>
+            <div style="float:right;margin: 2px;margin-top: 0">
+                <span style="position:relative;top:-7px">
+                    Display
+                </span>
+                <select id="select-display" style="width:9em">
+                    <option value="brief" <?php print $display == 'brief' ? 'selected' : ''; ?>>Title</option>
+                    <option value="summary" <?php print $display == 'summary' ? 'selected' : ''; ?>>Summary</option>
+                    <option value="abstract" <?php print $display == 'abstract' ? 'selected' : ''; ?>>Abstract</option>
+                    <option value="icons" <?php print $display == 'icons' ? 'selected' : ''; ?>>Icons</option>
+                </select>
+                <span style="position:relative;top:-7px">
+                    Order
+                </span>
+                <select id="select-order" style="width:11em">
+                    <option value="id" <?php print $orderby == 'id' ? 'selected' : ''; ?>>Date Added</option>
+                    <option value="year" <?php print $orderby == 'year' ? 'selected' : ''; ?>>Date Published</option>
+                    <option value="journal" <?php print $orderby == 'journal' ? 'selected' : ''; ?>>Journal</option>
+                    <option value="rating" <?php print $orderby == 'rating' ? 'selected' : ''; ?>>Rating</option>
+                    <option value="title" <?php print $orderby == 'title' ? 'selected' : ''; ?>>Title</option>
+                </select>
+                <span style="position:relative;top:-7px">
+                    Show
+                </span>
+                <select id="select-number" style="width:6em">
+                    <option value="5" <?php print $limit == 5 ? 'selected' : ''; ?>>5</option>
+                    <option value="10" <?php print $limit == 10 ? 'selected' : ''; ?>>10</option>
+                    <option value="15" <?php print $limit == 15 ? 'selected' : ''; ?>>15</option>
+                    <option value="20" <?php print $limit == 20 ? 'selected' : ''; ?>>20</option>
+                    <option value="50" <?php print $limit == 50 ? 'selected' : ''; ?>>50</option>
+                    <option value="100" <?php print $limit == 100 ? 'selected' : ''; ?>>100</option>
+                </select>
+            </div>
+            <div style="clear:both"></div>
             <?php
         }
-
         if (isset($_GET['select']) && $_GET['select'] == 'shelf' && isset($_SESSION["auth"])) {
             $what = "Shelf";
         } elseif (isset($_GET['select']) && $_GET['select'] == 'clipboard') {
@@ -440,7 +468,7 @@ if (isset($_GET['browse'])) {
             $what = "Library";
         }
 
-        print '<div id="list-title" style="font-weight: bold; padding: 2px">' . $what;
+        print '<div id="list-title" style="font-weight: bold; padding: 2px;padding-top:0;text-align:center">' . $what;
 
         if (!empty($query_display_string))
             print ' &raquo; ' . htmlspecialchars($query_display_string);
@@ -466,15 +494,7 @@ if (isset($_GET['browse'])) {
                     . ($from == 0 ? '' : '</a>') .
                     '</div>';
 
-            if (isset($_SESSION['auth']))
-                print '<div id="exportbutton" class="ui-state-highlight ui-corner-top" style="float:left;margin-left:2px">
-			 &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
-			</div>
-			<div class="ui-state-highlight ui-corner-top" style="float:left;margin-left:2px" id="printlist">
-			 &nbsp;<i class="fa fa-print"></i> Print&nbsp;
-			</div>';
-
-            print '</td><td style="text-align: center">Items ' . $items_from . '-' . $items_to . ' of <span id="total-items">' . $rows . '</span>.</td><td style="width:19em">';
+            print '</td><td style="text-align: center">Items ' . $items_from . '-' . $items_to . ' of <span id="total-items">' . $rows . '</span></td><td style="width:19em">';
 
             (($rows % $limit) == 0) ? $lastpage = $rows - $limit : $lastpage = $rows - ($rows % $limit);
 
@@ -491,10 +511,6 @@ if (isset($_GET['browse'])) {
                     '</div>';
 
             print '<div class="ui-state-highlight ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px">PgDn</div>';
-
-            if (isset($_SESSION['auth']))
-                print '<div id="omnitoolbutton" class="ui-state-highlight ui-corner-top" style="float:right;margin-right:2px">'
-                        . '&nbsp;<i class="fa fa-wrench"></i> Omnitool&nbsp;</div>';
 
             print '</td></tr></table>';
 
@@ -513,17 +529,6 @@ if (isset($_GET['browse'])) {
                     '<i class="fa fa-caret-left"></i> Back'
                     . ($from == 0 ? '' : '</a>') .
                     '</div>';
-            
-            if ($_GET['select'] == 'desk') {
-                
-                print '<div class="ui-state-highlight ui-corner-bottom" style="float:left;margin-left:2px;padding-right:4px">
-                <a href="rss.php?project='.$project.'" target="_blank" style="display:block"><span class="ui-state-error-text">&nbsp;<i class="fa fa-rss"></i></span> Project RSS</a></div>';
-                
-            } else {
-                
-                print '<div class="ui-state-highlight ui-corner-bottom" style="float:left;margin-left:2px;padding-right:4px">
-                <a href="rss.php" target="_blank" style="display:block"><span class="ui-state-error-text">&nbsp;<i class="fa fa-rss"></i></span> RSS</a></div>';
-            }
 
             print '</td><td style="width:50%">';
 

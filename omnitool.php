@@ -175,20 +175,24 @@ if (!empty($_POST['omnitool']) && !empty($export_files)) {
                 </td>
                 <td class="threed select_span omnitooltd" style="width:36%;line-height:22px">
                     <input type="radio" style="display:none" name="omnitool" value="3">
-                    &nbsp;<i class="fa fa-circle-o"></i>
-                    Save to
-                    <select name="project3" style="width:150px;float:right">
-                        <?php
-                        database_connect($database_path, 'library');
-                        $desktop_projects = array();
-                        $desktop_projects = read_desktop($dbHandle);
+                    <span style="position:relative;top:4px">
+                        &nbsp;<i class="fa fa-circle-o"></i>
+                        Save to
+                    </span>
+                    <div style="float:right;position:relative;top:2px">
+                        <select name="project3" style="width:150px">
+                            <?php
+                            database_connect($database_path, 'library');
+                            $desktop_projects = array();
+                            $desktop_projects = read_desktop($dbHandle);
 
-                        while (list(, $value) = each($desktop_projects)) {
-                            print '<option value="' . $value['projectID'] . '">' . htmlspecialchars($value['project']) . '</option>';
-                        }
-                        reset($desktop_projects);
-                        ?>
-                    </select>
+                            while (list(, $value) = each($desktop_projects)) {
+                                print '<option value="' . $value['projectID'] . '">' . htmlspecialchars($value['project']) . '</option>';
+                            }
+                            reset($desktop_projects);
+                            ?>
+                        </select>
+                    </div>
                 </td>
             </tr>
             <tr>
@@ -204,20 +208,24 @@ if (!empty($_POST['omnitool']) && !empty($export_files)) {
                 </td>
                 <td class="threed select_span omnitooltd" style="line-height:22px">
                     <input type="radio" style="display:none" name="omnitool" value="4">
-                    &nbsp;<i class="fa fa-circle-o"></i>
-                    Remove from
-                    <select name="project4" style="width:150px;float:right">
-                        <?php
-                        while (list(, $value) = each($desktop_projects)) {
-                            print '<option value="' . $value['projectID'] . '">' . htmlspecialchars($value['project']) . '</option>';
-                        }
-                        reset($desktop_projects);
-                        ?>
-                    </select>
+                    <span style="position:relative;top:4px">
+                        &nbsp;<i class="fa fa-circle-o"></i>
+                        Remove from
+                    </span>
+                    <div style="float:right;position:relative;top:2px">
+                        <select name="project4" style="width:150px">
+                            <?php
+                            while (list(, $value) = each($desktop_projects)) {
+                                print '<option value="' . $value['projectID'] . '">' . htmlspecialchars($value['project']) . '</option>';
+                            }
+                            reset($desktop_projects);
+                            ?>
+                        </select>
+                    </div>
                 </td>
             </tr>
             <tr>
-                <td class="threed select_span omnitooltd" colspan=1>
+                <td class="threed select_span omnitooltd" colspan=1  style="padding:8px 4px">
                     <input type="radio" style="display:none" name="omnitool" value="7">
                     &nbsp;<i class="fa fa-circle-o"></i>
                     Add to Categories:

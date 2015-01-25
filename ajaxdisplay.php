@@ -1,11 +1,13 @@
 <?php
 include_once 'data.php';
 
-if (isset($_GET['limit'])) {
-	settype($_GET['limit'], "integer");
-	$_SESSION['limit'] = $_GET['limit'];
+if (in_array($_GET['value'], array('brief','summary','abstract','icons'))) {
+    $_SESSION['display'] = $_GET['value'];
+} elseif (in_array($_GET['value'], array('id','year','journal','rating','title'))) {
+    $_SESSION['orderby'] = $_GET['value'];
+} elseif (in_array($_GET['value'], array('5','10','15','20','50','100'))) {
+    $_SESSION['limit'] = $_GET['value'];
+} else {
+    echo 'Error! Invalid value.';
 }
-if (isset($_GET['orderby']) && ctype_alpha($_GET['orderby'])) $_SESSION['orderby'] = $_GET['orderby'];
-if (isset($_GET['display']) && ctype_alpha($_GET['display'])) $_SESSION['display'] = $_GET['display'];
-
 ?>

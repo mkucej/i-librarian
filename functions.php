@@ -691,6 +691,23 @@ function select_pdftk() {
     return $pdftk;
 }
 
+/////////////select tesseract//////////////////////
+
+function select_tesseract() {
+
+    global $selected_tesseract;
+
+    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
+        $selected_tesseract = 'tesseract.exe';
+    } elseif (PHP_OS == 'Linux') {
+        $selected_tesseract = 'tesseract';
+    } elseif (PHP_OS == 'Darwin') {
+        $selected_tesseract = 'tesseract';
+    }
+
+    return $selected_tesseract;
+}
+
 /////////////proxy_file_get_contents//////////////////////
 
 function proxy_file_get_contents($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {

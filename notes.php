@@ -49,7 +49,7 @@ if (isset($_GET['editnotes'])) {
     <table cellspacing="0" width="100%">
         <tr>
             <td class="items alternating_row" style="border: 0px">
-                <button class="edit-notes" id="edit-notes-<?php print intval($_GET['file']) ?>"><i class="fa fa-pencil"></i> Write Notes</button>
+                <span class="titles"><?php echo htmlspecialchars($title) ?></span>
             </td>
         </tr>
     </table>

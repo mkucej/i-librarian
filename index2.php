@@ -512,8 +512,8 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
     <body style="margin:0;border:0;padding:0;width:100%;height:100%;overflow:hidden">
         <?php
         if (isset($_SESSION['auth'])) {
-            if($hosted == true && $forced_ssl == false && stripos($url, 'https://') === 0) {
-                die ('<script type="text/javascript"> top.location.assign("' . str_ireplace('https://', 'http://', $url) . '") </script></body></html>');
+            if ($hosted == true && $forced_ssl == false && stripos($url, 'https://') === 0) {
+                die('<script type="text/javascript"> top.location.assign("' . str_ireplace('https://', 'http://', $url) . '") </script></body></html>');
             }
             include 'keyboard.php';
             ?>
@@ -529,10 +529,21 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
             <div id="delete-file" title="Delete Record?" style="display:none"></div>
             <div id="dialog-error" style="display:none"></div>
             <div id="open-dirs"></div>
+            <div id="floating-notes" class="ui-widget-content alternating_row"
+                 style="display:none;position:fixed;bottom:0;right:0;width:600px;height:400px;z-index:50;box-shadow: 0 0 8px rgba(0,0,0,0.33);overflow: hidden;opacity:1">
+                <div class="ui-widget-header" style="padding:0.4em 1em;cursor: move">
+                    <i class="fa fa-times-circle" style="padding:0.25em;float:right;cursor: pointer"></i>
+                    <i class="fa fa-minus-circle" style="padding:0.25em;float:right;margin-right: 0.25em;cursor: pointer"></i>
+                    <i class="fa fa-plus-circle" style="padding:0.25em;float:right;margin-right: 0.25em;cursor: pointer"></i>
+                    <div style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;margin-right: 6em"></div>
+                </div>
+                <div></div>
+                <div id="iframe-fix" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;background-color: rgba(55,55,55,0.1)"></div>
+            </div>
             <?php
         } else {
             if ($hosted == true && stripos($url, 'http://') === 0) {
-                die ('<script type="text/javascript"> top.location.assign("' . str_ireplace('http://', 'https://', $url) . '") </script></body></html>');
+                die('<script type="text/javascript"> top.location.assign("' . str_ireplace('http://', 'https://', $url) . '") </script></body></html>');
             }
             $signin_mode = '';
             $disallow_signup = '';

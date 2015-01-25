@@ -408,7 +408,7 @@ function fetch_page(file, pg, f) {
             f();
     });
     if ($('#pdf-viewer-marker-erase').is(':checked'))
-            $('#pdf-viewer-marker-erase').prop('checked', false).change().button('refresh');
+        $('#pdf-viewer-marker-erase').prop('checked', false).change().button('refresh');
 }
 // PAGE NAVIGATION
 $('#control-first').click(function() {
@@ -517,7 +517,7 @@ $('#pdf-viewer-search').keydown(function(e) {
             });
         });
         if ($('#search-results').is(':visible')) {
-            $('#search-results-button').prop('checked',false).change().prop('checked',true).change();
+            $('#search-results-button').prop('checked', false).change().prop('checked', true).change();
         } else {
             $('#search-results-button').button('enable').prop('checked', true).change().button('refresh');
         }
@@ -714,7 +714,7 @@ $('#pdf-viewer-note').change(function() {
                                 $.get('annotate.php', 'edit=1&dbid=' + dbid + '&annotation=' + encodeURIComponent(txt), function() {
                                     $('#' + markid).attr('data-annotation', escapeHtml(txt)).data('annotation', txt);
                                     if ($('#annotations-left').is(':visible'))
-                                        $('#notes-button').prop('checked',false).change().prop('checked',true).change();
+                                        $('#notes-button').prop('checked', false).change().prop('checked', true).change();
                                 });
                             }
                         });
@@ -731,7 +731,7 @@ $('#pdf-viewer-note').change(function() {
                         function(answer) {
                             $('#' + markid).attr('data-dbid', answer).attr('data-annotation', '').data('annotation', '').text(answer);
                             if ($('#annotations-left').is(':visible'))
-                                $('#notes-button').prop('checked',false).change().prop('checked',true).change();
+                                $('#notes-button').prop('checked', false).change().prop('checked', true).change();
                         });
                 var clstem = '<i class="fa fa-save ui-state-highlight" style="padding:0 2px"></i>';
                 $("div.jGrowl-close").click();
@@ -747,7 +747,7 @@ $('#pdf-viewer-note').change(function() {
                                 $.get('annotate.php', 'edit=1&dbid=' + dbid + '&annotation=' + encodeURIComponent(txt), function() {
                                     $('#' + markid).attr('data-annotation', escapeHtml(txt)).data('annotation', txt);
                                     if ($('#annotations-left').is(':visible'))
-                                        $('#notes-button').prop('checked',false).change().prop('checked',true).change();
+                                        $('#notes-button').prop('checked', false).change().prop('checked', true).change();
                                 });
                             }
                         });
@@ -814,7 +814,7 @@ $('#pdf-viewer-marker-erase').change(function() {
                         $this.remove();
                         $('.tipsy').remove();
                         if ($('#annotations-left').is(':visible'))
-                            $('#notes-button').prop('checked',false).change().prop('checked',true).change();
+                            $('#notes-button').prop('checked', false).change().prop('checked', true).change();
                     }
                 });
             }).selectable({
@@ -853,7 +853,7 @@ $('#pdf-viewer-marker-erase').change(function() {
                                     $("div.jGrowl-close").click();
                                     $('.marker-note').remove();
                                     if ($('#annotations-left').is(':visible'))
-                                        $('#notes-button').prop('checked',false).change().prop('checked',true).change();
+                                        $('#notes-button').prop('checked', false).change().prop('checked', true).change();
                                     $('#pdf-viewer-marker-erase').prop('checked', false).change().button('refresh');
                                 } else {
                                     $.jGrowl('Error during deleting notes! ' + answer);
@@ -876,7 +876,7 @@ $('#pdf-viewer-marker-erase').change(function() {
                                     $("div.jGrowl-close").click();
                                     $('.marker').remove();
                                     if ($('#annotations-left').is(':visible'))
-                                        $('#notes-button').prop('checked',false).change().prop('checked',true).change();
+                                        $('#notes-button').prop('checked', false).change().prop('checked', true).change();
                                     $('#pdf-viewer-marker-erase').prop('checked', false).change().button('refresh');
                                 } else {
                                     $.jGrowl('Error during deleting annotations! ' + answer);
@@ -1098,11 +1098,9 @@ $('#pdf-viewer-copy-text').change(function() {
 }).button().next().tipsy();
 //HOTKEYS
 $(document).bind('keydown', 'd', function() {
-    if ($('.ui-dialog:visible').length === 0)
-        $('#control-next').click();
+    $('#control-next').click();
 }).bind('keydown', 'e', function() {
-    if ($('.ui-dialog:visible').length === 0)
-        $('#control-prev').click();
+    $('#control-prev').click();
 });
 //GET SETTINGS FROM LOCAL STORAGE
 if (preview === false) {

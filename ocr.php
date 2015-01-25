@@ -21,7 +21,7 @@ if (is_file($library_path . $file)) {
     if (is_array($file_arr)) {
 
         for ($i = 0; $i < count($file_arr); $i++) {
-            exec('tesseract "' . $file_arr[$i] . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $file . '.' . $i . '"');
+            exec(select_tesseract() . ' "' . $file_arr[$i] . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $file . '.' . $i . '"');
             if (is_file($temp_dir . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt')) {
                 file_put_contents($temp_dir . DIRECTORY_SEPARATOR . $file . 'final.txt', file_get_contents($temp_dir . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt'), FILE_APPEND);
                 unlink($temp_dir . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt');

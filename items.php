@@ -185,16 +185,25 @@ if (empty($export_files))
             }
             ?>
         </div>
-        <div id="items-pdf-menu" style="display:none">
-            <?php
-            if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                print '<i class="fa fa-external-link"></i> <a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" class="pdf_link">
-				<span class="ui-state-highlight" style="padding:0px 2px 0px 2px;margin-right:2px">Open PDF in new window</span></a>';
+        <div id="items-notes-menu" style="display:none;width:60px;position:fixed;top:0;left:0;text-align: center;padding:5px 2px;z-index: 2000;cursor: pointer">
+            <i class="fa fa-external-link"></i><br>Edit
+        </div>
+        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:129px;z-index: 2001;padding:0;border:0">
+            <div id="items-pdf-menu-a" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px"
+                 <?php
+                if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
+                    echo 'data-mode="external"';
 
-            if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                print '<i class="fa fa-external-link"></i> <a href="' . htmlspecialchars('viewpdf.php?file=' . urlencode($item['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" class="pdf_link">
-				<span class="ui-state-highlight ui-corner-all" style="padding:0px 2px 0px 2px;margin-right:2px">Open PDF in new window</span></a>';
-            ?>
+                if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
+                    echo 'data-mode="internal"';
+                ?>
+                 >
+                <i class="fa fa-external-link"></i><br>
+                Window
+            </div>
+            <div id="items-pdf-menu-b" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:right">
+                <i class="fa fa-download"></i><br>External
+            </div>
         </div>
         <div id="file-panel" style="width:auto;height:48%;border-top:1px solid #c6c8cc;overflow:auto">
         </div>
