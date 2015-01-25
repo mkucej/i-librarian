@@ -383,7 +383,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "editor = " => "editor",
                 "publisher = " => "publisher",
                 "address = " => "place_published",
-                "doi = " => "doi");
+                "doi = " => "doi",
+                "url = " => "url");
 
             if (isset($add_item['authors'])) {
 
@@ -402,6 +403,12 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 }
                 $authors = join(" and ", $new_authors);
                 $add_item['authors'] = $authors;
+            }
+            
+            if (isset($add_item['url'])) {
+
+                $urls = explode("|", $add_item['url']);
+                $add_item['url'] = $urls[0];
             }
 
             // bibtex does not have a journal abbreviation tag, but if user wants it, put abbreviation in journal tag
