@@ -1,4 +1,6 @@
 <?php
+// I, Librarian version
+$version = '3.2';
 
 ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
 ini_set('default_charset', 'UTF-8');
@@ -7,11 +9,14 @@ ini_set('display_errors', true);
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '128M');
 date_default_timezone_set(@date_default_timezone_get());
-$version = '2.11.421';
 
-$parsed_file = parse_url("http://" . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'], PHP_URL_PATH);
+// find out what the url string is
+$protocol = 'http';
+if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off')
+    $protocol = 'https';
+$parsed_file = parse_url($protocol . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'], PHP_URL_PATH);
 $parsed_file = str_replace(basename($parsed_file), '', $parsed_file);
-$url = "http://" . $_SERVER['HTTP_HOST'] . $parsed_file;
+$url = $protocol . "://" . $_SERVER['HTTP_HOST'] . $parsed_file;
 if (substr($url, -1) != "/")
     $url = $url . "/";
 
@@ -27,12 +32,15 @@ if (!is_writable($library_path)) {
 chdir('m');
 //mobile specific
 
+// set temp dir for this installation
 $temp_dir = sys_get_temp_dir();
+if (PHP_OS == 'Linux')
+    $temp_dir = '/var/tmp';
 if (substr($temp_dir, -1) == DIRECTORY_SEPARATOR)
     $temp_dir = substr($temp_dir, 0, -1);
-$temp_dir .= DIRECTORY_SEPARATOR . 'i-librarian' . DIRECTORY_SEPARATOR . md5($url);
+$temp_dir .= DIRECTORY_SEPARATOR . 'i-librarian' . DIRECTORY_SEPARATOR . md5(strstr($url, '://'));
 if (!is_dir($temp_dir))
-    @mkdir($temp_dir, 0755, true);
+    @mkdir($temp_dir, 0700, true);
 
 ### permanent sessions and garbage collection ###
 ### session garbage collection ###
@@ -57,7 +65,7 @@ session_save_path($temp_dir . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions');
 session_start();
 
 // PREVENT ACCESSING PAGES WHEN SIGNED OUT, SENDS FLAG TO JAVASCRIPT CLIENT
-$allowed_pages = array('index2.php', 'stable.php', 'rss.php', 'resetpassword.php', 'remoteuploader.php');
+$allowed_pages = array('index2.php');
 if (!in_array(basename($_SERVER['PHP_SELF']), $allowed_pages) && !isset($_SESSION['auth']))
     die('signed_out');
 

@@ -714,6 +714,10 @@ function proxy_file_get_contents($url, $proxy_name, $proxy_port, $proxy_username
 
     global $pdf, $csv, $ris;
     $pdf_string = '';
+
+    if (!parse_url($url, PHP_URL_SCHEME))
+        $url = 'http://' . $url;
+
     if (isset($proxy_name) && !empty($proxy_name)) {
 
         $proxy_fp = @fsockopen($proxy_name, $proxy_port);
