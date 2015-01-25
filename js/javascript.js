@@ -2101,6 +2101,8 @@ var exportitems = {
             minLength: 1
         });
         $('#citation-style').keydown(function() {
+            $('input[name="format"][value="citations"]').parent().click();
+            $('input[name="output"][value="inline"]').parent().click();
             $('#exportform').attr('target', 'exportwindow');
         });
     }

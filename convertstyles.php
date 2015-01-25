@@ -1,4 +1,5 @@
 <?php
+// this is a utility script to compress styles to an SQLite database
 
 include_once 'data.php';
 include_once 'functions.php';
@@ -43,8 +44,8 @@ try {
 //}
 //
 //$dbHandle->commit();
+//
 // select a style
-
 //$title_q = $dbHandle->quote(strtolower($_GET['title']));
 //$result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
 //print_r($dbHandle->errorInfo());
