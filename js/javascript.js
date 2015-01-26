@@ -2102,7 +2102,9 @@ var exportitems = {
     init: function() {
         $('#citation-style').autocomplete({
             source: "ajaxstyles.php",
-            minLength: 1
+            minLength: 1,
+            appendTo: "#exportdialog",
+            position: { my : "right top", at: "right bottom"}
         });
         $('#citation-style').keydown(function() {
             $('input[name="format"][value="citations"]').parent().click();
