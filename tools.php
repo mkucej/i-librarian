@@ -93,6 +93,14 @@ include_once 'data.php';
     <table cellspacing=0 style="margin:6px 0;width:93%">
         <tr>
             <td class="leftleftbutton">&nbsp;</td>
+            <td class="leftbutton ui-widget-header ui-corner-right" id="citationstyleslink">
+                Citation Styles
+            </td>
+        </tr>
+    </table>
+    <table cellspacing=0 style="margin:6px 0;width:93%">
+        <tr>
+            <td class="leftleftbutton">&nbsp;</td>
             <td class="leftbutton ui-widget-header ui-corner-right" id="aboutlink">
                 About I, Librarian
             </td>

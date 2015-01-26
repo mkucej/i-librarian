@@ -766,6 +766,10 @@ var tools = {
                 ref = 'rename_category.php';
                 scrpt = 'rename_category';
             } else
+            if ($t.attr('id') === 'citationstyleslink') {
+                ref = 'citationstyles.php';
+                scrpt = '';
+            } else
             if ($t.attr('id') === 'aboutlink') {
                 ref = 'about.php';
                 scrpt = '';
