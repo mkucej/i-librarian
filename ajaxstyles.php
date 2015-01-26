@@ -4,7 +4,7 @@ include_once 'functions.php';
 
 
 try {
-    $dbHandle = new PDO('sqlite:/var/www/html/i-librarian/styles.sq3');
+    $dbHandle = new PDO('sqlite:' . __DIR__ . DIRECTORY_SEPARATOR . 'styles.sq3');
 } catch (PDOException $e) {
     print "Error: " . $e->getMessage() . "<br/>";
     print "PHP extensions PDO and PDO_SQLite must be installed.";
