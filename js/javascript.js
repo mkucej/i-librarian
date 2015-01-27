@@ -1884,14 +1884,20 @@ var items = {
                 edit.init();
             });
         });
-        $('#items-pdf-menu-a').click(function() {
+
+        $('#items-pdf-menu-a1').click(function() {
             var filename = $('#items-left').find('.clicked').data('file'), title = $('#items-left').find('.clicked').text();
             var mode = $(this).data('mode');
-            if (mode === 'internal')
-                window.open('viewpdf.php?file=' + filename + '&title=' + title);
-            if (mode === 'external')
-                window.open('downloadpdf.php?file=' + filename + '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0');
+            window.open('downloadpdf.php?file=' + filename + '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0');
         });
+
+        $('#items-pdf-menu-a2').click(function() {
+            var filename = $('#items-left').find('.clicked').data('file'), title = $('#items-left').find('.clicked').text();
+            var mode = $(this).data('mode');
+            window.open('viewpdf.php?file=' + filename + '&title=' + title);
+        });
+
+
         $('#items-pdf-menu-b').click(function() {
             var filename = $('#items-left').find('.clicked').data('file');
             window.location.assign('downloadpdf.php?mode=download&file=' + filename);

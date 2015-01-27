@@ -171,7 +171,7 @@ if (isset($_SESSION['auth'])) {
                                             print '<i class="fa fa-film video" style="cursor:pointer" title="Click to play"></i> ';
                                             print '<a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">';
                                         } else {
-                                            print '<i class="fa fa-file-o" style="padding:0.15em"></i> ';
+                                            print '<a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($supplementary_file)) . '"><i class="fa fa-file-o" style="padding:0.15em"></i></a> ';
                                             print '<a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">';
                                         }
 

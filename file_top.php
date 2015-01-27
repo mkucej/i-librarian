@@ -348,7 +348,8 @@ if (isset($_GET['file'])) {
             $files_to_display = glob('library/supplement/' . $integer . '*');
             if (is_array($files_to_display)) {
                 foreach ($files_to_display as $supplementary_file) {
-                    $url_filenames[] = '<li><a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">' . substr(basename($supplementary_file), 5) . '</a>';
+                    $url_filenames[] = '<li><a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($supplementary_file)) . '">' . substr(basename($supplementary_file), 5) . '</a>'
+                    . ' <a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '"> (download)</a>';
                 }
                 $url_filename = join('<br>', $url_filenames);
             }
