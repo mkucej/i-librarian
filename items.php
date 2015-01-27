@@ -188,17 +188,17 @@ if (empty($export_files))
         <div id="items-notes-menu" style="display:none;width:60px;position:fixed;top:0;left:0;text-align: center;padding:5px 2px;z-index: 2000;cursor: pointer">
             <i class="fa fa-external-link"></i><br>Edit
         </div>
-        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:195px;z-index: 2001;padding:0;border:0">
-            
+        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:197px;z-index: 2001;padding:0;border:0">
+
             <div id="items-pdf-menu-a1" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px" data-mode="external">
                 <i class="fa fa-external-link"></i><br>
                 Browser
             </div>
 
-            <div id="items-pdf-menu-a2" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px" data-mode="internal">
+            <div id="items-pdf-menu-a2" style="width:62px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px" data-mode="internal">
                 <i class="fa fa-external-link"></i><br>
-                i, Librarian
-            </div>            
+                I, Librarian
+            </div>
 
             <div id="items-pdf-menu-b" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:right">
                 <i class="fa fa-download"></i><br>Download
