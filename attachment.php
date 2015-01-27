@@ -43,7 +43,11 @@ if (!empty($file) && is_file($path . DIRECTORY_SEPARATOR . $file)) {
     header('Last-Modified: '.gmdate(DATE_RFC1123,filemtime($path . DIRECTORY_SEPARATOR . $file)));
 
     header("Content-Type: " . $type);
-    header("Content-Disposition: " . $mode . "; filename=\"$filename\"");
+
+    if ($mode != 'inline'){
+        header("Content-Disposition: " . $mode . "; filename=\"$filename\"");
+    }
+    
     header('Content-Length: ' . filesize($path . DIRECTORY_SEPARATOR . $file));
     ob_clean();
     flush();

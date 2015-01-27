@@ -188,21 +188,20 @@ if (empty($export_files))
         <div id="items-notes-menu" style="display:none;width:60px;position:fixed;top:0;left:0;text-align: center;padding:5px 2px;z-index: 2000;cursor: pointer">
             <i class="fa fa-external-link"></i><br>Edit
         </div>
-        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:129px;z-index: 2001;padding:0;border:0">
-            <div id="items-pdf-menu-a" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px"
-                 <?php
-                if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                    echo 'data-mode="external"';
+        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:197px;z-index: 2001;padding:0;border:0">
 
-                if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                    echo 'data-mode="internal"';
-                ?>
-                 >
+            <div id="items-pdf-menu-a1" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px" data-mode="external">
                 <i class="fa fa-external-link"></i><br>
-                Window
+                Browser
             </div>
+
+            <div id="items-pdf-menu-a2" style="width:62px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px" data-mode="internal">
+                <i class="fa fa-external-link"></i><br>
+                I, Librarian
+            </div>
+
             <div id="items-pdf-menu-b" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:right">
-                <i class="fa fa-download"></i><br>External
+                <i class="fa fa-download"></i><br>Download
             </div>
         </div>
         <div id="file-panel" style="width:auto;height:48%;border-top:1px solid #c6c8cc;overflow:auto">

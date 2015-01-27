@@ -175,7 +175,8 @@ a.topindex_clicked {
 #items-menu > div:focus,
 #items-menu > div.tabclicked,
 #items-notes-menu,
-#items-pdf-menu-a,
+#items-pdf-menu-a1,
+#items-pdf-menu-a2,
 #items-pdf-menu-b {
     background-color: #" . $top_window_background_color . ";
     color: #" . $top_window_color . ";
@@ -183,7 +184,8 @@ a.topindex_clicked {
 }
 
 #items-notes-menu,
-#items-pdf-menu-a,
+#items-pdf-menu-a1,
+#items-pdf-menu-a2,
 #items-pdf-menu-b {
     box-shadow: 1px 1px 3px rgba(0,0,0,0.33)
 }
