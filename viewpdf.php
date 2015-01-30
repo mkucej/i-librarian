@@ -140,29 +140,6 @@ if (isset($_GET['renderpdf'])) {
         }
         if (file_exists($png_path . DIRECTORY_SEPARATOR . $file . "." . $page . ".png")) {
 
-            // bookmark open page
-            if (substr($_GET['file'], 0, 4) != 'lib_') {
-
-                $userID = intval($_SESSION['user_id']);
-
-                database_connect($database_path, 'history');
-
-                $dbHandle->exec("CREATE TABLE IF NOT EXISTS bookmarks (
-                    id INTEGER PRIMARY KEY,
-                    userID INTEGER NOT NULL DEFAULT '',
-                    file TEXT NOT NULL DEFAULT '',
-                    page INTEGER NOT NULL DEFAULT 1,
-                    UNIQUE(userID,file)
-                    )");
-
-                $dbHandle->beginTransaction();
-                $dbHandle->exec("DELETE FROM bookmarks WHERE userID=$userID AND file='$file'");
-                if ($page > 1)
-                    $dbHandle->exec("INSERT INTO bookmarks (userID,file,page) VALUES ($userID,'$file',$page)");
-                $dbHandle->commit();
-                $dbHandle = null;
-            }
-
             // send image size to js
             $img_size_array = getimagesize('library' . DIRECTORY_SEPARATOR . 'pngs' . DIRECTORY_SEPARATOR . $file . "." . $page . ".png");
             print json_encode(array_slice($img_size_array, 0, 2));
@@ -268,10 +245,9 @@ if (!isset($_GET['inline'])) {
                         <td style="padding:2px 0 0 4px;line-height:28px">
                             <button id="size1"><i class="fa fa-search-plus"></i> 100%</button>
                             <button id="size2" title="Fit the page width">|<i class="fa fa-arrows-h"></i>|</button>
-                            <button id="size3" title="Fit the page height"><i class="fa fa-file-o"></i> <i class="fa fa-arrows-v"></i></button>
                         </td>
                         <td style="padding-left:4px;padding-top:8px;line-height:28px">
-                            <div id="zoom" style="margin-top:4px"></div><div style="float:left;position:relative;top:-4px;width:3em;text-align:right"></div>
+                            <div id="zoom"></div><div style="float:left;position:relative;top:-4px;width:3em;text-align:right"></div>
                         </td>
                         <td style="padding:2px 0 0 4px;line-height:28px">
                             <div class="vertical-separator"></div>
@@ -353,7 +329,7 @@ if (!isset($_GET['inline'])) {
                             <div class="vertical-separator"></div>
                         </td>
                         <td style="padding:2px 0 0 4px;line-height:28px">
-                            <input type="text" id="pdf-viewer-search" size="10" value="" placeholder="Find" style="width:180px;padding:2px"
+                            <input type="text" id="pdf-viewer-search" size="10" value="" placeholder="Find" style="width:120px;padding:2px"
                                    title="Use &lt;?&gt; as single-letter, and &lt;*&gt; as multi-letter wildcards">
                         </td>
                         <td style="padding:2px 0 0 4px;line-height:28px">
@@ -382,9 +358,14 @@ if (!isset($_GET['inline'])) {
                 </div>
             </div>
             <div id="pdf-viewer-img-div">
-                <div id="pdf-viewer-img"></div>
-                <div id="highlight-container"></div>
-                <div id="annotation-container" style="display:none;"></div>
+                <?php
+                for ($i=1;$i<=$page_number;$i++) {
+                    echo '<div class="pdf-viewer-img" id="pdf-viewer-img-' . $i . '">
+                    <div class="highlight-container"></div>
+                    <div class="annotation-container"></div>
+                    <div class="text-container"></div></div>';
+                }
+                ?>
                 <div id="cursor">
                     <span class="fa"></span>
                 </div>

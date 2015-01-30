@@ -697,7 +697,8 @@ iframe {display:block}
     visibility:hidden
 }
 
-#pdf-viewer-img	{
+.pdf-viewer-img	{
+    position:relative;
     display:inline-block;
     background-repeat:no-repeat;
     background-size:contain;
@@ -749,6 +750,7 @@ iframe {display:block}
 
 .pdf-text-div       {
     position:absolute;
+    color: transparent
 }
 
 .pdf-text-div.ui-selecting      {
@@ -760,9 +762,14 @@ iframe {display:block}
     cursor:pointer
 }
 
-#highlight-container, #annotation-container       {
+.annotation-container,
+.text-container,
+.highlight-container {
     position:absolute;
     top: 0;
+    width:100%;
+    height:100%;
+    display:none
 }
 
 #annotation-container       {
@@ -849,10 +856,10 @@ iframe {display:block}
 
 #zoom   {
     float:left;
-    width:120px;
-    margin-left: 4px;
+    width:100px;
+    margin-left: 8px;
     margin-right:10px;
-    margin-top:2px
+    margin-top:4px
 }
 
 #navpane {

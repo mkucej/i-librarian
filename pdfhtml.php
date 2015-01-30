@@ -53,7 +53,7 @@ if (file_exists($temp_xml . $page . '.xml')) {
             if ($a == 'width')
                 $row_width = 100 * round($b / $page_width, 3);
         }
-        $output .= '<div class="pdf-text-div" data-text="'.str_replace('"', '&quot;', $row).'" style="top:'.$row_top.'%;left:'.$row_left.'%;width:'.$row_width.'%;height:'.$row_height.'%"></div>';
+        $output .= '<div class="pdf-text-div" style="top:'.$row_top.'%;left:'.$row_left.'%;width:'.$row_width.'%;height:'.$row_height.'%">'.htmlspecialchars($row).'</div>' . PHP_EOL;
         $i = $i + 1;
     }
 } else {

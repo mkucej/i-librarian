@@ -319,7 +319,7 @@ if (isset($_SESSION['auth'])) {
         if (empty($xml)) die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
             Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
 
-
+        
         foreach ($xml->attributes() as $a => $b) {
 
             if ($a == 'selected') {

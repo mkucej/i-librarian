@@ -651,15 +651,14 @@ if (!empty($_GET['searchmode'])) {
 
         print '<div id="display-content" data-redirection="' . preg_replace('/(from=\d*)(\&|$)/', '$2', basename($_SERVER['PHP_SELF']) . '?' . $_SERVER['QUERY_STRING']) . '">';
         ?>
-        <div style="margin: 2px;margin-top:3px">
-                <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="float:left;padding:0.2em 0.4em">
-                    &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
-                </div>
-                <div id="omnitoolbutton" class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em">
-                    &nbsp;<i class="fa fa-wrench"></i> Omnitool&nbsp;</div>
-                <div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em" id="printlist">
-                    &nbsp;<i class="fa fa-print"></i> Print&nbsp;
-                </div>
+        <div class="alternating_row" style="padding:0.35em;padding-bottom: 0;border-bottom:1px solid #c5c6c8">
+            <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;padding:0.2em 0.4em">
+                &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
+            </div>
+            <div id="omnitoolbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
+                &nbsp;<i class="fa fa-wrench"></i> Omnitool&nbsp;</div>
+            <div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em" id="printlist">
+                &nbsp;<i class="fa fa-print"></i> Print&nbsp;
             </div>
             <div style="float:right;margin: 2px;margin-top: 0">
                 <span style="position:relative;top:-7px">
@@ -694,6 +693,7 @@ if (!empty($_GET['searchmode'])) {
                 </select>
             </div>
             <div style="clear:both"></div>
+        </div>
         <?php
     }
 
@@ -719,7 +719,7 @@ if (!empty($_GET['searchmode'])) {
     }
 
     if (!empty($search_query))
-        print '<div id="list-title" style="font-weight: bold; padding: 2px;padding-top:0;text-align:center">' . $what . ' &raquo; Query: ' . htmlspecialchars($search_query) . '</div>';
+        print '<div id="list-title" style="font-weight: bold; padding: 6px;text-align:center">' . $what . ' &raquo; Query: ' . htmlspecialchars($search_query) . '</div>';
 
     $url_array = array();
     reset($_GET);

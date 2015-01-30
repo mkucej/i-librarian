@@ -1034,10 +1034,11 @@ function proxy_simplexml_load_file($url, $proxy_name, $proxy_port, $proxy_userna
             }
         }
     } else {
-
+        
         ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
         $xml = @simplexml_load_file($url);
-
+        var_dump($xml);
+        die();
         #JSTOR hack
         if (strpos($url, 'jstor') !== false) {
             $xml = new XMLReader();
@@ -1128,7 +1129,7 @@ function fetch_from_nasaads($doi, $nasa_id) {
         $lookfor = 'doi=' . urlencode($doi);
 
     $request_url = "http://adsabs.harvard.edu/cgi-bin/abs_connect?" . $lookfor . "&data_type=XML&return_req=no_params&start_nr=1&nr_to_return=1";
-
+    
     $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
     if (empty($xml))
         die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.

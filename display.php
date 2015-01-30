@@ -403,59 +403,59 @@ if (isset($_GET['browse'])) {
         ?>
         <div id="display-content" style="width:100%;height:100%"
              data-redirection="<?php print preg_replace('/(from=\d*)(\&|$)/', '$2', basename($_SERVER['PHP_SELF']) . '?' . $_SERVER['QUERY_STRING']); ?>">
-            <div style="margin: 2px;margin-top:3px">
-                <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="float:left;padding:0.2em 0.4em">
+            <div class="alternating_row" style="padding:0.35em;padding-bottom: 0;border-bottom:1px solid #c5c6c8">
+                <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;padding:0.2em 0.4em">
                     &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
                 </div>
-                <div id="omnitoolbutton" class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em">
+                <div id="omnitoolbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
                     &nbsp;<i class="fa fa-wrench"></i> Omnitool&nbsp;</div>
                 <?php
                 if ($_GET['select'] == 'desk') {
-                    print '<div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em">
+                    print '<div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
                 <a href="rss.php?project=' . $project . '" target="_blank" style="display:block">&nbsp;<i class="fa fa-rss"></i> Project RSS</a></div>';
                 } else {
 
-                    print '<div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em">
+                    print '<div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
                 <a href="rss.php" target="_blank" style="display:block">&nbsp;<i class="fa fa-rss"></i> RSS</a></div>';
                 }
                 ?>
-                <div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:2px;padding:0.2em 0.4em" id="printlist">
+                <div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em" id="printlist">
                     &nbsp;<i class="fa fa-print"></i> Print&nbsp;
                 </div>
+                <div style="float:right;margin: 2px;margin-top: 0">
+                    <span style="position:relative;top:-7px">
+                        Display
+                    </span>
+                    <select id="select-display" style="width:9em">
+                        <option value="brief" <?php print $display == 'brief' ? 'selected' : ''; ?>>Title</option>
+                        <option value="summary" <?php print $display == 'summary' ? 'selected' : ''; ?>>Summary</option>
+                        <option value="abstract" <?php print $display == 'abstract' ? 'selected' : ''; ?>>Abstract</option>
+                        <option value="icons" <?php print $display == 'icons' ? 'selected' : ''; ?>>Icons</option>
+                    </select>
+                    <span style="position:relative;top:-7px">
+                        Order
+                    </span>
+                    <select id="select-order" style="width:11em">
+                        <option value="id" <?php print $orderby == 'id' ? 'selected' : ''; ?>>Date Added</option>
+                        <option value="year" <?php print $orderby == 'year' ? 'selected' : ''; ?>>Date Published</option>
+                        <option value="journal" <?php print $orderby == 'journal' ? 'selected' : ''; ?>>Journal</option>
+                        <option value="rating" <?php print $orderby == 'rating' ? 'selected' : ''; ?>>Rating</option>
+                        <option value="title" <?php print $orderby == 'title' ? 'selected' : ''; ?>>Title</option>
+                    </select>
+                    <span style="position:relative;top:-7px">
+                        Show
+                    </span>
+                    <select id="select-number" style="width:6em">
+                        <option value="5" <?php print $limit == 5 ? 'selected' : ''; ?>>5</option>
+                        <option value="10" <?php print $limit == 10 ? 'selected' : ''; ?>>10</option>
+                        <option value="15" <?php print $limit == 15 ? 'selected' : ''; ?>>15</option>
+                        <option value="20" <?php print $limit == 20 ? 'selected' : ''; ?>>20</option>
+                        <option value="50" <?php print $limit == 50 ? 'selected' : ''; ?>>50</option>
+                        <option value="100" <?php print $limit == 100 ? 'selected' : ''; ?>>100</option>
+                    </select>
+                </div>
+                <div style="clear:both"></div>
             </div>
-            <div style="float:right;margin: 2px;margin-top: 0">
-                <span style="position:relative;top:-7px">
-                    Display
-                </span>
-                <select id="select-display" style="width:9em">
-                    <option value="brief" <?php print $display == 'brief' ? 'selected' : ''; ?>>Title</option>
-                    <option value="summary" <?php print $display == 'summary' ? 'selected' : ''; ?>>Summary</option>
-                    <option value="abstract" <?php print $display == 'abstract' ? 'selected' : ''; ?>>Abstract</option>
-                    <option value="icons" <?php print $display == 'icons' ? 'selected' : ''; ?>>Icons</option>
-                </select>
-                <span style="position:relative;top:-7px">
-                    Order
-                </span>
-                <select id="select-order" style="width:11em">
-                    <option value="id" <?php print $orderby == 'id' ? 'selected' : ''; ?>>Date Added</option>
-                    <option value="year" <?php print $orderby == 'year' ? 'selected' : ''; ?>>Date Published</option>
-                    <option value="journal" <?php print $orderby == 'journal' ? 'selected' : ''; ?>>Journal</option>
-                    <option value="rating" <?php print $orderby == 'rating' ? 'selected' : ''; ?>>Rating</option>
-                    <option value="title" <?php print $orderby == 'title' ? 'selected' : ''; ?>>Title</option>
-                </select>
-                <span style="position:relative;top:-7px">
-                    Show
-                </span>
-                <select id="select-number" style="width:6em">
-                    <option value="5" <?php print $limit == 5 ? 'selected' : ''; ?>>5</option>
-                    <option value="10" <?php print $limit == 10 ? 'selected' : ''; ?>>10</option>
-                    <option value="15" <?php print $limit == 15 ? 'selected' : ''; ?>>15</option>
-                    <option value="20" <?php print $limit == 20 ? 'selected' : ''; ?>>20</option>
-                    <option value="50" <?php print $limit == 50 ? 'selected' : ''; ?>>50</option>
-                    <option value="100" <?php print $limit == 100 ? 'selected' : ''; ?>>100</option>
-                </select>
-            </div>
-            <div style="clear:both"></div>
             <?php
         }
         if (isset($_GET['select']) && $_GET['select'] == 'shelf' && isset($_SESSION["auth"])) {
@@ -468,7 +468,7 @@ if (isset($_GET['browse'])) {
             $what = "Library";
         }
 
-        print '<div id="list-title" style="font-weight: bold; padding: 2px;padding-top:0;text-align:center">' . $what;
+        print '<div id="list-title" style="font-weight: bold; padding: 6px;text-align:center">' . $what;
 
         if (!empty($query_display_string))
             print ' &raquo; ' . htmlspecialchars($query_display_string);
