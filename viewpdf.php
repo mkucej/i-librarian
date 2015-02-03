@@ -157,7 +157,7 @@ if (isset($_GET['renderthumbs'])) {
     if (file_exists($pdf_path . DIRECTORY_SEPARATOR . $file)) {
 
         if (!file_exists($png_path . DIRECTORY_SEPARATOR . $file . ".t1.png") || filemtime($png_path . DIRECTORY_SEPARATOR . $file . '.t1.png') < filemtime($pdf_path . DIRECTORY_SEPARATOR . $file)) {
-            exec(select_ghostscript() . " -dSAFER -sDEVICE=png256 -r20 -dTextAlphaBits=1 -dGraphicsAlphaBits=1 -o \"" . $png_path . DIRECTORY_SEPARATOR . $file . ".t%d.png\" \"" . $pdf_path . DIRECTORY_SEPARATOR . $file . "\"");
+            exec(select_ghostscript() . " -dSAFER -sDEVICE=png16m -r20 -dTextAlphaBits=2 -dGraphicsAlphaBits=2 -o \"" . $png_path . DIRECTORY_SEPARATOR . $file . ".t%d.png\" \"" . $pdf_path . DIRECTORY_SEPARATOR . $file . "\"");
         }
     }
     die();
@@ -348,9 +348,11 @@ if (!isset($_GET['inline'])) {
         <div id="pdf-viewer-div">
             <div id="navpane" style="display:none">
                 <div id="thumbs" style="display:none"><p>Loading previews...</p></div>
-                <div id="bookmarks" style="text-align:left;display:none"></div>
+                <div id="bookmarks" style="text-align:left;display:none">
+                    <input type="text" placeholder="Search bookmarks" class="pdf_filter" style="width:180px;margin:4px 0 4px 6px">
+                </div>
                 <div id="annotations-left" style="text-align:left;display:none">
-                    <input type="text" placeholder="Search notes" id="filter_notes" style="width:180px;margin-left:6px;margin-top:4px">
+                    <input type="text" placeholder="Search notes" class="pdf_filter" style="width:180px;margin:4px 0 0 6px">
                     <button id="print-notes" title="Print notes" style="margin-left:6px;margin-top:4px"><i class="fa fa-print"></i></button>
                 </div>
                 <div id="search-results" style="text-align:left;display:none">
@@ -372,7 +374,7 @@ if (!isset($_GET['inline'])) {
             </div>
         </div>
         <div id="copy-image-container" style="display:none">
-            <img src="" id="image-to-copy" style="box-shadow:0 0 2px #333">
+            <img src="" id="image-to-copy" style="box-shadow:0 0 2px rgba(0,0,0,0.33)">
             <form action="viewpdf.php" method="get">
                 <input type="hidden" name="cropimage" value="1">
                 <input type="hidden" name="image" id="image-src" value="">

@@ -1,5 +1,6 @@
 <?php
 
+//PDF EXPORT IN BUILT-IN PDF VIEWER
 if (!empty($_GET['file'])) {
 
     include_once 'data.php';
@@ -46,17 +47,26 @@ if (!empty($_GET['file'])) {
             if (in_array('notes', $_GET['attachments'])) {
                 database_connect($database_path, 'library');
                 $userid = $dbHandle->quote($_SESSION['user_id']);
+                $username = $dbHandle->quote($_SESSION['user']);
                 $qfile = $dbHandle->quote($_GET['file']);
 
                 //ATTACH PDF NOTES FROM USERS
                 if (in_array('allusers', $_GET['attachments'])) {
-                    $result = $dbHandle->query("SELECT id,annotation,page,top,left FROM annotations
+
+                    $quoted_path = $dbHandle->quote($usersdatabase_path . 'users.sq3');
+
+                    $dbHandle->exec("ATTACH DATABASE $quoted_path AS userdatabase");
+
+                    $result = $dbHandle->query("SELECT id,annotation,page,top,left,userdatabase.users.username AS username FROM annotations
+                                                JOIN userdatabase.users ON userdatabase.users.userID=annotations.userID
                                                 WHERE filename=$qfile
                                                 ORDER BY CAST(page AS INTEGER) ASC, CAST(top AS INTEGER) ASC");
 
+                    $dbHandle->exec("DETACH DATABASE userdatabase");
+
                     //ATTACH PDF NOTES FROM THIS USER
                 } else {
-                    $result = $dbHandle->query("SELECT id,annotation,page,top,left FROM annotations
+                    $result = $dbHandle->query("SELECT id,annotation,page,top,left," . $username . " AS username FROM annotations
                                                 WHERE filename=$qfile
                                                 AND userID=$userid
                                                 ORDER BY CAST(page AS INTEGER) ASC, CAST(top AS INTEGER) ASC");
@@ -74,7 +84,7 @@ if (!empty($_GET['file'])) {
                                 /Name /Comment
                                 /SrcPg ' . $annotations['page'] . '
                                 /Open false
-                                /Title (Comment no. ' . $annotations['id'] . ')
+                                /Title (Comment #' . $annotations['id'] . ' by ' . $annotations['username'] . ')
                                 /Color [0.6 0.65 0.9]
                                 /ANN pdfmark' . PHP_EOL;
                 }
@@ -156,7 +166,6 @@ if (!empty($_GET['file'])) {
 //        $result = $dbHandle->query("SELECT title FROM library where file=" . $qfile);
 //        $data = $result->fetch(PDO::FETCH_NAMED);
 //        $file = str_replace(' ', '_', substr($data['title'],0,35)) . '.pdf';
-
         //RENDER FINISHED PDF
         header("Content-type: application/pdf");
         if (!isset($_GET['mode']))

@@ -62,11 +62,11 @@ foreach ($output_pages as $output_page) {
             if(preg_match("/$search_term/ui", $row) > 0) {
                 foreach($xml->page->text[$i]->attributes() as $a => $b) {
                     if ($a == 'top') $row_top = 100*round($b/$page_height, 3);
-                    if ($a == 'left') $row_left = 100*round($b/$page_width, 3)-0.5;
+                    if ($a == 'left') $row_left = 100*round($b/$page_width, 3);
                     if ($a == 'height') $row_height = 100*round($b/$page_height, 3);
                     if ($a == 'width') $row_width = 100*round($b/$page_width, 3);
                 }
-                $final_pages[($output_page)][] = array('top' => $row_top, 'left' => $row_left, 'height' => $row_height, 'width' => $row_width, 'text' => $row);
+                $final_pages[] = array('page' => $output_page,'top' => $row_top, 'left' => $row_left, 'height' => $row_height, 'width' => $row_width, 'text' => $row);
             }
             $i = $i + 1;
         }
@@ -74,5 +74,5 @@ foreach ($output_pages as $output_page) {
         die('{"Error":"PDF to XML conversion failed!"}');
     }
 }
-print json_encode ($final_pages, JSON_FORCE_OBJECT);
+print json_encode ($final_pages);
 ?>

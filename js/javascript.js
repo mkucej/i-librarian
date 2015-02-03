@@ -109,7 +109,7 @@ $(window).load(function() {
         $('#bottom-panel, #addrecord-panel, #items-container').height(h);
     });
     $.extend($.ui.dialog.prototype.options, {
-        modal: false,
+        modal: true,
         resizable: false,
         draggable: false
     });
@@ -343,7 +343,14 @@ var omnitool = {
             $(":checkbox[value=8]").parent('td').removeClass('ui-state-disabled').addClass('select_span');
             common.init();
         });
-        $('#omnitooldiv select').selectmenu();
+        $('#omnitooldiv select').each(function() {
+            var $t = $(this);
+            $(this).selectmenu({position: {my: "right top", at: "right bottom"}}).data("ui-selectmenu")._resizeMenu = function() {
+                this.menu.width(parseInt($t.next('span').width()));
+                if ($t.find('option').length > 12)
+                    this.menu.height('300');
+            };
+        });
     }
 };
 
@@ -594,7 +601,13 @@ var index2 = {
         $('#signinform').submit(function() {
             $('#signinbutton').click();
             return false;
-        }).find('select').selectmenu();
+        }).find('select').selectmenu()
+                .data("ui-selectmenu")
+                ._resizeMenu = function() {
+                    this.menu.width(parseInt($('#signinform').find('select').next('span').width()));
+                    if ($('#signinform select').find('option').length > 12)
+                        this.menu.height('300');
+                };
         $('#signupbutton').click(function() {
             var $form = $('#signupform'), passwd = $form.find('input[name=pass]').val(),
                     username = $form.find('input[name=user]').val(), passwd2 = $form.find('input[name=pass2]').val();
@@ -1411,7 +1424,6 @@ var users = {
         $("#delete-confirm").dialog({
             autoOpen: false,
             resizable: false,
-            modal: false,
             position: ['center', 200],
             buttons: {
                 'Delete User': function() {
@@ -2104,7 +2116,7 @@ var exportitems = {
             source: "ajaxstyles.php",
             minLength: 1,
             appendTo: "#exportdialog",
-            position: { my : "right top", at: "right bottom"}
+            position: {my: "right top", at: "right bottom"}
         });
         $('#citation-style').keydown(function() {
             $('input[name="format"][value="citations"]').parent().click();

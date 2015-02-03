@@ -269,7 +269,7 @@ header("Content-type: text/css; charset=utf-8");
 
 /*jquery ui*/
 .ui-button-text {text-shadow:1px 1px 0px rgba(255,255,255,0.8)}
-.ui-button {border-bottom :1px solid rgba(0,0,0,0.2) !important}
+.ui-button {border-color:rgba(0,0,0,0.07) !important;border-bottom :1px solid rgba(0,0,0,0.15) !important}
 
 .ui-state-highlight {
     cursor: pointer;
@@ -347,11 +347,11 @@ input[type="text"],input[type="password"],textarea
 {
     margin: 0;
     padding: 1px;
-    border-radius:3px;
-    border-left: 1px solid #a6a8ac;
-    border-top: 1px solid #a6a8ac;
-    border-bottom: 1px solid #e6e8ec;
-    border-right: 1px solid #e6e8ec
+    border-radius:0px;
+    border-left: 1px solid rgba(0,0,0,0.3);
+    border-top: 1px solid rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    border-right: 1px solid rgba(0,0,0,0.1)
 }
 
 input.matcher {
@@ -694,7 +694,8 @@ iframe {display:block}
 .pdf-viewer-control-row {
     overflow:hidden;
     height:35px;
-    visibility:hidden
+    visibility:hidden;
+    padding-left:0.25em
 }
 
 .pdf-viewer-img	{
@@ -703,15 +704,14 @@ iframe {display:block}
     background-repeat:no-repeat;
     background-size:contain;
     background-color: #fff;
-    box-shadow: #666 0px 0px 3px;
-    -moz-box-shadow: #666 0px 0px 3px;
-    -webkit-box-shadow: #666 1px 1px 2px;
+    box-shadow: 0px 0px 4px rgba(0,0,0,0.33);
+    width:calc(100%-30px);
+    height:1500px;
+    margin:4px 2px 0 2px;
 }
 
 #pdf-viewer-div	{
-    box-shadow: #666 0px 0px 2px 0 inset;
-    -moz-box-shadow: #666 0px 0px 2px 0 inset;
-    -webkit-box-shadow: #666 0px 0px 2px 0 inset;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.33);
     width:100%;
     height:calc(100% - 73px);
     position:relative;
@@ -735,17 +735,13 @@ iframe {display:block}
 }
 
 .pdf-viewer-thumbs	{
-    box-shadow: #666 1px 1px 2px;
-    -moz-box-shadow: #666 1px 1px 2px;
-    -webkit-box-shadow: #666 1px 1px 2px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.33);
     cursor: pointer;
 }
 
 .pdfviewer-highlight       {
     position:absolute;
     background-color:rgba(255,60,0,0.2);
-    padding:0 0.5%;
-    display: none
 }
 
 .pdf-text-div       {
@@ -821,6 +817,10 @@ iframe {display:block}
     border-radius: 30px
 }
 
+.marker-edit {
+    border-color:rgba(255,50,0,0.35);
+}
+
 .marker-note-others {
     background-color:rgba(255,255,255,0.6);
     line-height:40px;
@@ -833,7 +833,7 @@ iframe {display:block}
 }
 
 .marker-note:hover {
-    border-color: rgba(40,50,255,0.5);
+    border-color:rgba(255,50,0,0.35);
 }
 
 .marker-note-others:hover {
@@ -906,7 +906,8 @@ iframe {display:block}
 }
 
 .bookmark, .annotation {
-    padding:1px 6px;
+    padding:4px 6px;
+    margin-top:2px;
     cursor:pointer;
     font-size:12px
 }
