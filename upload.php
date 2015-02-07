@@ -988,7 +988,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                             print "<input type=\"hidden\" name=\"filename\" value=\"$_POST[tempfile]\">";
                             if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                                print "<iframe class=\"pdf-file\" src=\"temp.php?tempfile=$_POST[tempfile]#pagemode=none&scrollbar=1&page=1&navpanes=0&toolbar=0&statusbar=0&view=FitH,20\" style=\"display:block;width:99%;height:300px;border:1px inset #afaea9\"></iframe>";
+                                print "<iframe class=\"pdf-file\" src=\"temp.php?tempfile=$_POST[tempfile]#pagemode=none&scrollbar=1&page=1&navpanes=0&toolbar=0&statusbar=0&view=FitH,20&zoom=page-width\" style=\"display:block;width:99%;height:300px;border:1px inset #afaea9\"></iframe>";
                             if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal')) {
                                 print "<iframe class=\"pdf-file\" src=\"viewpdf.php?toolbar=0&preview=1&file=$_POST[tempfile]\" style=\"display:block;width:99%;height:300px;border:1px inset #afaea9\"></iframe>";
                             }

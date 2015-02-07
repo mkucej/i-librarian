@@ -5,6 +5,7 @@ include_once 'functions.php';
 if (isset($_GET['file']))
     $_GET['file'] = intval($_GET['file']);
 
+//DELETE BUTTON IN ITEMS VIEW
 if (isset($_GET['delete']) && isset($_GET['file']) && isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
     database_connect($database_path, 'library');
     $error = null;
@@ -12,16 +13,7 @@ if (isset($_GET['delete']) && isset($_GET['file']) && isset($_SESSION['permissio
     die($error);
 }
 
-if (isset($_GET['neighbors']) && isset($_GET['file'])) {
-
-    $export_files = read_export_files(0);
-
-    $current_record = array_search($_GET['file'], $export_files);
-    isset($export_files[$current_record - 1]) ? $prevrecord = $export_files[$current_record - 1] : $prevrecord = 'none';
-    isset($export_files[$current_record + 1]) ? $nextrecord = $export_files[$current_record + 1] : $nextrecord = 'none';
-    die($prevrecord . ':' . $nextrecord);
-}
-
+//CHECK IF ITEM IS STILL IN LIST AFTER CHANGES AND RELOAD
 if (isset($_GET['checkitem']) && isset($_GET['files'])) {
 
     $diff = array();
@@ -34,17 +26,17 @@ if (isset($_GET['checkitem']) && isset($_GET['files'])) {
 session_write_close();
 
 $export_files = read_export_files(0);
-if (empty($export_files)) {
-    //HACK, SOMETIMES CLIENT IS REFRESHING EXPORT FILES
-    for ($i = 1; $i <= 10; $i++) {
-        if (empty($export_files)) {
-            sleep(1);
-            $export_files = read_export_files(0);
-        } else {
-            break;
-        }
-    }
-}
+//TODO: HACK, SOMETIMES CLIENT IS REFRESHING EXPORT FILES (BOTTOM LAYER)
+//if (empty($export_files)) {
+//    for ($i = 1; $i <= 10; $i++) {
+//        if (empty($export_files)) {
+//            sleep(1);
+//            $export_files = read_export_files(0);
+//        } else {
+//            break;
+//        }
+//    }
+//}
 if (empty($export_files))
     die('Error! No files to display.');
 ?>
@@ -54,12 +46,10 @@ if (empty($export_files))
         <div class="backbutton" title="Back to list view (Q)" style="float:left;width:calc(33% - 4px);padding:2px">
             <i class="fa fa-times-circle"></i>
         </div>
-        <div title="Previous Item (W)" style="float:left;width:calc(33% - 4px);padding:2px"
-             class="prevrecord <?php print empty($prevrecord) ? ' ui-state-disabled' : ''  ?>" id="prev-item-<?php print $prevrecord ?>">
+        <div title="Previous Item (W)" style="float:left;width:calc(33% - 4px);padding:2px" class="prevrecord">
             <i class="fa fa-chevron-circle-up"></i>
         </div>
-        <div title="Next Item (S)"  style="float:left;width:calc(33% - 4px);padding:2px"
-             class="nextrecord <?php print empty($nextrecord) ? ' ui-state-disabled' : ''  ?>" id="next-item-<?php print $nextrecord ?>">
+        <div title="Next Item (S)"  style="float:left;width:calc(33% - 4px);padding:2px" class="nextrecord">
             <i class="fa fa-chevron-circle-down"></i>
         </div>
         <div style="clear:both"></div>
@@ -75,10 +65,9 @@ if (empty($export_files))
     }
     $show_items = array_slice($export_files, $offset, 20);
     if ($offset > 0) {
-        print '<div class="ui-state-highlight lib-shadow-bottom" style="margin-bottom:4px;height:17px" title="Previous">';
-        print '<a href="items.php?file=' . $export_files[$offset - 1] . '" class="navigation" style="display:block;width:100%" id="' . $export_files[$offset - 1] . '">';
+        print '<div class="ui-state-highlight lib-shadow-bottom" style="margin-bottom:4px;height:17px" id="nav-prev" data-id="' . $export_files[$offset - 1] . '">';
         print '<i class="fa fa-caret-up"></i>';
-        print '</a></div>';
+        print '</div>';
     }
     print '<div id="list-title-copy" class="items" style="font-weight:bold"></div><div class="separator"></div>';
 
@@ -108,21 +97,14 @@ if (empty($export_files))
     }
     $result = null;
 
-    if (isset($_GET['file'])) {
-        $current_record = array_search($_GET['file'], $export_files);
-        isset($export_files[$current_record - 1]) ? $prevrecord = $export_files[$current_record - 1] : $prevrecord = null;
-        isset($export_files[$current_record + 1]) ? $nextrecord = $export_files[$current_record + 1] : $nextrecord = null;
-    }
-
     $hr = '<div class="separator"></div>';
 
     print join($hr, $divs);
 
     if ($offset < count($export_files) - 20) {
-        print '<div class="ui-state-highlight lib-shadow-top" style="margin-top:4px" title="Next">';
-        print '<a href="items.php?file=' . $export_files[$offset + 20] . '" class="navigation" style="display:block;width:100%" id="file-' . $export_files[$offset + 20] . '">';
+        print '<div class="ui-state-highlight lib-shadow-top" id="nav-next" style="margin-top:24px" data-id="' . $export_files[$offset + 20] . '">';
         print '<i class="fa fa-caret-down"></i>';
-        print '</a></div>';
+        print '</div>';
     }
     ?>
 </div>
@@ -138,7 +120,15 @@ if (empty($export_files))
             <div class="tab" id="file-item">
                 <i class="fa fa-home"></i><br>Item
             </div>
-            <div class="tab" id="file-pdf">
+            <div class="tab" id="file-pdf"
+                 <?php
+            if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
+                echo 'data-mode="external"';
+
+            if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
+                echo 'data-mode="internal"';
+            ?>
+                 >
                 <i class="fa fa-file-pdf-o"></i><br>PDF
             </div>
             <div class="tab" id="file-notes">
@@ -185,25 +175,26 @@ if (empty($export_files))
             }
             ?>
         </div>
-        <div id="items-notes-menu" style="display:none;width:60px;position:fixed;top:0;left:0;text-align: center;padding:5px 2px;z-index: 2000;cursor: pointer">
-            <i class="fa fa-external-link"></i><br>Edit
+        <div id="items-notes-menu" style="display:none;width:5.5em;position:fixed;top:0;left:0;text-align: center;padding:8px 0;z-index: 2000;cursor: pointer;line-height:1.1em">
+            <i class="fa fa-external-link" style="font-size:16px"></i><br>Edit
         </div>
-        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:129px;z-index: 2001;padding:0;border:0">
-            <div id="items-pdf-menu-a" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:left;margin-right: 1px"
-                 <?php
-                if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                    echo 'data-mode="external"';
+        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:calc(11em+1px);z-index: 2001;padding:0;border:0;margin:0;line-height:1.1em">
+            <div id="items-pdf-menu-a" style="display:inline-block;width:5.5em;text-align: center;padding:8px 0;cursor: pointer;margin-right: 1px"
+            <?php
+            if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
+                echo 'data-mode="external"';
 
-                if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                    echo 'data-mode="internal"';
-                ?>
+            if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
+                echo 'data-mode="internal"';
+            ?>
                  >
-                <i class="fa fa-external-link"></i><br>
-                Window
+                <i class="fa fa-external-link" style="font-size:16px"></i><br>
+                New Tab
             </div>
-            <div id="items-pdf-menu-b" style="width:60px;text-align: center;padding:5px 2px;cursor: pointer;float:right">
-                <i class="fa fa-download"></i><br>External
+            <div id="items-pdf-menu-b" style="float:right;width:5.5em;text-align: center;padding:8px 0;cursor: pointer">
+                <i class="fa fa-download" style="font-size:16px"></i><br>Download
             </div>
+            <div style="clear:both"></div>
         </div>
         <div id="file-panel" style="width:auto;height:48%;border-top:1px solid #c6c8cc;overflow:auto">
         </div>

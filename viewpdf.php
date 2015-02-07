@@ -10,6 +10,9 @@ if (!empty($_GET['cropimage'])) {
         die('PHP GD extension not installed.');
 
     parse_str(parse_url($_GET['image'], PHP_URL_QUERY), $src);
+    $page_arr = explode('.', $src['png']);
+    $page = intval($page_arr[2]);
+    $file = $page_arr[0] . '.pdf';
     $src = $library_path . 'pngs' . DIRECTORY_SEPARATOR . preg_replace("/[^a-z0-9\.]/", "", $src['png']);
 
     if (!is_file($src))
@@ -52,17 +55,32 @@ if (!empty($_GET['cropimage'])) {
         imagetruecolortopalette($dst_r, false, 256);
     }
 
-    header('Content-type: image/png');
-    header("Content-Disposition: attachment; filename=image.png");
-    header("Pragma: no-cache");
-    header("Expires: 0");
+    database_connect($database_path, 'library');
+    $file_query = $dbHandle->quote($file);
+    $result = $dbHandle->query("SELECT id FROM library WHERE file=" . $file_query);
+    $fileID = $result->fetchColumn();
+    $dbHandle = null;
+    $fileID = sprintf("%05d", $fileID);
 
-    imagepng($dst_r, null, 6);
-
-    imagedestroy($dst_r);
-    imagedestroy($img_r);
-
-    die();
+    if (isset($_GET['mode']) && $_GET['mode'] == 'save') {
+        $png_saved = imagepng($dst_r, $library_path . 'supplement' . DIRECTORY_SEPARATOR . $fileID . 'image-p' . $page . '-' . $x . 'x' . $y . '.png', 6);
+        imagedestroy($dst_r);
+        imagedestroy($img_r);
+        if ($png_saved) {
+            die('Image saved.');
+        } else {
+            die('Error! Image not saved');
+        }
+    } else {
+        header('Content-type: image/png');
+        header("Content-Disposition: attachment; filename=" . $fileID . "image-p" . $page . "-" . $x . "x" . $y . ".png");
+        header("Pragma: no-cache");
+        header("Expires: 0");
+        imagepng($dst_r, null, 6);
+        imagedestroy($dst_r);
+        imagedestroy($img_r);
+        die();
+    }
 }
 
 $pdf_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library';
@@ -70,11 +88,12 @@ $png_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPA
 
 if (!empty($_GET['file'])) {
     $file = preg_replace('/[^a-zA-z0-9\_\.pdf]/', '', $_GET['file']);
-    if (substr($_GET['file'], 0, 4) == 'lib_') {
+    if (!is_file("library/" . $_GET['file']))
+        die('<div style="text-align:center;padding-top:270px;color:#b6b8bc;font-size:36px">No PDF</div>');
+    if (substr($_GET['file'], 0, 4) == 'lib_')
         $pdf_path = $temp_dir;
-    }
 } else {
-    die('Error! PDF does not exist.');
+    die('Error! No PDF.');
 }
 
 $page = 1;
@@ -208,7 +227,7 @@ if (!isset($_GET['inline'])) {
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
             <link rel="shortcut icon" href="red.ico">
             <title>
-    <?php print !empty($_GET['title']) ? 'PDF: ' . $_GET['title'] : 'PDF viewer'; ?>
+                <?php print !empty($_GET['title']) ? 'PDF: ' . $_GET['title'] : 'PDF viewer'; ?>
             </title>
             <link type="text/css" href="css/custom-theme/jquery-ui-custom.min.css?v=<?php print $version ?>" rel="stylesheet">
             <link type="text/css" href="css/plugins.css?v=<?php print $version ?>" rel="stylesheet">
@@ -230,9 +249,9 @@ if (!isset($_GET['inline'])) {
         ?>
 
         <div style="<?php
-             if (isset($_GET['toolbar']) && $_GET['toolbar'] == 0)
-                 print 'display:none';
-             ?>" id="pdf-viewer-controls" class="alternating_row">
+        if (isset($_GET['toolbar']) && $_GET['toolbar'] == 0)
+            print 'display:none';
+        ?>" id="pdf-viewer-controls" class="alternating_row">
             <div class="pdf-viewer-control-row">
                 <table>
                     <tr>
@@ -268,9 +287,9 @@ if (!isset($_GET['inline'])) {
                         </td>
                         <td style="padding:2px 0 0 4px;line-height:28px">
                             <button id="pdf-viewer-copy-image" title="Copy image" <?php
-                                    if (!extension_loaded('gd'))
-                                        print 'disabled'
-                                        ?>>
+                            if (!extension_loaded('gd'))
+                                print 'disabled'
+                                ?>>
                                 <i class="fa fa-image"></i>
                             </button>
                             <input type="checkbox" id="pdf-viewer-copy-text">
@@ -312,7 +331,7 @@ if (!isset($_GET['inline'])) {
                             <div class="arrow-top"></div>
                             <div id="pdf-viewer-delete-menu" class="ui-corner-all alternating_row" style="display:none">
                                 <div>
-                                    Erase individually
+                                    Erase selected
                                 </div>
                                 <div>
                                     Erase all markers
@@ -361,7 +380,7 @@ if (!isset($_GET['inline'])) {
             </div>
             <div id="pdf-viewer-img-div">
                 <?php
-                for ($i=1;$i<=$page_number;$i++) {
+                for ($i = 1; $i <= $page_number; $i++) {
                     echo '<div class="pdf-viewer-img" id="pdf-viewer-img-' . $i . '">
                     <div class="highlight-container"></div>
                     <div class="annotation-container"></div>
@@ -382,6 +401,7 @@ if (!isset($_GET['inline'])) {
                 <input type="hidden" id="y" name="y">
                 <input type="hidden" id="w" name="width">
                 <input type="hidden" id="h" name="height">
+                <input type="hidden" id="copy-image-mode" name="mode" value="save">
             </form>
         </div>
         <div id="copy-text-container" style="display:none"></div>

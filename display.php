@@ -362,7 +362,7 @@ if (isset($_GET['browse'])) {
         if (count($shelf_files) > 5000)
             $shelf_files = array_intersect((array) $display_files_array, (array) $shelf_files);
 
-        //PRE-FETCH CATEGORIES, PROJECTS, NOTES FOR DISPLAYED ITEMS INTO TEMP DATABASE TO OFFLOAD THE MAIN DATABASE
+        //PRE-FETCH CATEGORIES, PROJECTS FOR DISPLAYED ITEMS INTO TEMP DATABASE TO OFFLOAD THE MAIN DATABASE
         $display_files2 = join(",", $display_files_array);
         try {
             $tempdbHandle = new PDO('sqlite::memory:');
@@ -382,10 +382,6 @@ if (isset($_GET['browse'])) {
         $tempdbHandle->exec("CREATE TABLE temp_projects (
                     fileID integer NOT NULL,
                     projectID integer NOT NULL)");
-        $tempdbHandle->exec("CREATE TABLE temp_notes (
-                    fileID integer NOT NULL,
-                    notesID integer NOT NULL,
-                    notes text NOT NULL)");
 
         $tempdbHandle->exec("INSERT INTO temp_categories SELECT fileID,filescategories.categoryID,category
                                 FROM librarydb.categories INNER JOIN librarydb.filescategories ON filescategories.categoryID=categories.categoryID
@@ -393,10 +389,6 @@ if (isset($_GET['browse'])) {
 
         $tempdbHandle->exec("INSERT INTO temp_projects SELECT fileID,projectID
                                 FROM librarydb.projectsfiles WHERE fileID IN ($display_files2)");
-
-        if (isset($_SESSION['auth']))
-            $tempdbHandle->exec("INSERT INTO temp_notes SELECT fileID,notesID,notes
-                                FROM librarydb.notes WHERE fileID IN ($display_files2) AND userID=" . intval($_SESSION['user_id']));
 
         $tempdbHandle->commit();
         $tempdbHandle->exec("DETACH DATABASE librarydb");

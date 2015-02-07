@@ -150,7 +150,7 @@ if (isset($_GET['file'])) {
         if (is_file("library/$paper[file]") && isset($_SESSION['auth'])) {
 
             if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                print '&nbsp;<b>&middot;</b> <a title="Open PDF in new window. Right-click to download it." href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" class="pdf_link">
+                print '&nbsp;<b>&middot;</b> <a title="Open PDF in new window. Right-click to download it." href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" class="pdf_link">
 				<span class="ui-state-highlight" style="padding:0px 2px 0px 2px;margin-right:2px">&nbsp;PDF&nbsp;</span></a>';
 
             if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
@@ -348,7 +348,36 @@ if (isset($_GET['file'])) {
             $files_to_display = glob('library/supplement/' . $integer . '*');
             if (is_array($files_to_display)) {
                 foreach ($files_to_display as $supplementary_file) {
-                    $url_filenames[] = '<li><a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">' . substr(basename($supplementary_file), 5) . '</a>';
+                    
+                    $extension = pathinfo($supplementary_file, PATHINFO_EXTENSION);
+
+                    $isimage = null;
+                    if ($extension == 'jpg' || $extension == 'jpeg' || $extension == 'gif' || $extension == 'png') {
+                        $image_array = array();
+                        $image_array = @getimagesize($supplementary_file);
+                        $image_mime = $image_array['mime'];
+                        if ($image_mime == 'image/jpeg' || $image_mime == 'image/gif' || $image_mime == 'image/png')
+                            $isimage = true;
+                    }
+
+                    $isaudio = null;
+                    if ($extension == 'ogg' || $extension == 'oga' || $extension == 'wav' || $extension == 'mp3' || $extension == 'm4a' || $extension == 'fla' || $extension == 'webma')
+                        $isaudio = true;
+
+                    $isvideo = null;
+                    if ($extension == 'ogv' || $extension == 'webmv' || $extension == 'm4v' || $extension == 'flv')
+                        $isvideo = true;
+                    
+                    $in_browser = '<i class="fa fa-external-link" style="color:initial;margin-right:0.5em;opacity:0.2"></i>';
+                    
+                    if ($isimage || $isaudio || $isvideo || $extension == 'pdf') {
+                        $in_browser = '<a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($supplementary_file)) . '" target="_blank">
+                        <i class="fa fa-external-link" style="color:initial;margin-right:0.5em"></i></a>';
+                    }
+                    
+                    $download_link = '<a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">' . substr(basename($supplementary_file), 5, 50) . '</a>';
+                    
+                    $url_filenames[] = $in_browser . $download_link;
                 }
                 $url_filename = join('<br>', $url_filenames);
             }
@@ -368,22 +397,30 @@ if (isset($_GET['file'])) {
         print '<div class="file-grid" style="border-bottom:0">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Abstract</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row abstract" style="padding:4px 7px;overflow:auto;height:260px;column-count:auto;-moz-column-count:auto;-webkit-column-count:auto">'
+                <div class="alternating_row abstract" style="padding:4px 10px;overflow:auto;height:260px;column-count:auto;-moz-column-count:auto;-webkit-column-count:auto">'
                 . $paper['abstract']
                 . '</div>
             </div>
             <div class="file-grid" style="border-bottom:0">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0;">Notes</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 7px;height:260px;overflow:auto">' . $notes . '</div>
+                <div class="alternating_row" style="padding:4px 10px;height:260px;overflow:auto">' . $notes . '</div>
             </div>
             <div class="file-grid" style="width:33.33%;border-bottom:0;border-right:0">
+                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">PDF Notes</div>
+                <div class="separator" style="margin:0"></div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:260px">' . $annotation . '</div>
+            </div>
+            <div class="file-grid" style="border-bottom:0">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Graphical Abstract</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="height:268px;overflow:auto">';
+                <div class="alternating_row" style="height:158px;overflow:auto">';
 
         if (isset($_SESSION['auth']) && is_file(graphical_abstract($paper['file'])))
-            echo '<img src="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename(graphical_abstract($paper['file']))) . '">';
+            echo '<a href="' . htmlspecialchars('attachment.php?mode=inline&attachment='
+                    . basename(graphical_abstract($paper['file']))) . '" target="_blank"><img src="'
+            . htmlspecialchars('attachment.php?mode=inline&attachment='
+                    . basename(graphical_abstract($paper['file']))) . '" style="width:100%">';
 
         print '</div>
             </div>
@@ -392,17 +429,12 @@ if (isset($_GET['file'])) {
                     Supplementary Files
                 </div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 7px;overflow:auto;height:150px"><ul style="padding-left:16px;width:90%">' . $url_filename . '</ul></div>
-            </div>
-            <div class="file-grid" style="border-bottom:0">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">PDF Notes</div>
-                <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 7px;overflow:auto;height:150px">' . $annotation . '</div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">' . $url_filename . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%;border-bottom:0">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">IDs</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 7px;overflow:auto;height:150px">';
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">';
 
         print "<u>I, Librarian ID:</u> <a href=\"stable.php?id=$paper[id]\" target=\"_blank\">" . $paper['id'] . " (stable link)</a>";
 
@@ -455,17 +487,17 @@ if (isset($_GET['file'])) {
             <div class="file-grid">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Categories</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 7px;overflow:auto;height:150px">' . $category_string . '</div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">' . $category_string . '</div>
             </div>
             <div class="file-grid">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Keywords</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 7px;overflow:auto;height:150px">' . htmlspecialchars($paper['keywords']) . '</div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">' . htmlspecialchars($paper['keywords']) . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Miscellaneous</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 7px;overflow:auto;height:150px">
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">
                 <u>Publication type:</u> ' . htmlspecialchars($paper['reference_type'])
                 . '<br><u>Editor:</u> ' . htmlspecialchars($editor_string)
                 . '<br><u>Publisher:</u> ' . htmlspecialchars($paper['publisher'])

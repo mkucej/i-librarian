@@ -1034,11 +1034,11 @@ function proxy_simplexml_load_file($url, $proxy_name, $proxy_port, $proxy_userna
             }
         }
     } else {
-        
+
         ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
         $xml = @simplexml_load_file($url);
-        var_dump($xml);
-        die();
+//        var_dump($xml);
+//        die();
         #JSTOR hack
         if (strpos($url, 'jstor') !== false) {
             $xml = new XMLReader();
@@ -1129,7 +1129,7 @@ function fetch_from_nasaads($doi, $nasa_id) {
         $lookfor = 'doi=' . urlencode($doi);
 
     $request_url = "http://adsabs.harvard.edu/cgi-bin/abs_connect?" . $lookfor . "&data_type=XML&return_req=no_params&start_nr=1&nr_to_return=1";
-    
+
     $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
     if (empty($xml))
         die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
@@ -1863,13 +1863,6 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             }
         }
 
-        $result2 = $tempdbHandle->query("SELECT notesID,notes FROM temp_notes WHERE fileID=" . intval($paper['id']) . " LIMIT 1");
-        $fetched = $result2->fetch(PDO::FETCH_ASSOC);
-        $result2 = null;
-
-        $paper['notesID'] = $fetched['notesID'];
-        $paper['notes'] = $fetched['notes'];
-
         $i = $i + 1;
 
         if ($display == 'icons') {
@@ -1886,11 +1879,14 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             if (count($auth_arr) > 1)
                 $etal = ', et al.';
 
-            print '<div class="thumb-items" id="display-item-' . $paper['id'] . '" data-file="' . $paper['file'] . '"><div>';
+            print '<div class="item-container thumb-items" id="display-item-' . $paper['id'] . '" data-file="' . $paper['file'] . '"><div>';
 
-            print '<div class="thumb-titles"><div style="overflow:hidden;white-space:nowrap"><b>' . $paper['title'] . '</b><br>' . $first_author . $etal;
+            print '<div class="thumb-titles"><div style="overflow:hidden;white-space:nowrap"><b>' . $paper['title'] . '</b><br>';
+
+            print $first_author . $etal;
             if (!empty($paper['year']))
                 print ' (' . substr($paper['year'], 0, 4) . ')';
+
             print '</div></div>';
 
             if (date('Y-m-d') == $paper['addition_date'])
@@ -1899,7 +1895,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             if (is_readable('library/' . $paper['file'])) {
 
                 if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                    print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" style="display:block">';
+                    print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
                     print '<a href="' . htmlspecialchars('viewpdf.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="width:360px;height:240px;display:block">';
@@ -1911,15 +1907,32 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
             print '</div>';
 
-            print PHP_EOL . '<table class="item-sticker" style="margin:6px 0;width:100%"><tr><td class="noprint ui-corner-all" style="padding:5px 8px;border:1px solid #c5c6c8">';
+            print PHP_EOL . '<table class="item-sticker" style="width:100%;border:1px solid #c5c6c8"><tr><td class="noprint ui-corner-all" style="padding:0.5em 0.75em">';
 
-            print '<i class="fa fa-plus-circle expander view-icon" style="margin-right:0.5em"></i>';
+            print '<i class="fa fa-info-circle quick-view" style="font-size:1.25em;margin-bottom:0.4em"></i>&nbsp;&nbsp;';
 
             print '<span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
             print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
-            print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;';
+            print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;&nbsp;&nbsp;';
 
-            print '<b style="margin:0 0.5em">&middot;</b>';
+            if (!empty($paper['bibtex'])) {
+                print htmlspecialchars($paper['bibtex']);
+            } else {
+                $bibtex_author = strip_tags($paper['authors']);
+                $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
+                if (empty($bibtex_author))
+                    $bibtex_author = 'unknown';
+
+                $bibtex_year = '0000';
+                $bibtex_year_array = explode('-', $paper['year']);
+                if (!empty($bibtex_year_array[0]))
+                    $bibtex_year = $bibtex_year_array[0];
+
+                $bibtex_key = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
+                print htmlspecialchars($bibtex_key);
+            }
+
+            print '<br>';
 
             if (isset($shelf_files) && in_array($paper['id'], $shelf_files)) {
                 print ' <span class="update_shelf clicked"><i class="update_shelf fa fa-check-square ui-state-error-text"></i>&nbsp;Shelf&nbsp;</span>';
@@ -1954,25 +1967,26 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             print PHP_EOL . '</td></tr></table></div>';
         } else {
 
-            print PHP_EOL . '<div id="display-item-' . $paper['id'] . '" class="items" data-file="' . $paper['file'] . '" style="padding:0 0 10px 0">';
+            print PHP_EOL . '<div id="display-item-' . $paper['id'] . '" class="item-container items" data-file="' . $paper['file'] . '" style="padding:0 0 0.75em 0">';
 
             include('coins.php');
 
-            print '<div class="ui-widget-header" style="overflow:hidden;border-left:0;border-right:0;padding:2px 6px">';
+            print '<div class="ui-widget-header" style="overflow:hidden;border-left:0;border-right:0;padding:2px 6px">'
+                    . '<div class="noprint titles-pdf quick-view" style="float:left"><i class="fa fa-info-circle" style="font-size:1em"></i></div>';
 
             if (is_file('library/' . $paper['file']) && isset($_SESSION['auth'])) {
 
                 if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                    print '<div class="noprint titles-pdf" style="float:left;text-shadow:1px 1px 1px white">
-                        <a class="ui-state-error-text" href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" style="display:block">
+                    print '<div class="noprint titles-pdf" style="float:left">
+                        <a class="ui-state-error-text" href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">
                                 PDF</a></div>';
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                    print '<div class="noprint titles-pdf" style="float:left;text-shadow:1px 1px 1px white">
+                    print '<div class="noprint titles-pdf" style="float:left">
                         <a class="ui-state-error-text" href="' . htmlspecialchars('viewpdf.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="display:block">
                                 PDF</a></div>';
             } else {
-                print PHP_EOL . '<div class="ui-state-error-text noprint titles-pdf" style="float:left;color:#c5c6c8;cursor:auto">PDF</div>';
+                print PHP_EOL . '<div class="ui-state-error-text noprint titles-pdf" style="float:left;color:rgba(0,0,0,0.3);cursor:auto">PDF</div>';
             }
 
             print PHP_EOL . '<div class="titles brief">' . $paper['title'] . '</div>';
@@ -1981,12 +1995,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
             print '<div style="clear:both"></div>';
 
-            print '<table class="noprint"><tr><td style="width:24px;padding-top:8px;padding-left:12px">';
-
-            if ($display != 'abstract')
-                print PHP_EOL . '<i class="expander fa fa-plus-circle view-' . $display . '"></i>';
-
-            print '</td><td style="padding-top:8px">';
+            print '<div style="margin:0.75em 2em 0 2em">';
 
             if (isset($shelf_files) && in_array($paper['id'], $shelf_files)) {
                 print '<span class="update_shelf clicked"><i class="update_shelf fa fa-check-square ui-state-error-text"></i>&nbsp;Shelf&nbsp;</span>';
@@ -2018,165 +2027,140 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 $project_rowid = null;
             }
 
-            print PHP_EOL . '</td></tr></table>';
+            print PHP_EOL . '</div>';
 
-            print PHP_EOL . '<div class="display-summary" style="margin:0 30px;';
+            if ($display == 'summary' || $display == 'abstract') {
 
-            print ($display == 'brief') ? 'display:none">' : '">';
+                print PHP_EOL . '<div class="display-summary" style="margin:0.5em 2em 0 2em">';
 
-            if (!empty($paper['authors']))
-                print PHP_EOL . '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . $paper['authors'] . '</div>';
+                if (!empty($paper['authors']))
+                    print PHP_EOL . '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . $paper['authors'] . '</div>';
 
-            print (!empty($paper['journal']) ? $paper['journal'] : $paper['secondary_title']);
+                print (!empty($paper['journal']) ? $paper['journal'] : $paper['secondary_title']);
 
-            print (!empty($date)) ? ' (' . htmlspecialchars($date) . ')' : '';
+                print (!empty($date)) ? ' (' . htmlspecialchars($date) . ')' : '';
 
-            if (!empty($paper['volume']))
-                print ' <b>' . htmlspecialchars($paper['volume']) . '</b>';
+                if (!empty($paper['volume']))
+                    print ' <b>' . htmlspecialchars($paper['volume']) . '</b>';
 
-            if (!empty($paper['pages']))
-                print ': ' . htmlspecialchars($paper['pages']);
+                if (!empty($paper['pages']))
+                    print ': ' . htmlspecialchars($paper['pages']);
 
-            if (date('Y-m-d') == $paper['addition_date']) {
-                $today = ' <span class="ui-state-error-text"><b>New!</b></span>';
-            } else {
-                $today = '';
-            }
-
-            $result2 = $tempdbHandle->query("SELECT categoryID,category FROM temp_categories WHERE fileID=" . intval($paper['id']) . " ORDER BY category COLLATE NOCASE ASC");
-
-            while ($categories = $result2->fetch(PDO::FETCH_ASSOC)) {
-
-                $category_array[] = '<a href="' . htmlspecialchars('display.php?browse[' . urlencode($categories['categoryID']) . ']=category&select=' . $select . '&project=' . $project) . '" class="navigation">'
-                        . htmlspecialchars($categories['category']) . '</a>';
-            }
-
-            if (empty($category_array[0]))
-                $category_array[0] = '<a href="' . htmlspecialchars('display.php?browse[0]=category&select=' . $select)
-                        . '" class="navigation">!unassigned</a>';
-
-            print '<br><span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
-            print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
-            print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;';
-
-            print '<b style="margin:0 0.5em">&middot;</b>';
-
-            if (!empty($paper['bibtex'])) {
-                print htmlspecialchars($paper['bibtex']);
-            } else {
-                $bibtex_author = strip_tags($paper['authors']);
-                $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
-                if (empty($bibtex_author))
-                    $bibtex_author = 'unknown';
-
-                $bibtex_year = '0000';
-                $bibtex_year_array = explode('-', $paper['year']);
-                if (!empty($bibtex_year_array[0]))
-                    $bibtex_year = $bibtex_year_array[0];
-
-                $bibtex_key = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
-                print htmlspecialchars($bibtex_key);
-            }
-
-            print '<b style="margin:0 0.5em">&middot;</b>';
-
-            print 'Category: ';
-
-            $category_string = join(", ", $category_array);
-            $category_array = null;
-
-            print $category_string;
-
-            print '<b style="margin:0 0.5em">&middot;</b> Added:&nbsp;<a href="display.php?select=' . $select . '&browse[' . $paper['addition_date'] . ']=addition_date" class="navigation">' . date('M jS, Y', strtotime($paper['addition_date'])) . '</a>' . $today;
-
-            print '<div class="noprint display-abstract"';
-
-            print ($display != 'abstract') ? ' style="display:none"' : '';
-
-            print '>';
-
-            if (!empty($pmid_url)) {
-                print '<a href="' . htmlspecialchars($pmid_url) . '" target="_blank">PubMed</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($pmid_related_url)) {
-                print '<a href="' . htmlspecialchars($pmid_related_url) . '" target="_blank">Related Articles</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($pmid_citedby_pmc)) {
-                print '<a href="' . htmlspecialchars($pmid_citedby_pmc) . '" target="_blank">Cited by</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($pmcid_url)) {
-                print '<a href="' . htmlspecialchars($pmcid_url) . '" target="_blank">PubMed Central</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($nasaads_url)) {
-                print '<a href="' . htmlspecialchars($nasaads_url) . '" target="_blank">NASA ADS</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($nasa_related_url)) {
-                print '<a href="' . htmlspecialchars($nasa_related_url) . '" target="_blank">Related Articles</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($nasa_citedby_pmc)) {
-                print '<a href="' . htmlspecialchars($nasa_citedby_pmc) . '" target="_blank">Cited by</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($arxiv_url)) {
-                print '<a href="' . htmlspecialchars($arxiv_url) . '" target="_blank">arXiv</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($jstor_url)) {
-                print '<a href="' . htmlspecialchars($jstor_url) . '" target="_blank">JSTOR</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($ieee_url)) {
-                print '<a href="' . htmlspecialchars($ieee_url) . '" target="_blank">IEEE</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($paper['doi'])) {
-                print '<a href="' . htmlspecialchars('http://dx.doi.org/' . urlencode($paper['doi'])) . '" target="_blank">Publisher Website</a> <b style="margin:0 0.5em">&middot;</b> ';
-            }
-
-            if (!empty($other_urls)) {
-                foreach ($other_urls as $another_url) {
-                    print '<a href="' . htmlspecialchars($another_url) . '" target="_blank" class="anotherurl" title="' . htmlspecialchars(parse_url($another_url, PHP_URL_HOST)) . '">Link</a> <b style="margin:0 0.5em">&middot;</b> ';
+                if (date('Y-m-d') == $paper['addition_date']) {
+                    $today = ' <span class="ui-state-error-text"><b>New!</b></span>';
+                } else {
+                    $today = '';
                 }
+
+                $result2 = $tempdbHandle->query("SELECT categoryID,category FROM temp_categories WHERE fileID=" . intval($paper['id']) . " ORDER BY category COLLATE NOCASE ASC");
+
+                while ($categories = $result2->fetch(PDO::FETCH_ASSOC)) {
+
+                    $category_array[] = '<a href="' . htmlspecialchars('display.php?browse[' . urlencode($categories['categoryID']) . ']=category&select=' . $select . '&project=' . $project) . '" class="navigation">'
+                            . htmlspecialchars($categories['category']) . '</a>';
+                }
+
+                if (empty($category_array[0]))
+                    $category_array[0] = '<a href="' . htmlspecialchars('display.php?browse[0]=category&select=' . $select)
+                            . '" class="navigation">!unassigned</a>';
+
+                print '<br><span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
+                print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
+                print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;';
+
+                print '<b style="margin:0 0.5em">&middot;</b>';
+
+                if (!empty($paper['bibtex'])) {
+                    print htmlspecialchars($paper['bibtex']);
+                } else {
+                    $bibtex_author = strip_tags($paper['authors']);
+                    $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
+                    if (empty($bibtex_author))
+                        $bibtex_author = 'unknown';
+
+                    $bibtex_year = '0000';
+                    $bibtex_year_array = explode('-', $paper['year']);
+                    if (!empty($bibtex_year_array[0]))
+                        $bibtex_year = $bibtex_year_array[0];
+
+                    $bibtex_key = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
+                    print htmlspecialchars($bibtex_key);
+                }
+
+                print '<b style="margin:0 0.5em">&middot;</b>';
+
+                print 'Category: ';
+
+                $category_string = join(", ", $category_array);
+                $category_array = null;
+
+                print $category_string;
+
+                print '<b style="margin:0 0.5em">&middot;</b> Added:&nbsp;<a href="display.php?select=' . $select . '&browse[' . $paper['addition_date'] . ']=addition_date" class="navigation">' . date('M jS, Y', strtotime($paper['addition_date'])) . '</a>' . $today;
+
+                print '<div class="noprint">';
+
+                if (!empty($pmid_url)) {
+                    print '<a href="' . htmlspecialchars($pmid_url) . '" target="_blank">PubMed</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($pmid_related_url)) {
+                    print '<a href="' . htmlspecialchars($pmid_related_url) . '" target="_blank">Related Articles</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($pmid_citedby_pmc)) {
+                    print '<a href="' . htmlspecialchars($pmid_citedby_pmc) . '" target="_blank">Cited by</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($pmcid_url)) {
+                    print '<a href="' . htmlspecialchars($pmcid_url) . '" target="_blank">PubMed Central</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($nasaads_url)) {
+                    print '<a href="' . htmlspecialchars($nasaads_url) . '" target="_blank">NASA ADS</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($nasa_related_url)) {
+                    print '<a href="' . htmlspecialchars($nasa_related_url) . '" target="_blank">Related Articles</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($nasa_citedby_pmc)) {
+                    print '<a href="' . htmlspecialchars($nasa_citedby_pmc) . '" target="_blank">Cited by</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($arxiv_url)) {
+                    print '<a href="' . htmlspecialchars($arxiv_url) . '" target="_blank">arXiv</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($jstor_url)) {
+                    print '<a href="' . htmlspecialchars($jstor_url) . '" target="_blank">JSTOR</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($ieee_url)) {
+                    print '<a href="' . htmlspecialchars($ieee_url) . '" target="_blank">IEEE</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($paper['doi'])) {
+                    print '<a href="' . htmlspecialchars('http://dx.doi.org/' . urlencode($paper['doi'])) . '" target="_blank">Publisher Website</a> <b style="margin:0 0.5em">&middot;</b> ';
+                }
+
+                if (!empty($other_urls)) {
+                    foreach ($other_urls as $another_url) {
+                        print '<a href="' . htmlspecialchars($another_url) . '" target="_blank" class="anotherurl" title="' . htmlspecialchars(parse_url($another_url, PHP_URL_HOST)) . '">Link</a> <b style="margin:0 0.5em">&middot;</b> ';
+                    }
+                }
+
+                print '<a href="stable.php?id=' . $paper['id'] . '" target="_blank">Stable Link</a>';
+
+                print '</div></div>';
             }
 
-            print '<a href="stable.php?id=' . $paper['id'] . '" target="_blank">Stable Link</a>';
+            if ($display == 'abstract') {
+                print '<div class="abstract" style="margin:0 2em">';
+                print $paper['abstract'] . '</div>';
+            }
 
             print '</div>';
-
-            print '<div class="abstract display-abstract" style="';
-
-            print ($display != 'abstract') ? 'display:none' : '';
-
-            print'">' . $paper['abstract'] . '</div>';
-
-            print '<div class="display-abstract" style="';
-
-            print ($display != 'abstract') ? 'display:none' : '';
-
-            print'">';
-
-            if (!empty($paper['notes']))
-                print '<div class="item-sticker ui-widget-content ui-corner-all" style="margin:6px;width:340px;float:left">
-                        <div class="ui-widget-header items ui-corner-top" style="border:0"><b class="ui-dialog-titlebar">Notes</b></div><div class="separator" style="margin:0"></div>
-                        <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;max-height:200px;overflow:auto">' . $paper['notes'] . '&nbsp;
-                        </div></div>';
-
-            if (is_file(graphical_abstract($paper['file']))) {
-
-                print '<div class="item-sticker ui-widget-content ui-corner-all" style="margin:6px;width:340px;float:left">
-                        <div class="ui-widget-header items ui-corner-top" style="border:0"><b class="ui-dialog-titlebar">Graphical Abstract</b></div><div class="separator" style="margin:0"></div>
-                        <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;max-height:200px;overflow:auto">
-                        <img src="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename(graphical_abstract($paper['file']))) . '">
-                        </div></div>';
-            }
-
-            print '</div></div></div>';
         }
     }
     if ($display == 'icons')
@@ -2712,7 +2696,7 @@ function mobile_show_search_results($result, $display) {
             print '<div class="thumb-items">';
 
             if (is_readable('../library/' . $paper['file']))
-                print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" style="display:block;text-decoration:none">';
+                print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block;text-decoration:none">';
 
             print '<div class="thumb-items-top"><div class="thumb-titles"><div style="overflow:hidden;white-space:nowrap;font-weight:normal;font-size:0.8em">' . $paper['title'] . '<br>' . $first_author . $etal;
             if (!empty($paper['year']))
@@ -2721,7 +2705,7 @@ function mobile_show_search_results($result, $display) {
 
             if (is_readable('../library/' . $paper['file'])) {
 
-                print '</a><a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank" style="display:block">';
+                print '</a><a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
                 print '<img src="icon.php?file=' . $paper['file'] . '" style="width:306px;border:0" alt="Loading PDF..."></a>';
             } else {
                 print '<div style="text-align:center;margin-top:90px;font-size:18px;color:#b5b6b8">No PDF</div>';

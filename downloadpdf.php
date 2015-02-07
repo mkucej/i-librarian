@@ -178,6 +178,8 @@ if (!empty($_GET['file'])) {
         ob_clean();
         flush();
         readfile($file_name);
+    } else {
+        header("HTTP/1.0 404 Not Found");
     }
 } else {
     die();

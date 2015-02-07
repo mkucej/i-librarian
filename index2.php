@@ -690,7 +690,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                 if ($hosted == false) {
                     ?>
                     <div id="credits" style="position: absolute;right:10px;bottom:10px;cursor:pointer">
-                        I, Librarian <?php print $version ?> &copy; 2013 Martin Kucej &middot; GPLv3
+                        I, Librarian <?php print $version ?> &copy; Scilico, LLC &middot; GPLv3
                     </div>
                     <?php
                 }

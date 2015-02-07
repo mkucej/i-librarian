@@ -32,7 +32,7 @@ if (isset($_SESSION['auth'])) {
     $record = null;
     $dbHandle = null;
     ?>
-    <div id="preview" style="display:none;position:fixed;top:1px;right:1px;background-color:#CFCECC;z-index:100"></div>
+    <div id="preview"></div>
     <table cellspacing="0" style="width:100%;height:100%;margin-top:0px">
         <tr>
             <td class="alternating_row" style="padding: 5px">
@@ -40,16 +40,16 @@ if (isset($_SESSION['auth'])) {
                     <input type="hidden" name="file" value="<?php print htmlspecialchars($paper['id']) ?>">
                     <input type="hidden" name="filename" value="<?php print htmlspecialchars($paper['file']) ?>">
                     <button id="submituploadfiles"><i class="fa fa-save"></i> Save</button>
-                    <div class="separator" style="margin:8px 0"></div>
+                    <div class="separator" style="margin:5px 0 1em 0"></div>
                     <strong>Add/replace PDF:</strong><br>
                     Local file:<br>
                     <input type="file" name="form_new_file" accept="application/pdf"><br>
                     PDF from the Web:<br>
                     <input type="text" name="form_new_file_link" style="width: 99%"><br>
-                    <div class="separator" style="margin:8px 0"></div>
+                    <div class="separator" style="margin:1em 0"></div>
                     <b>Add graphical abstract:</b><br>
                     <input type="file" name="form_graphical_abstract" accept="image/*"><br>
-                    <div class="separator" style="margin:8px 0"></div>
+                    <div class="separator" style="margin:1em 0"></div>
                     <b>Add supplementary files:</b><br>
                     <input type="file" name="form_supplementary_file1"><br>
                     <input type="file" name="form_supplementary_file2"><br>
@@ -58,14 +58,18 @@ if (isset($_SESSION['auth'])) {
                     <input type="file" name="form_supplementary_file5"><br>
                 </form>
             </td>
-            <td style="width:90%;padding: 2px">
+            <td style="width:90%;padding: 2px 6px">
                 <div style="border-bottom:1px solid #cfcecc;font-weight:bold">PDF file:</div>
                 <?php if (file_exists("library/$paper[file]")) { ?>
                     <table border=0 cellspacing=0 cellpadding=0 style="width:100%;margin:0px">
                         <tr class="file-highlight" data-fileid="<?php print $_GET['file'] ?>">
                             <td style="height:22px;line-height:22px">
-                                <i class="fa fa-file-pdf-o"></i>
-                                <?php print $paper['file']; ?>
+                                <i class="fa fa-file-pdf-o" style="width:1.5em"></i>
+                                <?php
+                                echo '<a href="' . htmlspecialchars('downloadpdf.php?mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a>';
+                                echo '<a href="' . htmlspecialchars('downloadpdf.php?file=' . $paper['file']) . '" target="_blank">'
+                                        . '<i class="fa fa-external-link" style="color:initial;margin-left:0.5em"></i></a>';
+                                ?>
                             </td>
 
                             <?php
@@ -106,7 +110,7 @@ if (isset($_SESSION['auth'])) {
                 <form id="filesform" enctype="multipart/form-data" action="ajaxsupplement.php" method="POST">
                     <input type="hidden" name="file" value="<?php print htmlspecialchars($paper['id']) ?>">
                     <div id="filelist">
-                        <div style="width:100%;margin:0px;border-bottom:1px solid #cfcecc;font-weight:bold">Graphical Abstract:</div>
+                        <div style="width:100%;margin-top:1em;border-bottom:1px solid #cfcecc;font-weight:bold">Graphical Abstract:</div>
                         <?php
                         $integer = sprintf("%05d", intval($paper['file']));
                         $gr_abs = glob("library/supplement/" . $integer . "graphical_abstract.*");
@@ -115,8 +119,12 @@ if (isset($_SESSION['auth'])) {
 
                             print '<table style="width:100%">
                              <tr class="file-highlight" id="file' . htmlspecialchars(basename($gr_abs[0])) . '">
-                              <td style="height:22px;line-height:22px"><i class="fa fa-image image"></i> 
-                              <a class="image" href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($gr_abs[0])) . '" target="_blank">' . $url_filename . '</a></td>
+                              <td style="height:22px;line-height:22px">
+                              <i class="fa fa-image" style="width:1.5em;cursor: pointer"></i> 
+                              <a href="' . htmlspecialchars('attachment.php?attachment=' . basename($gr_abs[0])) . '">' . $url_filename . '</a>
+                              <a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($gr_abs[0])) . '" target="_blank">
+                              <i class="fa fa-external-link" style="color:initial;margin-left:0.5em"></i></a>
+                              </td>
                               <td style="height:22px;line-height:22px">
                                <div class="ui-state-highlight file-remove" style="float:right;padding:1px 4px"><i class="fa fa-trash-o"></i> Remove</div>
                               </td>
@@ -124,7 +132,7 @@ if (isset($_SESSION['auth'])) {
                             </table>';
                         }
                         ?>
-                        <div style="width:100%;margin:0px;border-bottom:1px solid #cfcecc;font-weight:bold">Supplementary files:</div>
+                        <div style="width:100%;margin-top:1em;border-bottom:1px solid #cfcecc;font-weight:bold">Supplementary files:</div>
                         <table cellspacing=0 style="width:100%">
                             <tr><td></td><td></td><td></td></tr>
                             <?php
@@ -137,6 +145,8 @@ if (isset($_SESSION['auth'])) {
                                     $url_filename = substr(basename($supplementary_file), 5);
 
                                     if (strstr($url_filename, 'graphical_abstract') === false) {
+                                        
+                                        //TODO: REWRITE USING FILEINFO FUNCTION
 
                                         $extension = pathinfo($supplementary_file, PATHINFO_EXTENSION);
 
@@ -162,20 +172,24 @@ if (isset($_SESSION['auth'])) {
                                         print '<td style="height:22px;line-height:22px;padding:1px 0">' . PHP_EOL;
 
                                         if ($isimage) {
-                                            print '<i class="fa fa-image image"></i> ';
-                                            print '<a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($supplementary_file)) . '" target="_blank">';
+                                            print '<i class="fa fa-image" style="cursor:pointer;width:1.5em"></i> ';
                                         } elseif ($isaudio) {
-                                            print '<i class="fa fa-music audio" style="cursor:pointer" title="Click to play"></i> ';
-                                            print '<a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">';
+                                            print '<i class="fa fa-music audio" style="cursor:pointer;width:1.5em" title="Click to play"></i> ';
                                         } elseif ($isvideo) {
-                                            print '<i class="fa fa-film video" style="cursor:pointer" title="Click to play"></i> ';
-                                            print '<a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">';
+                                            print '<i class="fa fa-film video" style="cursor:pointer;width:1.5em" title="Click to play"></i> ';
+                                        } elseif ($extension == 'pdf') {
+                                            print '<i class="fa fa-file-pdf-o" style="width:1.5em"></i> ';
                                         } else {
-                                            print '<i class="fa fa-file-o" style="padding:0.15em"></i> ';
-                                            print '<a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">';
+                                            print '<i class="fa fa-file-o" style="width:1.5em"></i> ';
                                         }
 
-                                        print htmlspecialchars($url_filename) . '</a>' . PHP_EOL;
+                                        print '<a href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '">';
+                                        print htmlspecialchars($url_filename) . '</a>';
+
+                                        if ($isimage || $isaudio || $isvideo || $extension == 'pdf') {
+                                            print '<a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($supplementary_file)) . '" target="_blank">';
+                                            print '<i class="fa fa-external-link" style="color:initial;margin-left:0.5em"></i></a>' . PHP_EOL;
+                                        }
 
                                         print '<input class="rename_container" type="text" size="35" name="rename[' . htmlspecialchars(basename($supplementary_file)) . ']" value="' . htmlspecialchars($url_filename) . '" style="display:none;margin-top:1px;width:90%">' . PHP_EOL;
 

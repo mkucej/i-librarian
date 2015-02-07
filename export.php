@@ -37,7 +37,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         "Accession ID" => "uid",
         "DOI" => "doi",
         "URL" => "url",
-        "Publication Type" => "reference_type");
+        "Publication Type" => "reference_type",
+        "Custom 1" => "custom1",
+        "Custom 2" => "custom2",
+        "Custom 3" => "custom3",
+        "Custom 4" => "custom4");
 
     $column_translation = array_flip($column_translation);
 
@@ -112,9 +116,10 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         }
 
         if ($_GET['format'] == 'citations') {
-            
-            if(empty($_GET['citation-style'])) die('Citation style required.');
-            
+
+            if (empty($_GET['citation-style']))
+                die('Citation style required.');
+
             $authors = '';
             $id = '';
             $title = '';
@@ -126,18 +131,29 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             $doi = '';
             $journal = '';
             $date_parts = array();
-                    
-            if (!empty($add_item['authors'])) $authors = $add_item['authors'];
-            if (!empty($add_item['id'])) $id = $add_item['id'];
-            if (!empty($add_item['title'])) $title = $add_item['title'];
-            if (!empty($add_item['secondary_title'])) $secondary_title = $add_item['secondary_title'];
-            if (!empty($add_item['tertiary_title'])) $tertiary_title = $add_item['tertiary_title'];
-            if (!empty($add_item['pages'])) $pages = $add_item['pages'];
-            if (!empty($add_item['volume'])) $volume = $add_item['volume'];
-            if (!empty($add_item['issue'])) $issue = $add_item['issue'];
-            if (!empty($add_item['doi'])) $doi = $add_item['doi'];
-            if (!empty($add_item['journal'])) $journal = $add_item['journal'];
-            if (!empty($add_item['year'])) $date_parts['date-parts'][] = explode("-", $add_item['year']);
+
+            if (!empty($add_item['authors']))
+                $authors = $add_item['authors'];
+            if (!empty($add_item['id']))
+                $id = $add_item['id'];
+            if (!empty($add_item['title']))
+                $title = $add_item['title'];
+            if (!empty($add_item['secondary_title']))
+                $secondary_title = $add_item['secondary_title'];
+            if (!empty($add_item['tertiary_title']))
+                $tertiary_title = $add_item['tertiary_title'];
+            if (!empty($add_item['pages']))
+                $pages = $add_item['pages'];
+            if (!empty($add_item['volume']))
+                $volume = $add_item['volume'];
+            if (!empty($add_item['issue']))
+                $issue = $add_item['issue'];
+            if (!empty($add_item['doi']))
+                $doi = $add_item['doi'];
+            if (!empty($add_item['journal']))
+                $journal = $add_item['journal'];
+            if (!empty($add_item['year']))
+                $date_parts['date-parts'][] = explode("-", $add_item['year']);
 
             $i = 0;
             $new_authors = array();
@@ -155,7 +171,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $i++;
                 }
             }
-            
+
             $type = convert_type($item['reference_type'], 'ilib', 'csl');
 
             // CSL book type, shift secondary title to tertiary title
@@ -163,7 +179,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 $tertiary_title = $secondary_title;
                 $secondary_title = '';
             }
-            
+
             $json[$add_item['id']] = array(
                 "id" => $id,
                 "type" => $type,
@@ -298,7 +314,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "%K" => "keywords",
                 "%M" => "uid",
                 "%M" => "doi",
-                "%U" => "url");
+                "%U" => "url",
+                "%1" => "custom1",
+                "%2" => "custom2",
+                "%3" => "custom3",
+                "%4" => "custom4");
 
             if (isset($add_item['authors'])) {
 
@@ -384,7 +404,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "publisher = " => "publisher",
                 "address = " => "place_published",
                 "doi = " => "doi",
-                "url = " => "url");
+                "url = " => "url",
+                "custom1 = " => "custom1",
+                "custom2 = " => "custom2",
+                "custom3 = " => "custom3",
+                "custom4 = " => "custom4");
 
             if (isset($add_item['authors'])) {
 
@@ -404,7 +428,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 $authors = join(" and ", $new_authors);
                 $add_item['authors'] = $authors;
             }
-            
+
             if (isset($add_item['url'])) {
 
                 $urls = explode("|", $add_item['url']);
@@ -447,7 +471,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
                 $add_item['pages'] = str_replace('-', '--', $add_item['pages']);
             }
-            
+
             if ($item['reference_type'] == 'conference' || $item['reference_type'] == 'chapter') {
                 unset($bibtex_translation['journal = ']);
                 $bibtex_translation['booktitle = '] = 'secondary_title';
@@ -474,7 +498,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 if ($bibtex_name && !empty($value))
                     $columns[] = $bibtex_name . '{' . $value . '}';
             }
-            
+
             reset($add_item);
 
             $type = convert_type($item['reference_type'], 'ilib', 'bibtex');
@@ -510,7 +534,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "KW  - " => "keywords",
                 "M2  - " => "uid",
                 "DO  - " => "doi",
-                "UR  - " => "url");
+                "UR  - " => "url",
+                "C1  - " => "custom1",
+                "C2  - " => "custom2",
+                "C3  - " => "custom3",
+                "C4  - " => "custom4");
 
             if (isset($add_item['authors'])) {
 
@@ -614,7 +642,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         $title_q = $dbHandle->quote(strtolower($_GET['citation-style']));
         $result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
         $style = $result->fetchColumn();
-        if(empty($style)) die('This citation style does not exist.');
+        if (empty($style))
+            die('This citation style does not exist.');
         $style = gzuncompress($style);
         $style = str_replace(array("\r\n", "\r", "\n"), "", $style);
         $style = str_replace("'", "\'", $style);
@@ -681,21 +710,21 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     citeproc.updateItems(itemIDs);
                     var bibResult = citeproc.makeBibliography();
                     // load them into a container, convert to table
-                    $.each(bibResult[1], function(key,val){
+                    $.each(bibResult[1], function(key, val) {
                         // two columns vs one column layout
-                        if($(val).children("div").length===2) {
+                        if ($(val).children("div").length === 2) {
                             $('tbody').append('<tr><td class="td-csl-left" valign="top" width="80">'
                                     + $(val).children("div").eq(0).html() + '</td><td valign="top">'
                                     + $(val).children("div").eq(1).html() + '</td></tr>');
-                        } else if ($(val).children("div").length===0) {
+                        } else if ($(val).children("div").length === 0) {
                             $('tbody').append('<tr><td valign="top">' + $(val).html() + '</td></tr>');
                         }
                     });
                     // final formatting
                     $('td').css('line-height', 1.2 * bibResult[0]['linespacing'] + 'em')
-                        .css('padding-bottom', bibResult[0]['entryspacing'] + 'em');
+                            .css('padding-bottom', bibResult[0]['entryspacing'] + 'em');
                     $('.td-csl-left').css('width', bibResult[0]['maxoffset'] + 'em')
-                        .attr('width', 16 * bibResult[0]['maxoffset']);
+                            .attr('width', 16 * bibResult[0]['maxoffset']);
                 </script>
             </body>
         </html>
@@ -971,6 +1000,42 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             </td>
                         </tr>
                     </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Custom 1" style="display:none">
+                                <i class="fa fa-square-o"></i>
+                                Custom 1
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Custom 2" style="display:none">
+                                <i class="fa fa-square-o"></i>
+                                Custom 2
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Custom 3" style="display:none">
+                                <i class="fa fa-square-o"></i>
+                                Custom 3
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Custom 4" style="display:none">
+                                <i class="fa fa-square-o"></i>
+                                Custom 4
+                            </td>
+                        </tr>
+                    </table>
                 </td>
                 <td style="width:25em">
                     <b>Export format:</b><br><br>
@@ -1034,7 +1099,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             </td>
                         </tr>
                     </table>
-                    <br><br>
+                    <br><br><br>
                     <b>Character encoding:</b><br><br>
                     <table>
                         <tr>
@@ -1052,7 +1117,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             </td>
                         </tr>
                     </table>
-                    <br><br>
+                    <br><br><br>
                     <b>Output options:</b><br><br>
                     <table>
                         <tr>
