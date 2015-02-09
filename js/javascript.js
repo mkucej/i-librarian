@@ -2379,30 +2379,37 @@ var edit = {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Full journal name:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'book') {
                 $('.td-title').text('Book title:');
                 $('.td-secondary-title').text('Series title:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'chapter') {
                 $('.td-title').text('Chapter title:');
                 $('.td-secondary-title').text('Book title:');
                 $('.td-tertiary-title').text('Series title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'thesis') {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('School:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'conference') {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Conference:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'patent') {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Source:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Assignee:');
             } else {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Secondary title:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             }
         });
         $('#metadataform input[name="journal_abbr"]').autocomplete({
@@ -3026,6 +3033,7 @@ var filetop = {
             gravity: 's'
         });
         common.init();
+        $('#file-top-notes').find('p').first().css('margin-top','0');
         $('#file-panel2').find('.anotherurl').tipsy({gravity: 's'});
         $('#file-panel2').click(function(event) {
             var t = event.target;
@@ -4080,12 +4088,6 @@ var upload = {
         $('#addarticle-right').scroll(function() {
             $('.uploadform input[name="journal_abbr"],.uploadform input[name="secondary_title"]').autocomplete('close');
         });
-//        $('.uploadform').find('.author-inputs').find('.test1').each(function() {
-//            $(this).autocomplete({
-//                source: 'ajaxfilter.php?open=authors',
-//                minLength: 1
-//            });
-//        });
         $('.uploadform input[name="authors"]').each(function() {
             var authors = [];
             $(this).prev().find('div').each(function(i) {
@@ -4148,30 +4150,37 @@ var upload = {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Full journal name:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'book') {
                 $('.td-title').text('Book title:');
                 $('.td-secondary-title').text('Series title:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'chapter') {
                 $('.td-title').text('Chapter title:');
                 $('.td-secondary-title').text('Book title:');
                 $('.td-tertiary-title').text('Series title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'thesis') {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('School:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'conference') {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Conference:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             } else if (type === 'patent') {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Source:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Assignee:');
             } else {
                 $('.td-title').text('Title:');
                 $('.td-secondary-title').text('Secondary title:');
                 $('.td-tertiary-title').text('Tertiary title:');
+                $('.td-affiliation').text('Affiliation:');
             }
         });
     }

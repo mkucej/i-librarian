@@ -1327,6 +1327,52 @@ function fetch_from_crossref($doi) {
     }
 }
 
+//FETCH METADATA FROM GOOGLE PATENTS
+function fetch_from_googlepatents($patent_id) {
+
+    global $proxy_name, $proxy_port, $proxy_username, $proxy_password, $response, $temp_dir;
+
+    $request_url = "https://www.google.com/patents/" . urlencode($patent_id);
+
+    $dom = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+
+    if (empty($dom))
+        die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+
+    preg_match_all('/(\<meta name=\"DC\.contributor\" content=\")(.+)(\")/Ui', $dom, $authors);
+
+    $response['affiliation'] = array_pop($authors[2]);
+
+    //GET AUTHORS AND ASSIGNEE
+    $name_array = array();
+    if (!empty($authors[2])) {
+
+        foreach ($authors[2] as $author) {
+
+            $author_array = explode(' ', $author);
+            $last = array_pop($author_array);
+            $first = join(' ', $author_array);
+            $name_array[] = 'L:"' . $last . '",F:"' . $first . '"';
+        }
+    }
+
+    if (isset($name_array))
+        $response['authors'] = join(";", $name_array);
+    
+    //GET PDF LINK
+    preg_match('/(\<a id=\"appbar\-download\-pdf\-link\" href=\")(.+)(\">\<\/a\>)/Ui', $dom, $pdf_link);
+    $response['form_new_file_link'] = 'http:' . $pdf_link[2];
+
+    //GET OTHER META TAGS
+    file_put_contents($temp_dir . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id), $dom);
+    $tags = get_meta_tags($temp_dir . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
+    $response['title'] = $tags['dc_title'];
+    $response['abstract'] = $tags['dc_description'];
+    $response['year'] = $tags['dc_date'];
+    unlink($temp_dir . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
+}
+
 //FETCH METADATA FROM ARXIV
 function fetch_from_arxiv($arxiv_id) {
 
@@ -1496,7 +1542,7 @@ function fetch_from_pubmed($doi, $pmid) {
                 foreach ($authors as $author) {
                     $name_array[] = 'L:"' . $author->LastName . '",F:"' . $author->ForeName . '"';
                     if (empty($response['affiliation']))
-                        $response['affiliation'] = $author->Affiliation;
+                        $response['affiliation'] = $author->AffiliationInfo->Affiliation;
                 }
             }
 
@@ -1968,8 +2014,6 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
         } else {
 
             print PHP_EOL . '<div id="display-item-' . $paper['id'] . '" class="item-container items" data-file="' . $paper['file'] . '" style="padding:0 0 0.75em 0">';
-
-            include('coins.php');
 
             print '<div class="ui-widget-header" style="overflow:hidden;border-left:0;border-right:0;padding:2px 6px">'
                     . '<div class="noprint titles-pdf quick-view" style="float:left"><i class="fa fa-info-circle" style="font-size:1em"></i></div>';

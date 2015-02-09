@@ -583,6 +583,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 if (substr($doi, -1) == '.')
                     $doi = substr($doi, 0, -1);
+                if (substr($doi, -1) == ',')
+                    $doi = substr($doi, 0, -1);
+                if (substr($doi, -1) == ';')
+                    $doi = substr($doi, 0, -1);
                 if (substr($doi, -1) == ')' || substr($doi, -1) == ']') {
                     preg_match_all('/(.)(doi:\s?)?(10\.\d{4}\/\S+)/ui', $string, $doi2, PREG_PATTERN_ORDER);
                     if (substr($doi, -1) == ')' && $doi2[1][0] == '(')
@@ -595,7 +599,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 preg_match('/(?<=arXiv:)\S+/ui', $string, $arxiv_id);
                 $arxiv_id = current($arxiv_id);
-                
             }
 
             if (empty($doi) && empty($arxiv_id)) {
@@ -670,6 +673,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $arxiv_id = trim($uid_array2[1]);
             if ($uid_array2[0] == 'NASAADS')
                 $nasa_id = trim($uid_array2[1]);
+            if ($uid_array2[0] == 'PAT') {
+                $patent_id = trim($uid_array2[1]);
+                $patent_id = str_replace(array(',',' '), '', $patent_id);
+                $_POST['uid'] = $patent_id;
+            }
         }
 
         //FETCH FROM ARXIV
@@ -677,6 +685,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $response = array();
             fetch_from_arxiv($arxiv_id);
             $_POST = array_merge($_POST, $response);
+            $_POST['form_new_file_link'] = 'http://arxiv.org/pdf/' . $arxiv_id;
         }
 
         //FETCH FROM PUBMED
@@ -698,6 +707,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $response = array();
             fetch_from_crossref($doi);
             $_POST = array_merge($_POST, $response);
+        }
+
+        // FETCH FROM GOOGLE PATENTS
+        if (empty($doi) && !empty($patent_id)) {
+            $response = array();
+            fetch_from_googlepatents($patent_id);
+            $_POST = array_merge($_POST, $response);
+            $_POST['reference_type'] = 'patent';
+            $_POST['url'] = 'https://www.google.com/patents/' . $patent_id;
         }
 
         ##########	check for duplicate titles in table library	##########
@@ -809,7 +827,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         </td>
                         <td>
                             <input type="text" size="80" name="uid[]" style="width:99%" value=""
-                                   placeholder="PMID:123456 or PMCID:123456 or NASAADS:123456 or ARXIV:123456">
+                                   placeholder="PMID:123456, PMCID:123456, NASAADS:123456, ARXIV:123456, PAT:US1234567">
                         </td>
                     </tr>
                     <tr>
@@ -1119,8 +1137,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     </td>
                 </tr>
                 <tr>
-                    <td class="threedleft">
-                        Affiliation:
+                    <td class="threedleft td-affiliation">
+                        <?php
+                        if (!empty($_POST['reference_type']) && $_POST['reference_type'] == 'patent') {
+                            echo "Assignee:";
+                        } else {
+                            echo "Affiliation:";
+                        }
+                        ?>
                     </td>
                     <td class="threedright">
                         <textarea cols="80" rows="2" name="affiliation" style="width:99%"><?php echo isset($_POST['affiliation']) ? htmlspecialchars($_POST['affiliation']) : ''; ?></textarea>

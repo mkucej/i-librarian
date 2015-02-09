@@ -823,7 +823,7 @@ position:absolute
 
 
 .marker-note {
-background-color:rgba(255,255,255,0.6);
+background-color:rgba(255,255,255,0.8);
 line-height:40px;
 width:40px;
 height:40px;

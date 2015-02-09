@@ -128,7 +128,9 @@ $('#size2').click(function() {
             imgw = $('#pdf-viewer-img-' + page).data('imgw');
         if (imgh === undefined)
             imgh = $('#pdf-viewer-img-' + page).data('imgh');
-        var iw = -30 + parentw, ih = imgh * iw / imgw;
+        var iw = -30 + parentw;
+        iw = Math.min(iw,imgw);
+        var ih = imgh * iw / imgw;
         piw = 100 * iw / imgw;
         $t.css('width', iw).css('height', ih);
     });

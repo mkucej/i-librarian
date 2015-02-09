@@ -499,6 +499,10 @@ if (!isset($_GET['commence'])) {
 
                     if (substr($doi, -1) == '.')
                         $doi = substr($doi, 0, -1);
+                    if (substr($doi, -1) == ',')
+                        $doi = substr($doi, 0, -1);
+                    if (substr($doi, -1) == ';')
+                        $doi = substr($doi, 0, -1);
                     if (substr($doi, -1) == ')' || substr($doi, -1) == ']') {
                         preg_match_all('/(.)(doi:\s?)?(10\.\d{4}\/\S+)/ui', $string, $doi2, PREG_PATTERN_ORDER);
                         if (substr($doi, -1) == ')' && $doi2[1][0] == '(')

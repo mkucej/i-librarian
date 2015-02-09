@@ -1073,15 +1073,13 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                                 <input type="radio" name="format" value="zip" <?php print $nozip ? '' : 'disabled'  ?> style="display:none">
                                 <i class="fa fa-circle-o"></i>
                                 Zipped HTML
-                                <table style="margin-left: 30px">
-                                    <tr>
-                                        <td class="select_span <?php print $nozip ? '' : ' ui-state-disabled'  ?>">
-                                            <input type="checkbox" name="include_pdf" value="1" <?php print $nozip ? '' : 'disabled'  ?> style="display:none">
-                                            <i class="fa fa-square-o"></i>
-                                            include PDFs (max. 500)
-                                        </td>
-                                    </tr>
-                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="select_span <?php print $nozip ? '' : ' ui-state-disabled'  ?>" style="padding-left:1em">
+                                <input type="checkbox" name="include_pdf" value="1" <?php print $nozip ? '' : 'disabled'  ?> style="display:none">
+                                <i class="fa fa-square-o"></i>
+                                include PDFs (max. 500)
                             </td>
                         </tr>
                         <tr>

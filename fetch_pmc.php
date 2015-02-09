@@ -109,15 +109,15 @@ if (isset($_GET['id'])) {
 
         $journal_abbr = $xml->PubmedArticle->MedlineCitation->MedlineJournalInfo->MedlineTA;
 
-        $affiliation = $xml->PubmedArticle->MedlineCitation->Article->Affiliation;
+        $affiliation = '';
 
         $authors = $xml->PubmedArticle->MedlineCitation->Article->AuthorList->Author;
 
         if (!empty($authors)) {
-
             foreach ($authors as $author) {
-
                 $name_array[] = $author->LastName . ', ' . $author->ForeName;
+                if (empty($affiliation))
+                    $affiliation = $author->AffiliationInfo->Affiliation;
             }
         }
 
@@ -296,7 +296,7 @@ if (isset($_GET['id'])) {
 
     print '<div class="abstract" style="padding:0 10px">';
 
-    !empty($abstract) ? print htmlspecialchars($abstract)  : print 'No abstract available.';
+    !empty($abstract) ? print htmlspecialchars($abstract) : print 'No abstract available.';
 
     print '</div><div class="items">';
 

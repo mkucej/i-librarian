@@ -88,7 +88,7 @@ $png_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPA
 
 if (!empty($_GET['file'])) {
     $file = preg_replace('/[^a-zA-z0-9\_\.pdf]/', '', $_GET['file']);
-    if (!is_file("library/" . $_GET['file']))
+    if (!is_file("library/" . $_GET['file']) && !is_file($temp_dir . DIRECTORY_SEPARATOR . $_GET['file']))
         die('<div style="text-align:center;padding-top:270px;color:#b6b8bc;font-size:36px">No PDF</div>');
     if (substr($_GET['file'], 0, 4) == 'lib_')
         $pdf_path = $temp_dir;
@@ -140,12 +140,13 @@ if (isset($_GET['renderpdf'])) {
 
                 imagecopy($img_copy, $img_r, 0, 0, 0, 0, $w, $h);
                 imagetruecolortopalette($img_copy, false, 256);
+                $color_num = imagecolorstotal($img_copy);
 
-                if (imagecolorstotal($img_copy) < 256) {
-                    imagetruecolortopalette($img_r, false, 256);
+                if ($color_num > 0 && $color_num < 256) {
+                    imagetruecolortopalette($img_r, false, $color_num);
                     imagepng($img_r, $png_path . DIRECTORY_SEPARATOR . $file . "." . $page . ".png", 6);
                 } elseif ($hosted == true) {
-                    imagejpeg($img_r, $temp_dir . DIRECTORY_SEPARATOR . $file . "." . $page . ".png", 80);
+                    imagejpeg($img_r, $temp_dir . DIRECTORY_SEPARATOR . $file . "." . $page . ".png", 85);
                     if (filesize($png_path . DIRECTORY_SEPARATOR . $file . "." . $page . ".png") > filesize($temp_dir . DIRECTORY_SEPARATOR . $file . "." . $page . ".png")) {
                         copy($temp_dir . DIRECTORY_SEPARATOR . $file . "." . $page . ".png", $png_path . DIRECTORY_SEPARATOR . $file . "." . $page . ".png");
                     }

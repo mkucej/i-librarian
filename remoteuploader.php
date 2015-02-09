@@ -161,6 +161,10 @@ if (!empty($_FILES)) {
 
                     if (substr($doi, -1) == '.')
                         $doi = substr($doi, 0, -1);
+                    if (substr($doi, -1) == ',')
+                        $doi = substr($doi, 0, -1);
+                    if (substr($doi, -1) == ';')
+                        $doi = substr($doi, 0, -1);
                     if (substr($doi, -1) == ')' || substr($doi, -1) == ']') {
                         preg_match_all('/(.)(doi:\s?)?(10\.\d{4}\/\S+)/ui', $string, $doi2, PREG_PATTERN_ORDER);
                         if (substr($doi, -1) == ')' && $doi2[1][0] == '(')
@@ -558,7 +562,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 <td class="select_span"><input type="checkbox" name="database_pubmed" value="1" style="display:none" <?php print (isset($batchimport_database_pubmed) && $batchimport_database_pubmed == '1') ? 'checked' : ''  ?>>
                                     &nbsp;<i class="fa fa-<?php print (isset($batchimport_database_pubmed) && $batchimport_database_pubmed == '1') ? 'check-square' : 'square-o'  ?>"></i> PubMed (biomedicine)</td>
                             </tr>
-                        <?php }
+                        <?php
+                        }
                         if (!isset($_SESSION['remove_nasaads'])) {
                             ?>
                             <tr>

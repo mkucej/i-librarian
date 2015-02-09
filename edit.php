@@ -140,7 +140,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             } else {
                 $error = "Error! Unique record not found in PubMed.";
             }
-            if (empty($response['title'])) $error = "Error! Unique record not found in PubMed.";
+            if (empty($response['title']))
+                $error = "Error! Unique record not found in PubMed.";
         }
 
         if ($_POST['database'] == 'nasaads') {
@@ -213,7 +214,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 fetch_from_nasaads($doi, $nasa_id);
                 $_POST = array_merge($_POST, $response);
             }
-            if (empty($response['title'])) $error = "Error! Unique record not found in NASA ADS.";
+            if (empty($response['title']))
+                $error = "Error! Unique record not found in NASA ADS.";
         }
 
         if ($_POST['database'] == 'crossref') {
@@ -292,7 +294,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 fetch_from_crossref($doi);
                 $_POST = array_merge($_POST, $response);
             }
-            if (empty($response['title'])) $error = "Error! Unique record not found in Crossref.";
+            if (empty($response['title']))
+                $error = "Error! Unique record not found in Crossref.";
         }
     }
 
@@ -518,7 +521,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     I, Librarian ID:
                 </td>
                 <td class="threedright">
-                    <?php print $paper['id'] ?>
+            <?php print $paper['id'] ?>
                 </td>
             </tr>
             <?php
@@ -606,8 +609,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 </td>
             </tr>
             <tr>
-                <td class="threedleft">
-                    Affiliation:
+                <td class="threedleft td-affiliation">
+                    <?php
+                    if (!empty($paper['reference_type']) && $paper['reference_type'] == 'patent') {
+                        echo "Assignee:";
+                    } else {
+                        echo "Affiliation:";
+                    }
+                    ?>
                 </td>
                 <td class="threedright">
                     <textarea cols="80" rows="2" name="affiliation" style="width: 99%"><?php echo isset($paper['affiliation']) ? htmlspecialchars($paper['affiliation']) : ''; ?></textarea>
