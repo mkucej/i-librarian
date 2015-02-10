@@ -69,6 +69,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $arxiv_id = trim($uid_array2[1]);
             if ($uid_array2[0] == 'NASAADS')
                 $nasa_id = trim($uid_array2[1]);
+            if ($uid_array2[0] == 'IEEE')
+                $ieee_id = trim($uid_array2[1]);
         }
 
         if ($_POST['database'] == 'pubmed') {
@@ -133,9 +135,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             }
 
             if (!empty($pmid)) {
-
                 //FETCH FROM PUBMED
                 fetch_from_pubmed('', $pmid);
+                $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
+                $response['uid'] = array_unique($response['uid']);
                 $_POST = array_merge($_POST, $response);
             } else {
                 $error = "Error! Unique record not found in PubMed.";
@@ -212,10 +215,25 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             if (!empty($doi) || !empty($nasa_id)) {
                 $response = array();
                 fetch_from_nasaads($doi, $nasa_id);
+                $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
+                $response['uid'] = array_unique($response['uid']);
                 $_POST = array_merge($_POST, $response);
             }
             if (empty($response['title']))
                 $error = "Error! Unique record not found in NASA ADS.";
+        }
+
+        if ($_POST['database'] == 'ieee') {
+            // FETCH FROM IEEE XPLORE
+            if (!empty($ieee_id)) {
+                $response = array();
+                fetch_from_ieee($ieee_id);
+                $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
+                $response['uid'] = array_unique($response['uid']);
+                $_POST = array_merge($_POST, $response);
+            }
+            if (empty($response['title']))
+                $error = "Error! Unique record not found in IEEE Xplore.";
         }
 
         if ($_POST['database'] == 'crossref') {
@@ -508,6 +526,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 NASA ADS
                             </td>
                             <td class="select_span" style="padding:0.4em">
+                                <input type="radio" style="display:none" name="database" value="ieee">
+                                &nbsp;<i class="fa fa-circle-o"></i>
+                                IEEE Xplore
+                            </td>
+                            <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="crossref">
                                 &nbsp;<i class="fa fa-circle-o"></i>
                                 CrossRef
@@ -521,7 +544,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     I, Librarian ID:
                 </td>
                 <td class="threedright">
-            <?php print $paper['id'] ?>
+                    <?php print $paper['id'] ?>
                 </td>
             </tr>
             <?php

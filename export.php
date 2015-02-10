@@ -121,6 +121,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 die('Citation style required.');
 
             $authors = '';
+            $editors = '';
             $id = '';
             $title = '';
             $secondary_title = '';
@@ -131,9 +132,13 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             $doi = '';
             $journal = '';
             $date_parts = array();
+            $publisher = '';
+            $publisher_place = '';
 
             if (!empty($add_item['authors']))
                 $authors = $add_item['authors'];
+            if (!empty($add_item['editor']))
+                $editors = $add_item['editor'];
             if (!empty($add_item['id']))
                 $id = $add_item['id'];
             if (!empty($add_item['title']))
@@ -154,9 +159,14 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 $journal = $add_item['journal'];
             if (!empty($add_item['year']))
                 $date_parts['date-parts'][] = explode("-", $add_item['year']);
+            if (!empty($add_item['publisher']))
+                $publisher = $add_item['publisher'];
+            if (!empty($add_item['place_published']))
+                $publisher_place = $add_item['place_published'];
 
             $i = 0;
             $new_authors = array();
+            $array = array();
             $array = explode(';', $authors);
             $array = array_filter($array);
             if (!empty($array)) {
@@ -168,6 +178,24 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $first = substr($array2[1], 3, -1);
                     $new_authors[$i]['family'] = $last;
                     $new_authors[$i]['given'] = $first;
+                    $i++;
+                }
+            }
+            
+            $i = 0;
+            $new_editors = array();
+            $array = array();
+            $array = explode(';', $editors);
+            $array = array_filter($array);
+            if (!empty($array)) {
+                foreach ($array as $editor) {
+                    $array2 = explode(',', $editor);
+                    $last = trim($array2[0]);
+                    $last = substr($array2[0], 3, -1);
+                    $first = trim($array2[1]);
+                    $first = substr($array2[1], 3, -1);
+                    $new_editors[$i]['family'] = $last;
+                    $new_editors[$i]['given'] = $first;
                     $i++;
                 }
             }
@@ -192,7 +220,10 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "DOI" => $doi,
                 "journalAbbreviation" => $journal,
                 "author" => $new_authors,
-                "issued" => $date_parts
+                "editor" => $new_editors,
+                "issued" => $date_parts,
+                "publisher" => $publisher,
+                "publisher-place" => $publisher_place
             );
         }
 

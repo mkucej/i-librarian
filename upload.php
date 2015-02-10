@@ -653,6 +653,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $pmid = '';
         $nasa_id = '';
+        $isbn = '';
+        $ol_id = '';
 
         if (!empty($_POST['doi'])) {
             $doi = trim($_POST['doi']);
@@ -675,9 +677,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $nasa_id = trim($uid_array2[1]);
             if ($uid_array2[0] == 'PAT') {
                 $patent_id = trim($uid_array2[1]);
-                $patent_id = str_replace(array(',',' '), '', $patent_id);
+                $patent_id = str_replace(array(',', ' '), '', $patent_id);
                 $_POST['uid'] = $patent_id;
             }
+            if ($uid_array2[0] == 'IEEE')
+                $ieee_id = trim($uid_array2[1]);
+            if ($uid_array2[0] == 'OL')
+                $ol_id = trim($uid_array2[1]);
+            if ($uid_array2[0] == 'ISBN')
+                $isbn = trim($uid_array2[1]);
         }
 
         //FETCH FROM ARXIV
@@ -710,12 +718,28 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         // FETCH FROM GOOGLE PATENTS
-        if (empty($doi) && !empty($patent_id)) {
+        if (!empty($patent_id)) {
             $response = array();
             fetch_from_googlepatents($patent_id);
             $_POST = array_merge($_POST, $response);
             $_POST['reference_type'] = 'patent';
             $_POST['url'] = 'https://www.google.com/patents/' . $patent_id;
+        }
+
+        // FETCH FROM IEEE XPLORE
+        if (!empty($ieee_id)) {
+            $response = array();
+            fetch_from_ieee($ieee_id);
+            $_POST = array_merge($_POST, $response);
+        }
+
+        // FETCH FROM OPEN LIBRARY
+        if (!empty($ol_id) || !empty($isbn)) {
+            $response = array();
+            fetch_from_ol($ol_id, $isbn);
+            $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
+            $response['uid'] = array_unique($response['uid']);
+            $_POST = array_merge($_POST, $response);
         }
 
         ##########	check for duplicate titles in table library	##########
@@ -806,7 +830,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <div class="item-sticker alternating_row ui-widget-content ui-corner-all" style="width:80%;margin:auto;padding:0">
                 <table cellspacing="0" class="alternating_row ui-corner-all" style="width:100%;border-spacing:6px;margin:auto">
                     <tr>
-                        <td style="width:11em">
+                        <td style="width:13em">
                             Local PDF file:
                         </td>
                         <td>
@@ -824,10 +848,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     <tr>
                         <td>
                             Database UID:
+                            <i id="uid-help" class="fa fa-question-circle" style="float:right;cursor:pointer;margin-top:0.25em"
+                               title="Supported prefixes: ARXIV, IEEE, ISBN, NASAADS, OL (Open Library), PAT (patent), PMID (PubMed), and PMCID (PubMed Central)."></i>
                         </td>
                         <td>
                             <input type="text" size="80" name="uid[]" style="width:99%" value=""
-                                   placeholder="PMID:123456, PMCID:123456, NASAADS:123456, ARXIV:123456, PAT:US1234567">
+                                   placeholder="PMID:123467">
                         </td>
                     </tr>
                     <tr>
@@ -840,7 +866,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     </tr>
                     <tr>
                         <td>
-                            Fetch metadata from:
+                            Fetch DOI metadata from:
                         </td>
                         <td>
                             <table>

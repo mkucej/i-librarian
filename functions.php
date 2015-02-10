@@ -1359,7 +1359,7 @@ function fetch_from_googlepatents($patent_id) {
 
     if (isset($name_array))
         $response['authors'] = join(";", $name_array);
-    
+
     //GET PDF LINK
     preg_match('/(\<a id=\"appbar\-download\-pdf\-link\" href=\")(.+)(\">\<\/a\>)/Ui', $dom, $pdf_link);
     $response['form_new_file_link'] = 'http:' . $pdf_link[2];
@@ -1371,6 +1371,248 @@ function fetch_from_googlepatents($patent_id) {
     $response['abstract'] = $tags['dc_description'];
     $response['year'] = $tags['dc_date'];
     unlink($temp_dir . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
+}
+
+//FETCH METADATA FROM OPEN LIBRARY
+function fetch_from_ol($ol_id, $isbn) {
+
+    global $proxy_name, $proxy_port, $proxy_username, $proxy_password, $response;
+
+    if (!empty($ol_id)) {
+        $query = 'q=' . urlencode($ol_id);
+    } elseif (!empty($isbn)) {
+        $query = 'isbn=' . urlencode($isbn);
+    }
+
+    $request_url = "http://openlibrary.org/search.json?" . $query;
+
+    $ol = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+
+    if (empty($ol))
+        die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+
+    $ol = json_decode($ol, true);
+
+    if ($ol['num_found'] !== 1)
+        die('Error! Unique record not found in Open Library.');
+
+    $record = $ol['docs'][0];
+    $response['title'] = $record['title'];
+    if (isset($record['subtitle']))
+        $response['title'] .= ': ' . $record['subtitle'];
+    $response['year'] = $record['first_publish_year'] . '-01-01';
+
+    //GET AUTHORS
+    $name_array = array();
+    if (count($record['author_name']) > 0) {
+
+        foreach ($record['author_name'] as $author) {
+
+            $author_array = explode(' ', $author);
+            $last = array_pop($author_array);
+            $first = join(' ', $author_array);
+            $name_array[] = 'L:"' . $last . '",F:"' . $first . '"';
+        }
+    }
+    if (isset($name_array))
+        $response['authors'] = join(";", $name_array);
+
+    $response['keywords'] = '';
+
+    if (count($record['subject']) > 0) {
+        $response['keywords'] = join (' / ', $record['subject']);
+    }
+    
+    $response['reference_type'] = 'book';
+
+    if (empty($ol_id)) {
+        $ol_id = $record['edition_key'][0];
+        $response['uid'][] = 'OL:' . $ol_id;
+    }
+    if (empty($isbn)) {
+        $isbn = $record['isbn'][0];
+        $response['uid'][] = 'ISBN:' . $isbn;
+    }
+    
+    $response['url'][] = 'http://openlibrary.org/book/' . $ol_id;
+}
+
+//FETCH METADATA FROM IEEE XPLORE
+function fetch_from_ieee($ieee_id) {
+
+    global $proxy_name, $proxy_port, $proxy_username, $proxy_password, $response;
+
+    $request_url = 'http://ieeexplore.ieee.org/xpl/downloadCitations?reload=true&citations-format=citation-abstract&download-format=download-ris&recordIds=' . urlencode($ieee_id);
+
+    $ris = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+
+    if (empty($ris))
+        die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+
+    function trim_arr(&$v, $k) {
+        $v = trim($v);
+    }
+
+    $file_records = explode('ER  -', $ris);
+    array_walk($file_records, 'trim_arr');
+    $file_records = array_filter($file_records);
+    if (isset($file_records[0]))
+        $record = $file_records[0];
+    $record = html_entity_decode($record);
+
+    $title = preg_match("/(?<=T1  - |TI  - ).+/u", $record, $title_match);
+
+    if ($title == 1) {
+
+        $record_array = explode("\n", $record);
+
+        $type_match = array();
+        $secondary_title_match = array();
+        $volume_match = array();
+        $issue_match = array();
+        $year_match = array();
+        $start_page_match = array();
+        $end_page_match = array();
+        $keywords_match = array();
+        $editors_match = array();
+        $authors_match = array();
+        $doi_match = array();
+
+        foreach ($record_array as $line) {
+
+            if (strpos($line, "TY") === 0)
+                $type_match[0] = trim(substr($line, 6));
+            if (strpos($line, "JF") === 0 || strpos($line, "JO") === 0 || strpos($line, "BT") === 0 || strpos($line, "T2") === 0)
+                $secondary_title_match[0] = trim(substr($line, 6));
+            if (strpos($line, "VL") === 0)
+                $volume_match[0] = trim(substr($line, 6));
+            if (strpos($line, "IS") === 0)
+                $issue_match[0] = trim(substr($line, 6));
+            if (strpos($line, "PY") === 0)
+                $year_match[0] = trim(substr($line, 6));
+            if (strpos($line, "SP") === 0)
+                $start_page_match[0] = trim(substr($line, 6));
+            if (strpos($line, "EP") === 0)
+                $end_page_match[0] = trim(substr($line, 6));
+            if (strpos($line, "KW") === 0)
+                $keywords_match[0][] = trim(substr($line, 6));
+            if (strpos($line, "ED") === 0 || strpos($line, "A2") === 0)
+                $editors_match[0][] = trim(substr($line, 6));
+            if (strpos($line, "AU") === 0 || strpos($line, "A1") === 0)
+                $authors_match[0][] = trim(substr($line, 6));
+            if (strpos($line, "DO") === 0)
+                $doi_match[0] = trim(substr($line, 6));
+            if (strpos($line, "AB") === 0)
+                $abstract_match[0] = trim(substr($line, 6));
+        }
+
+        $response['authors'] = '';
+        $author_array = array();
+        $name_array = array();
+
+        if (!empty($authors_match[0])) {
+            foreach ($authors_match[0] as $author) {
+                $author_array = explode(",", $author);
+                $first_name = '';
+                if (isset($author_array[1]))
+                    $first_name = $author_array[1];
+                $name_array[] = 'L:"' . trim($author_array[0]) . '",F:"' . trim($first_name) . '"';
+            }
+            $response['authors'] = join(";", $name_array);
+        }
+
+
+        $response['title'] = '';
+
+        if (!empty($title_match[0]))
+            $response['title'] = strip_tags(trim($title_match[0]));
+
+        $response['year'] = '';
+
+        if (!empty($year_match[0])) {
+
+            $date_array = array();
+            $month = '01';
+            $day = '01';
+            $date_array = explode('/', $year_match[0]);
+            if (!empty($date_array[0]))
+                $year = $date_array[0];
+            if (!empty($date_array[1]))
+                $month = $date_array[1];
+            if (!empty($date_array[2]))
+                $day = $date_array[2];
+            if (!empty($year))
+                $response['year'] = $year . '-' . $month . '-' . $day;
+            if (empty($year)) {
+                preg_match('/\d{4}/u', $year_match[0], $year_match2);
+                if (!empty($year_match2[0]))
+                    $response['year'] = $year_match2[0] . '-01-01';
+            }
+        }
+
+        $response['abstract'] = '';
+
+        if (!empty($abstract_match[0]))
+            $response['abstract'] = strip_tags(trim($abstract_match[0]));
+
+        $response['volume'] = '';
+
+        if (!empty($volume_match[0]))
+            $response['volume'] = trim($volume_match[0]);
+
+        $response['issue'] = '';
+
+        if (!empty($issue_match[0]))
+            $response['issue'] = trim($issue_match[0]);
+
+        $response['pages'] = '';
+
+        if (!empty($start_page_match[0]))
+            $response['pages'] = trim($start_page_match[0]);
+
+        if (!empty($end_page_match[0]))
+            $response['pages'] .= '-' . trim($end_page_match[0]);
+
+        $response['secondary_title'] = '';
+
+        if (!empty($secondary_title_match[0]))
+            $response['secondary_title'] = trim($secondary_title_match[0]);
+
+        $response['editor'] = '';
+
+        if (!empty($editors_match[0])) {
+            $order = array("\r\n", "\n", "\r");
+            $editors_match[0] = str_replace($order, ' ', $editors_match[0]);
+            $editors_match[0] = join("#", $editors_match[0]);
+            $patterns = array(',', '.', '#', '  ');
+            $replacements = array(' ', '', ', ', ' ');
+            $response['editor'] = str_replace($patterns, $replacements, $editors_match[0]);
+        }
+
+        $response['reference_type'] = 'article';
+
+        if (!empty($type_match[0]))
+            $response['reference_type'] = convert_type(trim($type_match[0]), 'ris', 'ilib');
+
+        $response['keywords'] = '';
+
+        if (!empty($keywords_match[0])) {
+            $order = array("\r\n", "\n", "\r");
+            $keywords_match[0] = str_replace($order, ' ', $keywords_match[0]);
+            $patterns = array('[', ']', '|', '"', '/', '*');
+            $keywords_match[0] = str_replace($patterns, ' ', $keywords_match[0]);
+            array_walk($keywords_match[0], 'trim');
+            $keywords_match[0] = join("#", $keywords_match[0]);
+            $response['keywords'] = str_replace("#", " / ", $keywords_match[0]);
+        }
+
+        $response['doi'] = '';
+
+        if (!empty($doi_match[0]))
+            $response['doi'] = trim($doi_match[0]);
+    }
 }
 
 //FETCH METADATA FROM ARXIV

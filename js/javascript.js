@@ -4183,6 +4183,7 @@ var upload = {
                 $('.td-affiliation').text('Affiliation:');
             }
         });
+        $('#uid-help').tipsy();
     }
 };
 
