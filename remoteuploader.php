@@ -59,6 +59,19 @@ if (!empty($_FILES)) {
         $file = $_FILES['Filedata']['tmp_name'];
         $orig_filename = $_FILES['Filedata']['name'];
 
+        if (isset($_FILES['Filedata']))
+            $file_extension = pathinfo($orig_filename, PATHINFO_EXTENSION);
+
+        if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+            $move = move_uploaded_file($file, $temp_dir . DIRECTORY_SEPARATOR . $orig_filename);
+            if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+                putenv('HOME=' . $temp_dir);
+            exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $orig_filename . '"');
+            if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+                putenv('HOME=""');
+            $file = $temp_dir . DIRECTORY_SEPARATOR . basename($orig_filename, '.' . $file_extension) . '.pdf';
+        }
+
         $i = $i + 1;
 
         if (is_readable($file)) {
@@ -534,18 +547,18 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             </td>
                             <td style="line-height:22px;width: 18em">
                                 <select name="projectID" style="width:200px">
-                                    <?php
-                                    database_connect($database_path, 'library');
+    <?php
+    database_connect($database_path, 'library');
 
-                                    $desktop_projects = array();
-                                    $desktop_projects = read_desktop($dbHandle);
+    $desktop_projects = array();
+    $desktop_projects = read_desktop($dbHandle);
 
-                                    foreach ($desktop_projects as $project) {
-                                        print '<option value="' . $project['projectID'] . '">' . htmlspecialchars($project['project']) . '</option>' . PHP_EOL;
-                                    }
+    foreach ($desktop_projects as $project) {
+        print '<option value="' . $project['projectID'] . '">' . htmlspecialchars($project['project']) . '</option>' . PHP_EOL;
+    }
 
-                                    $dbHandle = null;
-                                    ?>
+    $dbHandle = null;
+    ?>
                                 </select>
                             </td>
                         </tr>
@@ -557,15 +570,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <tr><td class="threedleft">Select database:</td>
                 <td class="threedright">
                     <table cellspacing="0">
-                        <?php if (!isset($_SESSION['remove_pubmed'])) { ?>
+    <?php if (!isset($_SESSION['remove_pubmed'])) { ?>
                             <tr>
                                 <td class="select_span"><input type="checkbox" name="database_pubmed" value="1" style="display:none" <?php print (isset($batchimport_database_pubmed) && $batchimport_database_pubmed == '1') ? 'checked' : ''  ?>>
                                     &nbsp;<i class="fa fa-<?php print (isset($batchimport_database_pubmed) && $batchimport_database_pubmed == '1') ? 'check-square' : 'square-o'  ?>"></i> PubMed (biomedicine)</td>
                             </tr>
-                        <?php
-                        }
-                        if (!isset($_SESSION['remove_nasaads'])) {
-                            ?>
+        <?php
+    }
+    if (!isset($_SESSION['remove_nasaads'])) {
+        ?>
                             <tr>
                                 <td class="select_span"><input type="checkbox" name="database_nasaads" value="1" style="display:none" <?php print (isset($batchimport_database_nasaads) && $batchimport_database_nasaads == '1') ? 'checked' : ''  ?>>
                                     &nbsp;<i class="fa fa-<?php print (isset($batchimport_database_nasaads) && $batchimport_database_nasaads == '1') ? 'check-square' : 'square-o'  ?>"></i> NASA ADS (physics, astronomy)</td>
@@ -598,29 +611,29 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 <td class="threedright">
                     <div class="categorydiv" style="width: 99%;overflow:scroll; height: 400px;background-color: white;color: black;border: 1px solid #C5C6C9">
                         <table cellspacing=0 style="float:left;width: 49%">
-                            <?php
-                            $category_string = null;
-                            database_connect($database_path, 'library');
-                            $result = $dbHandle->query("SELECT count(*) FROM categories");
-                            $totalcount = $result->fetchColumn();
-                            $result = null;
+    <?php
+    $category_string = null;
+    database_connect($database_path, 'library');
+    $result = $dbHandle->query("SELECT count(*) FROM categories");
+    $totalcount = $result->fetchColumn();
+    $result = null;
 
-                            $i = 1;
-                            $isdiv = null;
-                            $result = $dbHandle->query("SELECT categoryID,category FROM categories ORDER BY category COLLATE NOCASE ASC");
-                            while ($category = $result->fetch(PDO::FETCH_ASSOC)) {
-                                if ($i > (1 + $totalcount / 2) && !$isdiv) {
-                                    print '</table><table cellspacing=0 style="width: 49%;float: right;padding:2px">';
-                                    $isdiv = true;
-                                }
-                                print PHP_EOL . '<tr><td class="select_span">';
-                                print "<input type=\"checkbox\" name=\"category[]\" value=\"" . htmlspecialchars($category['categoryID']) . "\"";
-                                print " style=\"display:none\">&nbsp;<i class=\"fa fa-square-o\"></i> " . htmlspecialchars($category['category']) . "</td></tr>";
-                                $i = $i + 1;
-                            }
-                            $result = null;
-                            $dbHandle = null;
-                            ?>
+    $i = 1;
+    $isdiv = null;
+    $result = $dbHandle->query("SELECT categoryID,category FROM categories ORDER BY category COLLATE NOCASE ASC");
+    while ($category = $result->fetch(PDO::FETCH_ASSOC)) {
+        if ($i > (1 + $totalcount / 2) && !$isdiv) {
+            print '</table><table cellspacing=0 style="width: 49%;float: right;padding:2px">';
+            $isdiv = true;
+        }
+        print PHP_EOL . '<tr><td class="select_span">';
+        print "<input type=\"checkbox\" name=\"category[]\" value=\"" . htmlspecialchars($category['categoryID']) . "\"";
+        print " style=\"display:none\">&nbsp;<i class=\"fa fa-square-o\"></i> " . htmlspecialchars($category['category']) . "</td></tr>";
+        $i = $i + 1;
+    }
+    $result = null;
+    $dbHandle = null;
+    ?>
                         </table>
                     </div>
                 </td>

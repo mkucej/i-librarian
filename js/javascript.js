@@ -438,6 +438,15 @@ var details = {
                 $('#details-14').text('!!!').css('color', 'gray');
             }
         });
+        $.get('checkbinaries.php?binary=soffice', function(answer) {
+            if (answer === "OK") {
+                $('#details-15').text('working');
+                $('#details-16').text('OK').css('color', 'green');
+            } else {
+                $('#details-15').text('not working');
+                $('#details-16').text('!!!').css('color', 'gray');
+            }
+        });
         $("#clear-trash").click(function() {
             timeId = setTimeout(dooverlay, 100);
             $.get('cleartrash.php', function(answer) {
@@ -1250,7 +1259,8 @@ var remoteuploader = {
             file_data_name: 'Filedata',
             flash_swf_url: 'js/plupload/plupload.flash.swf',
             filters: [
-                {title: "PDF files", extensions: "pdf,fdf"}
+                {title: "PDF files", extensions: "pdf,fdf"},
+                {title: "Office files", extensions: "doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp"}
             ]
         });
         $("#select-button").button().click(function(e) {
@@ -3960,6 +3970,11 @@ var upload = {
                     });
                 });
             } else {
+                if ($f.find('textarea[name="title"]').length === 1) {
+                    $.jGrowl('Title is required.');
+                    $t.button("option", "disabled", false);
+                    return false;
+                }
                 timeId = setTimeout(dooverlay, 1000);
                 $.getScript('wpad.php', function() {
                     proxystr = FindProxyForURL('', 'www.crossref.org');

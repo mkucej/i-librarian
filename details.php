@@ -188,6 +188,11 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print '</tr>';
 
+        print "<tr><td class=\"details\" style=\"white-space: nowrap;height:19px;line-height:19px\">LibreOffice</td>";
+        print "<td class=\"details\" style=\"white-space: nowrap;height:19px;line-height:19px\">office documents import and conversion</td>";
+        print '<td class="details" id="details-15" style="white-space: nowrap;height:19px;line-height:19px"><img src="img/ajaxloader.gif" style="vertical-align:middle"></td>';
+        print '<td class="details" id="details-16" style="font-weight: bold;height:19px;line-height:19px"><img src="img/ajaxloader.gif" style="vertical-align:middle"></td></tr>';
+
         print "<tr><td class=\"details alternating_row\" style=\"width: 100%\" colspan=4>I, Librarian " . $version . " is installed in \"" . dirname(__FILE__) . "\":</td></tr>";
 
         print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to PDF files:</td><td class=\"details\" style=\"font-size: 11px\">" . dirname(__FILE__) . DIRECTORY_SEPARATOR . "library</td>";

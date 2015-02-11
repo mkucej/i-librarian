@@ -43,7 +43,7 @@ if (isset($_SESSION['auth'])) {
                     <div class="separator" style="margin:5px 0 1em 0"></div>
                     <strong>Add/replace PDF:</strong><br>
                     Local file:<br>
-                    <input type="file" name="form_new_file" accept="application/pdf"><br>
+                    <input type="file" name="form_new_file"><br>
                     PDF from the Web:<br>
                     <input type="text" name="form_new_file_link" style="width: 99%"><br>
                     <div class="separator" style="margin:1em 0"></div>

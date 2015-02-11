@@ -48,6 +48,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
     if (isset($_POST['autoupdate'])) {
 
+        database_connect($usersdatabase_path, 'users');
+        save_setting($dbHandle, 'autoupdate_database', $_POST['database']);
+        $dbHandle = null;
+
         $doi = '';
         $nasa_id = '';
         $arxiv_id = '';
@@ -471,6 +475,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
 ##########	read reference data	##########
 
+    database_connect($usersdatabase_path, 'users');
+    $autoupdate_database = get_setting($dbHandle, 'autoupdate_database');
+    $dbHandle = null;
+
     database_connect($database_path, 'library');
 
     $file_query = $dbHandle->quote($_GET['file']);
@@ -516,23 +524,49 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     <table style="margin-top:0em">
                         <tr>
                             <td class="select_span" style="padding:0.4em">
-                                <input type="radio" style="display:none" name="database" value="pubmed" checked>
-                                &nbsp;<i class="fa fa-circle"></i>
+                                <input type="radio" style="display:none" name="database" value="pubmed"
+                                <?php
+                                if (isset($autoupdate_database) && $autoupdate_database == 'pubmed') {
+                                    echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
+                                } elseif (!isset($autoupdate_database)) {
+                                    echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
+                                } else {
+                                    echo '>&nbsp;<i class="fa fa-circle-o"></i>';
+                                }
+                                ?>
                                 PubMed
                             </td>
                             <td class="select_span" style="padding:0.4em">
-                                <input type="radio" style="display:none" name="database" value="nasaads">
-                                &nbsp;<i class="fa fa-circle-o"></i>
+                                <input type="radio" style="display:none" name="database" value="nasaads"
+                                <?php
+                                if (isset($autoupdate_database) && $autoupdate_database == 'nasaads') {
+                                    echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
+                                } else {
+                                    echo '>&nbsp;<i class="fa fa-circle-o"></i>';
+                                }
+                                ?>
                                 NASA ADS
                             </td>
                             <td class="select_span" style="padding:0.4em">
-                                <input type="radio" style="display:none" name="database" value="ieee">
-                                &nbsp;<i class="fa fa-circle-o"></i>
+                                <input type="radio" style="display:none" name="database" value="ieee"
+                                <?php
+                                if (isset($autoupdate_database) && $autoupdate_database == 'ieee') {
+                                    echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
+                                } else {
+                                    echo '>&nbsp;<i class="fa fa-circle-o"></i>';
+                                }
+                                ?>
                                 IEEE Xplore
                             </td>
                             <td class="select_span" style="padding:0.4em">
-                                <input type="radio" style="display:none" name="database" value="crossref">
-                                &nbsp;<i class="fa fa-circle-o"></i>
+                                <input type="radio" style="display:none" name="database" value="crossref"
+                                <?php
+                                if (isset($autoupdate_database) && $autoupdate_database == 'crossref') {
+                                    echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
+                                } else {
+                                    echo '>&nbsp;<i class="fa fa-circle-o"></i>';
+                                }
+                                ?>
                                 CrossRef
                             </td>
                         </tr>

@@ -429,11 +429,12 @@ if (isset($_GET['file'])) {
                     Files
                 </div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:180px">'
-                . '<a href="' . htmlspecialchars('downloadpdf.php?file=' . $paper['file']) . '" target="_blank">'
-                . '<i class="fa fa-external-link" style="color:initial;margin-right:0.5em"></i></a>'
-                . '<a href="' . htmlspecialchars('downloadpdf.php?mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a><br>'
-                . $url_filename . '</div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:180px">';
+        if (is_file($library_path . DIRECTORY_SEPARATOR . $paper['file']))
+            print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . $paper['file']) . '" target="_blank">'
+                    . '<i class="fa fa-external-link" style="color:initial;margin-right:0.5em"></i></a>'
+                    . '<a href="' . htmlspecialchars('downloadpdf.php?mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a><br>';
+        print $url_filename . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%;border-bottom:0">
                 <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">IDs</div>

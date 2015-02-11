@@ -97,7 +97,28 @@ if (isset($_FILES['form_graphical_abstract']) && is_uploaded_file($_FILES['form_
 ##########	replace PDF	##########
 
 if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']['tmp_name'])) {
-    move_uploaded_file($_FILES['form_new_file']['tmp_name'], $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
+    
+    $file_extension = pathinfo($_FILES['form_new_file']['name'], PATHINFO_EXTENSION);
+
+    if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+        $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']);
+        if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+            putenv('HOME=' . $temp_dir);
+        exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'] . '"');
+        if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+            putenv('HOME=""');
+        $converted_file = $temp_dir . DIRECTORY_SEPARATOR . basename($_FILES['form_new_file']['name'], '.' . $file_extension) . '.pdf';
+        if (!is_file($converted_file)) {
+            die("Error! Conversion to PDF failed.<br>" . htmlspecialchars($title));
+        } else {
+            copy($converted_file, $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
+            $supplement_filename = sprintf("%05d", intval($_POST['filename'])) . $_FILES['form_new_file']['name'];
+            copy($temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], $library_path . DIRECTORY_SEPARATOR . 'supplement' . DIRECTORY_SEPARATOR . $supplement_filename);
+            unlink($converted_file);
+        }
+    } else {
+        move_uploaded_file($_FILES['form_new_file']['tmp_name'], $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
+    }
 }
 
 if (!empty($_POST['form_new_file_link'])) {

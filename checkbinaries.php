@@ -64,5 +64,19 @@ if ($_GET['binary'] == 'pdftotext') {
     } else {
         die();
     }
+} elseif ($_GET['binary'] == 'soffice') {
+
+    if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+        putenv('HOME=' . $temp_dir);
+    exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . __DIR__ . DIRECTORY_SEPARATOR . 'test.odt"');
+    if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+        putenv('HOME=""');
+    $converted_file = $temp_dir . DIRECTORY_SEPARATOR . 'test.pdf';
+    if (!is_file($converted_file)) {
+        die();
+    } else {
+        unlink($converted_file);
+        die('OK');
+    }
 }
 ?>

@@ -1421,9 +1421,9 @@ function fetch_from_ol($ol_id, $isbn) {
     $response['keywords'] = '';
 
     if (count($record['subject']) > 0) {
-        $response['keywords'] = join (' / ', $record['subject']);
+        $response['keywords'] = join(' / ', $record['subject']);
     }
-    
+
     $response['reference_type'] = 'book';
 
     if (empty($ol_id)) {
@@ -1434,7 +1434,7 @@ function fetch_from_ol($ol_id, $isbn) {
         $isbn = $record['isbn'][0];
         $response['uid'][] = 'ISBN:' . $isbn;
     }
-    
+
     $response['url'][] = 'http://openlibrary.org/book/' . $ol_id;
 }
 
@@ -1877,7 +1877,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
 function record_unknown($dbHandle, $title, $string, $file, $userID) {
 
-    global $temp_dir, $database_path;
+    global $temp_dir, $database_path, $library_path;
     $query = "INSERT INTO library (file, title, title_ascii, addition_date, rating, added_by)
              VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(file)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')), :title, :title_ascii, :addition_date, :rating, :added_by)";
 
@@ -1891,6 +1891,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
 
     if (empty($title))
         $title = basename($file);
+    $file_extension = pathinfo($title, PATHINFO_EXTENSION);
     $title_ascii = utf8_deaccent($title);
     $addition_date = date('Y-m-d');
     $rating = 2;
@@ -1984,6 +1985,14 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     copy($file, dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . $new_file);
 
     $hash = md5_file(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . $new_file);
+    
+    //record office file into supplement
+    if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+        //record original file into supplement
+        $supplement_filename = sprintf("%05d", intval($new_file)) . $title;
+        copy($temp_dir . DIRECTORY_SEPARATOR . $title, $library_path . DIRECTORY_SEPARATOR . 'supplement' . DIRECTORY_SEPARATOR . $supplement_filename);
+        unlink($temp_dir . DIRECTORY_SEPARATOR . $title);
+    }
 
     //RECORD FILE HASH FOR DUPLICATE DETECTION
     if (!empty($hash)) {

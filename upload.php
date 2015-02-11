@@ -370,17 +370,36 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $library_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library';
         $hash = '';
 
-        if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']['tmp_name'])) {
+        if (isset($_FILES['form_new_file']))
+            $file_extension = pathinfo($_FILES['form_new_file']['name'], PATHINFO_EXTENSION);
 
+        if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']['tmp_name'])) {
             $pdf_contents = file_get_contents($_FILES['form_new_file']['tmp_name'], NULL, NULL, 0, 100);
             if (stripos($pdf_contents, '%PDF') === 0) {
                 $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], $library_path . DIRECTORY_SEPARATOR . $new_file);
                 if ($move == false)
-                    $error[] = htmlspecialchars("Error! The PDF file has not been recorded.<br>" . $title);
+                    $error[] = "Error! The PDF file has not been recorded.<br>" . htmlspecialchars($title);
                 if ($move == true) {
                     $message[] = htmlspecialchars("The PDF file has been recorded.<br>" . $title);
                     $hash = md5_file($library_path . DIRECTORY_SEPARATOR . $new_file);
                 }
+            } elseif (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+                $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']);
+                if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+                    putenv('HOME=' . $temp_dir);
+                exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'] . '"');
+                if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
+                    putenv('HOME=""');
+                $converted_file = $temp_dir . DIRECTORY_SEPARATOR . basename($_FILES['form_new_file']['name'], '.' . $file_extension) . '.pdf';
+                if (!is_file($converted_file)) {
+                    $error[] = "Error! Conversion to PDF failed.<br>" . htmlspecialchars($title);
+                } else {
+                    copy($converted_file, $library_path . DIRECTORY_SEPARATOR . $new_file);
+                    $message[] = htmlspecialchars("The PDF file has been recorded.<br>" . $title);
+                    unlink($converted_file);
+                }
+                $supplement_filename = sprintf("%05d", intval($new_file)) . $_FILES['form_new_file']['name'];
+                copy($temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], $library_path . DIRECTORY_SEPARATOR . 'supplement' . DIRECTORY_SEPARATOR . $supplement_filename);
             } else {
                 $error[] = "Error! No PDF was found. " . $pdf_contents;
             }
@@ -403,6 +422,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         if (isset($_POST['filename']) && is_readable($temp_dir . DIRECTORY_SEPARATOR . $_POST['filename'])) {
 
+            $_POST['filename'] = str_replace(array('\\', '/'), '', $_POST['filename']);
             $copy = copy($temp_dir . DIRECTORY_SEPARATOR . $_POST['filename'], $library_path . DIRECTORY_SEPARATOR . $new_file);
             unlink($temp_dir . DIRECTORY_SEPARATOR . $_POST['filename']);
             if ($copy == false)
@@ -689,7 +709,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         //FETCH FROM ARXIV
-        if (isset($_POST['fetch-arxiv']) && !empty($arxiv_id) && empty($doi) && isset($_POST['fetch-arxiv'])) {
+        if (isset($_POST['fetch-arxiv']) && !empty($arxiv_id) && empty($doi)) {
             $response = array();
             fetch_from_arxiv($arxiv_id);
             $_POST = array_merge($_POST, $response);
@@ -697,21 +717,21 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         //FETCH FROM PUBMED
-        if (isset($_POST['fetch-pubmed']) && (!empty($pmid) || !empty($doi)) && isset($_POST['fetch-pubmed'])) {
+        if (isset($_POST['fetch-pubmed']) && (!empty($pmid) || !empty($doi))) {
             $response = array();
             fetch_from_pubmed($doi, $pmid);
             $_POST = array_merge($_POST, $response);
         }
 
         // FETCH FROM NASA ADS
-        if (isset($_POST['fetch-nasaads']) && (!empty($doi) || !empty($nasa_id)) && empty($pmid) && isset($_POST['fetch-nasaads'])) {
+        if (isset($_POST['fetch-nasaads']) && (!empty($doi) || !empty($nasa_id)) && empty($pmid)) {
             $response = array();
             fetch_from_nasaads($doi, $nasa_id);
             $_POST = array_merge($_POST, $response);
         }
 
         // FETCH FROM CROSSREF
-        if (!empty($doi) && empty($pmid)) {
+        if (isset($_POST['fetch-crossref']) && !empty($doi) && empty($pmid)) {
             $response = array();
             fetch_from_crossref($doi);
             $_POST = array_merge($_POST, $response);
@@ -823,14 +843,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <div style="width:80%;margin:auto">
                 <div class="ui-state-highlight ui-corner-all" style="float:left;margin-bottom:4px;padding:1px 4px;cursor:auto">
                     <i class="fa fa-signin"></i>
-                    Add single item using:
+                    Add single items using:
                 </div>
             </div>
             <div style="clear: both"></div>
             <div class="item-sticker alternating_row ui-widget-content ui-corner-all" style="width:80%;margin:auto;padding:0">
                 <table cellspacing="0" class="alternating_row ui-corner-all" style="width:100%;border-spacing:6px;margin:auto">
                     <tr>
-                        <td style="width:13em">
+                        <td style="width:10.5em">
                             Local PDF file:
                         </td>
                         <td>
@@ -866,7 +886,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     </tr>
                     <tr>
                         <td>
-                            Fetch DOI metadata from:
+                            Fetch DOI data from:
                         </td>
                         <td>
                             <table>
@@ -896,23 +916,24 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                             Arxiv
                                         </td>
                                     <?php } ?>
-                                    <td class="" style="line-height:22px;padding-right:1em">
-                                        <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-crossref" value="1" checked disabled>
+                                    <td class="select_span" style="line-height:22px;padding-right:1em">
+                                        <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-crossref" value="1" checked>
                                         <i class="fa fa-check-square"></i>
                                         CrossRef
                                     </td>
                                 </tr>
                             </table>
+                            <button class="uploadsave" style="margin:0.25em 0"><i class="fa fa-save"></i> Proceed</button>
                         </td>
                     </tr>
                 </table>
                 <div class="separator" style="margin:0"></div>
                 <table cellspacing="0" class="alternating_row ui-corner-all" style="width:100%;border-spacing:6px;margin:auto">
                     <tr>
-                        <td style="width:11em">
-                            <button class="uploadsave"><i class="fa fa-save"></i> Proceed</button>
+                        <td style="width:10.5em">
+                            Unpublished PDFs, office documents
                         </td>
-                        <td>
+                        <td style="vertical-align: middle">
                             <button id="button-none">Manual Upload</buttton>
                         </td>
                     </tr>
@@ -1024,7 +1045,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <table cellspacing="0" style="width:100%" class="table1">
                 <tr>
                     <td class="threedleft">
-                        Local PDF file:
+                        Local file (PDF, Office):
                     </td>
                     <td class="threedright">
                         <?php
@@ -1037,7 +1058,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 print "<iframe class=\"pdf-file\" src=\"viewpdf.php?toolbar=0&preview=1&file=$_POST[tempfile]\" style=\"display:block;width:99%;height:300px;border:1px inset #afaea9\"></iframe>";
                             }
                         } else {
-                            print '<input type="file" name="form_new_file" accept="application/pdf">';
+                            print '<input type="file" name="form_new_file">';
                         }
                         ?>
                     </td>
