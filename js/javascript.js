@@ -610,13 +610,16 @@ var index2 = {
         $('#signinform').submit(function() {
             $('#signinbutton').click();
             return false;
-        }).find('select').selectmenu()
-                .data("ui-selectmenu")
-                ._resizeMenu = function() {
-                    this.menu.width(parseInt($('#signinform').find('select').next('span').width()));
-                    if ($('#signinform select').find('option').length > 12)
-                        this.menu.height('300');
-                };
+        });
+        if ($('#signinform').find('select').length === 1) {
+            $('#signinform').find('select').selectmenu()
+                    .data("ui-selectmenu")
+                    ._resizeMenu = function() {
+                        this.menu.width(parseInt($('#signinform').find('select').next('span').width()));
+                        if ($('#signinform select').find('option').length > 12)
+                            this.menu.height('300');
+                    };
+        }
         $('#signupbutton').click(function() {
             var $form = $('#signupform'), passwd = $form.find('input[name=pass]').val(),
                     username = $form.find('input[name=user]').val(), passwd2 = $form.find('input[name=pass2]').val();
@@ -2041,7 +2044,7 @@ var items = {
             if ($('#deletebutton').is(':visible'))
                 $('#deletebutton').click();
         }).bind('keydown', 'q', function() {
-                $('.backbutton').click();
+            $('.backbutton').click();
         });
     }
 };
@@ -3030,7 +3033,7 @@ var displaywindow = {
         }).bind('keydown', 'w', function() {
             $('.prevrecord').click();
         }).bind('keydown', 'q', function() {
-                $('.backbutton').click();
+            $('.backbutton').click();
         });
     }
 };
@@ -3041,7 +3044,7 @@ var filetop = {
             gravity: 's'
         });
         common.init();
-        $('#file-top-notes').find('p').first().css('margin-top','0');
+        $('#file-top-notes').find('p').first().css('margin-top', '0');
         $('#file-panel2').find('.anotherurl').tipsy({gravity: 's'});
         $('#file-panel2').click(function(event) {
             var t = event.target;

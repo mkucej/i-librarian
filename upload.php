@@ -401,7 +401,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $supplement_filename = sprintf("%05d", intval($new_file)) . $_FILES['form_new_file']['name'];
                 copy($temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], $library_path . DIRECTORY_SEPARATOR . 'supplement' . DIRECTORY_SEPARATOR . $supplement_filename);
             } else {
-                $error[] = "Error! No PDF was found. " . $pdf_contents;
+                $error[] = "Error! No PDF was found.<br>" . $title;
             }
         }
 
@@ -536,11 +536,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $_POST = array();
 
-        if (!empty($error) || !empty($message)) {
+        if (count($error) > 0 || count($message) > 0) {
             $json = array();
-            if (!empty($error))
+            if (count($error) > 0)
                 $json['error'] = $error;
-            if (!empty($message))
+            if (count($message) > 0)
                 $json['message'] = $message;
             $json_output = json_encode($json);
             die($json_output);

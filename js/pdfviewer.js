@@ -1057,14 +1057,16 @@ $('#pdf-viewer-copy-text').change(function() {
         //SHOW TEXT CONTAINER
         $('.text-container').show().css('cursor', 'default');
         //BIND CURSOR TO TEXT LAYER
-        $('.text-container').mouseenter(function() {
-            $("#cursor").show();
-        }).mouseleave(function() {
-            $("#cursor").hide();
-        }).mousemove(function(e) {
-            var posx = 16 + e.pageX, posy = 16 + e.pageY;
-            $('#cursor').css('top', posy + 'px').css('left', posx + 'px');
-        });
+        if ($('#pdf-viewer-marker').prop('checked') === true) {
+            $('.text-container').mouseenter(function() {
+                $("#cursor").show();
+            }).mouseleave(function() {
+                $("#cursor").hide();
+            }).mousemove(function(e) {
+                var posx = 16 + e.pageX, posy = 16 + e.pageY;
+                $('#cursor').css('top', posy + 'px').css('left', posx + 'px');
+            });
+        }
         //IF ALREADY POPULATED, EXIT FUNCTION
         if (!$('#pdf-viewer-img-div').find('.text-container').is(':empty')) {
             clearoverlay();
