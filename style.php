@@ -76,15 +76,13 @@ td.items, div.items {
     color: #" . $main_window_color . ";
     font-weight: bold;
     cursor: pointer;
-    text-shadow: 1px 1px 1px white;
 }
                 
 .brief, div.titles-pdf {
-    padding: 0.2em 0.25em;
+    padding: 0.25em 0.25em;
     overflow:hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    text-shadow:1px 1px 1px rgba(255,255,255,0.9)
 }
 
 div.authors {
@@ -105,7 +103,7 @@ div.authors {
 }
 
 td.threed {
-    padding: 3px;
+    padding: 0.25em;
     background-color: #" . $alternating_row_background_color . ";
     border-right: 1px #C6C8CC solid;
     border-bottom: 1px #C6C8CC solid;
@@ -114,7 +112,7 @@ td.threed {
 
 td.threedleft {
     width: 12em;
-    padding: 3px;
+    padding:0.25em 0.25em 0.25em 0.5em;
     background-color: #" . $alternating_row_background_color . ";
     border-top: 1px #FFFFFF solid;
     border-right: 1px #C6C8CC solid;
@@ -123,7 +121,7 @@ td.threedleft {
 }
 
 td.threedright {
-    padding: 3px;
+    padding:0.25em;
     background-color: #" . $alternating_row_background_color . ";
     border-top: 1px #FFFFFF solid;
     border-left: 1px #FFFFFF solid;
@@ -633,7 +631,8 @@ box-shadow:#333 0 0 5px;
 #menuwrapper {
 position:absolute;
 top:0;
-left:0
+left:0;
+z-index:1000
 }
 
 /*keyboard*/

@@ -68,7 +68,7 @@ if ($_GET['binary'] == 'pdftotext') {
 
     if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
         putenv('HOME=' . $temp_dir);
-    exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . __DIR__ . DIRECTORY_SEPARATOR . 'test.odt"');
+    exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . __DIR__ . DIRECTORY_SEPARATOR . 'test.odt"');
     if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
         putenv('HOME=""');
     $converted_file = $temp_dir . DIRECTORY_SEPARATOR . 'test.pdf';

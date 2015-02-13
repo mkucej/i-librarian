@@ -40,16 +40,16 @@ if (isset($_SESSION['auth'])) {
                     <input type="hidden" name="file" value="<?php print htmlspecialchars($paper['id']) ?>">
                     <input type="hidden" name="filename" value="<?php print htmlspecialchars($paper['file']) ?>">
                     <button id="submituploadfiles"><i class="fa fa-save"></i> Save</button>
-                    <div class="separator" style="margin:5px 0 1em 0"></div>
-                    <strong>Add/replace PDF:</strong><br>
+                    <br>
+                    <strong>Add or replace PDF:</strong><br>
                     Local file:<br>
                     <input type="file" name="form_new_file"><br>
                     PDF from the Web:<br>
                     <input type="text" name="form_new_file_link" style="width: 99%"><br>
-                    <div class="separator" style="margin:1em 0"></div>
+                    <br>
                     <b>Add graphical abstract:</b><br>
                     <input type="file" name="form_graphical_abstract" accept="image/*"><br>
-                    <div class="separator" style="margin:1em 0"></div>
+                    <br>
                     <b>Add supplementary files:</b><br>
                     <input type="file" name="form_supplementary_file1"><br>
                     <input type="file" name="form_supplementary_file2"><br>

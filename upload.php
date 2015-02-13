@@ -387,7 +387,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']);
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=' . $temp_dir);
-                exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'] . '"');
+                exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'] . '"');
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=""');
                 $converted_file = $temp_dir . DIRECTORY_SEPARATOR . basename($_FILES['form_new_file']['name'], '.' . $file_extension) . '.pdf';
@@ -923,18 +923,19 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     </td>
                                 </tr>
                             </table>
-                            <button class="uploadsave" style="margin:0.25em 0"><i class="fa fa-save"></i> Proceed</button>
+                            <button class="uploadsave" style="margin:0.25em 0;width:10em"><i class="fa fa-save"></i> Proceed</button>
                         </td>
                     </tr>
                 </table>
-                <div class="separator" style="margin:0"></div>
+            </div>
+            <div class="item-sticker alternating_row ui-widget-content ui-corner-all" style="width:80%;margin:auto;padding:0;margin-top:2em">
                 <table cellspacing="0" class="alternating_row ui-corner-all" style="width:100%;border-spacing:6px;margin:auto">
                     <tr>
                         <td style="width:10.5em">
-                            Unpublished PDFs, office documents
+                            Unpublished PDFs, office documents:
                         </td>
                         <td style="vertical-align: middle">
-                            <button id="button-none">Manual Upload</buttton>
+                            <button id="button-none" style="width:10em">Manual Upload</buttton>
                         </td>
                     </tr>
                 </table>

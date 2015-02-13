@@ -1687,9 +1687,9 @@ var rename_category = {
 var items = {
     init: function(selfile) {
         var lw = 233, sel = $('body').data('sel');
-        if ($('body').data('liwidth') !== undefined)
-            lw = $('body').data('liwidth');
-        if (lw === 0) {
+        if (localStorage.getItem('liwidth') !== undefined)
+            lw = localStorage.getItem('liwidth');
+        if (lw === '0') {
             $('#items-left').hide();
             $('#items-container .middle-panel i').removeClass('fa-caret-left').addClass('fa-caret-right');
         }
@@ -1703,11 +1703,11 @@ var items = {
             var $l = $(this).prev();
             if ($l.is(':hidden')) {
                 $l.show();
-                $('body').data('liwidth', 233);
+                localStorage.setItem('liwidth', '233');
                 $(this).children().removeClass('fa-caret-right').addClass('fa-caret-left');
             } else {
                 $l.hide();
-                $('body').data('liwidth', 0);
+                localStorage.setItem('liwidth', '0');
                 $(this).children().removeClass('fa-caret-left').addClass('fa-caret-right');
             }
             $(window).trigger('resize');
@@ -2041,7 +2041,6 @@ var items = {
             if ($('#deletebutton').is(':visible'))
                 $('#deletebutton').click();
         }).bind('keydown', 'q', function() {
-            if ($('.backbutton').is(':visible'))
                 $('.backbutton').click();
         });
     }
@@ -2447,9 +2446,9 @@ var desktop = {
             firstid = openproj;
         }
         $('body').data('sel', 'desk').data('proj', firstid);
-        if ($('body').data('lwidth') !== undefined)
-            lw = $('body').data('lwidth');
-        if (lw === 0) {
+        if (localStorage.getItem('lwidth') !== undefined)
+            lw = localStorage.getItem('lwidth');
+        if (lw === '0') {
             $('#leftindex-left').hide();
             $('#bottom-panel .middle-panel i').removeClass('fa-caret-left').addClass('fa-caret-right');
         }
@@ -2467,11 +2466,11 @@ var desktop = {
             var $l = $(this).prev();
             if ($l.is(':hidden')) {
                 $l.show();
-                $('body').data('lwidth', 233);
+                localStorage.setItem('lwidth', '233');
                 $(this).children().removeClass('fa-caret-right').addClass('fa-caret-left');
             } else {
                 $l.hide();
-                $('body').data('lwidth', 0);
+                localStorage.setItem('lwidth', '0');
                 $(this).children().removeClass('fa-caret-left').addClass('fa-caret-right');
             }
         });
@@ -3031,7 +3030,6 @@ var displaywindow = {
         }).bind('keydown', 'w', function() {
             $('.prevrecord').click();
         }).bind('keydown', 'q', function() {
-            if ($('.backbutton').is(':visible'))
                 $('.backbutton').click();
         });
     }
@@ -4207,9 +4205,9 @@ var leftindex = {
         common.init();
         $('body').data('sel', sel);
         var lw = 233;
-        if ($('body').data('lwidth') !== undefined)
-            lw = $('body').data('lwidth');
-        if (lw === 0) {
+        if (localStorage.getItem('lwidth') !== undefined)
+            lw = localStorage.getItem('lwidth');
+        if (lw === '0') {
             $('#leftindex-left').hide();
             $('#bottom-panel .middle-panel i').removeClass('fa-caret-left').addClass('fa-caret-right');
         }
@@ -4223,11 +4221,11 @@ var leftindex = {
             var $l = $(this).prev();
             if ($l.is(':hidden')) {
                 $l.show();
-                $('body').data('lwidth', 233);
+                localStorage.setItem('lwidth', '233');
                 $(this).children().removeClass('fa-caret-right').addClass('fa-caret-left');
             } else {
                 $l.hide();
-                $('body').data('lwidth', 0);
+                localStorage.setItem('lwidth', '0');
                 $(this).children().removeClass('fa-caret-left').addClass('fa-caret-right');
             }
         });

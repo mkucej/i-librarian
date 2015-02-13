@@ -104,7 +104,7 @@ if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']
         $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']);
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=' . $temp_dir);
-        exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'] . '"');
+        exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'] . '"');
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=""');
         $converted_file = $temp_dir . DIRECTORY_SEPARATOR . basename($_FILES['form_new_file']['name'], '.' . $file_extension) . '.pdf';

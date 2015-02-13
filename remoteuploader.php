@@ -66,7 +66,7 @@ if (!empty($_FILES)) {
             $move = move_uploaded_file($file, $temp_dir . DIRECTORY_SEPARATOR . $orig_filename);
             if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                 putenv('HOME=' . $temp_dir);
-            exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $orig_filename . '"');
+            exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $orig_filename . '"');
             if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                 putenv('HOME=""');
             $file = $temp_dir . DIRECTORY_SEPARATOR . basename($orig_filename, '.' . $file_extension) . '.pdf';

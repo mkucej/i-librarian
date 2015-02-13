@@ -62,14 +62,16 @@ $('#pdf-viewer-copy-image').click(function() {
         title: 'Select an area to copy, then click "Save to Files" or "Download"',
         buttons: {
             'Save to Files': function() {
-                if($('#x').val() === '') return false;
+                if ($('#x').val() === '')
+                    return false;
                 $('#copy-image-mode').val('save');
-                $('#copy-image-container form').ajaxSubmit(function(answer){
+                $('#copy-image-container form').ajaxSubmit(function(answer) {
                     $.jGrowl(answer);
                 });
             },
             'Download': function() {
-                if($('#x').val() === '') return false;
+                if ($('#x').val() === '')
+                    return false;
                 $('#copy-image-mode').val('download');
                 $('#copy-image-container form').submit();
             },
@@ -129,7 +131,7 @@ $('#size2').click(function() {
         if (imgh === undefined)
             imgh = $('#pdf-viewer-img-' + page).data('imgh');
         var iw = -30 + parentw;
-        iw = Math.min(iw,imgw);
+        iw = Math.min(iw, imgw);
         var ih = imgh * iw / imgw;
         piw = 100 * iw / imgw;
         $t.css('width', iw).css('height', ih);
@@ -670,6 +672,12 @@ $('#pdf-viewer-annotations').change(function() {
         }).mousemove(function(e) {
             var posx = 16 + e.pageX, posy = 16 + e.pageY;
             $('#cursor').css('top', posy + 'px').css('left', posx + 'px');
+            if ($(this).data('marker')) {
+                var markstposX = $(this).data('marker').markstposX,
+                        markw = e.pageX - markstposX,
+                        markid = $(this).data('marker').markid;
+                $('#' + markid).width(markw);
+            }
         });
         //FETCH MARKERS
         $.getJSON('annotate.php?fetch=1&type=yellowmarker&filename=' + fileName, function(answer) {
@@ -743,17 +751,9 @@ $('#pdf-viewer-marker').change(function() {
         $("#cursor > span").addClass('fa-pencil');
         //ADD TEXT LAYER ON TOP
         $('#pdf-viewer-copy-text').prop('checked', true).change().button('disable');
-        //BIND CURSOR TO TEXT LAYER
-        $('.text-container').mouseenter(function() {
-            $("#cursor").show();
-        }).mouseleave(function() {
-            $("#cursor").hide();
-        }).mousemove(function(e) {
-            var posx = 16 + e.pageX, posy = 16 + e.pageY;
-            $('#cursor').css('top', posy + 'px').css('left', posx + 'px');
-        })
         //MARKERS ARE ADDED IN pdf-viewer-copy-text FUNCTION
     } else {
+        $('.annotation-container').unbind('mousedown mouseup');
         $('#pdf-viewer-img-div').clickNScroll().css('cursor', 'pointer');
         $("#cursor").hide().find('span').removeClass('fa-pencil');
         $('.text-container').unbind('mouseenter mouseleave mousemove');
@@ -1054,10 +1054,17 @@ $('#pdf-viewer-copy-text').change(function() {
         //HIDE ANNOTATIONS, EXCEPT WHEN MARKER IS ON
         if ($('#pdf-viewer-annotations').prop('checked') === true && $('#pdf-viewer-marker').prop('checked') === false)
             $('#pdf-viewer-annotations').prop('checked', false).trigger('change').button("refresh");
-        //GET CURRENT PAGE
-        var pg = $('#pdf-viewer-img-div').data('pg');
         //SHOW TEXT CONTAINER
         $('.text-container').show().css('cursor', 'default');
+        //BIND CURSOR TO TEXT LAYER
+        $('.text-container').mouseenter(function() {
+            $("#cursor").show();
+        }).mouseleave(function() {
+            $("#cursor").hide();
+        }).mousemove(function(e) {
+            var posx = 16 + e.pageX, posy = 16 + e.pageY;
+            $('#cursor').css('top', posy + 'px').css('left', posx + 'px');
+        });
         //IF ALREADY POPULATED, EXIT FUNCTION
         if (!$('#pdf-viewer-img-div').find('.text-container').is(':empty')) {
             clearoverlay();
@@ -1083,78 +1090,144 @@ $('#pdf-viewer-copy-text').change(function() {
             });
             $('#pdf-viewer-img-' + pdfpg + ' > .text-container').html(divs);
             clearoverlay();
-            //TEXT SELECTABLE UI
-            $('.text-container').selectable({
-                distance: 0,
-                stop: function() {
-                    //SELECT TEXT TO COPY
-                    if ($('#pdf-viewer-marker').prop('checked') === false) {
-                        //GET SELECTED TEXT
-                        var txt = '';
-                        $(this).find(".ui-selected").each(function() {
-                            txt = txt + $(this).text() + ' ';
-                        });
-                        txt = txt.replace(/(- )/g, '');
-                        if (txt === '')
-                            return false;
-                        //OPEN DIALOG, COPY SELECTED TEXT
-                        $('#copy-text-container').html('<textarea style="width:99%;height:98%">' + txt + '</textarea>').dialog({
-                            autoOpen: true,
-                            modal: true,
-                            width: 640,
-                            height: 480,
-                            title: 'Press Ctrl+C to copy the text to clipboard.',
-                            buttons: {
-                                'Close': function() {
+            //NO TEXT
+            if ($('.text-container').find('.pdf-text-div').length === 0) {
+                $('.text-container').unbind('mouseenter mousemove mouseleave').css('cursor', 'inherit').hide();
+                if ($('#pdf-viewer-marker').prop('checked') === false) {
+                    $.jGrowl('This PDF has no text layer.');
+                    return false;
+                }
+                $('#pdf-viewer-img-div').css('cursor', 'text');
+                //BIND CURSOR TO ANNOTATION LAYER
+                $('.annotation-container').mouseenter(function() {
+                    $("#cursor").show();
+                }).mouseleave(function() {
+                    $("#cursor").hide();
+                }).mousedown(function(e) {
+                    var pg = $(this).parent().attr('id').split('-').pop(),
+                            markstposX = e.pageX,
+                            markstposY = e.pageY,
+                            prntpos = $(this).offset(),
+                            posx = Math.round(1000 * (e.pageX - prntpos.left) / $(this).width()) / 10,
+                            posy = Math.round(1000 * (e.pageY - prntpos.top) / $(this).height() - 5) / 10,
+                            markid = 'marker-' + pg + '-' + 10 * posy + '-' + 10 * posx;
+                    if ($('#' + markid).length === 1)
+                        return false;
+                    $(this).data('marker', {
+                        'markid': markid,
+                        'markstposX': markstposX,
+                        'markstposY': markstposY
+                    });
+                    $('<div class="marker marker-yellow" id="' + markid + '" data-dbid=""></div>').appendTo(this);
+                    $('#' + markid).css('top', posy + '%').css('left', posx + '%');
+                }).mousemove(function(e) {
+                    var posx = 16 + e.pageX,
+                            posy = 16 + e.pageY;
+                    $('#cursor').css('top', posy + 'px').css('left', posx + 'px');
+                }).mouseup(function(e) {
+                    if (!$(this).data('marker'))
+                        return false;
+                    var pg = $(this).parent().attr('id').split('-').pop(),
+                            prntpos = $(this).offset(),
+                            markstposX = $(this).data('marker').markstposX,
+                            markstposY = $(this).data('marker').markstposY,
+                            posx = Math.round(1000 * (markstposX - prntpos.left) / $(this).width()) / 10,
+                            posy = Math.round(1000 * (markstposY - prntpos.top) / $(this).height() - 6) / 10,
+                            markw = Math.round(1000 * (e.pageX - markstposX) / $(this).width()) / 10,
+                            markid = $(this).data('marker').markid;
+                    $('#' + markid).width(markw + '%');
+                    $(this).data('marker', '');
+                    if (markw < 1) {
+                        $('#' + markid).remove();
+                        return false;
+                    }
+                    $.post('annotate.php',
+                            {
+                                'save': '1',
+                                'type': 'yellowmarker',
+                                'filename': fileName,
+                                'page': pg,
+                                'markers[0]': {'id': markid, 'top': posy, 'left': posx, 'width': markw}
+                            },
+                    function(answer) {
+                        $('#' + answer[0].markid).attr('data-dbid', answer[0].dbid);
+                    },
+                            'json');
+                });
+            } else {
+                //TEXT SELECTABLE UI
+                $('.text-container').selectable({
+                    distance: 0,
+                    stop: function() {
+                        //SELECT TEXT TO COPY
+                        if ($('#pdf-viewer-marker').prop('checked') === false) {
+                            //GET SELECTED TEXT
+                            var txt = '';
+                            $(this).find(".ui-selected").each(function() {
+                                txt = txt + $(this).text() + ' ';
+                            });
+                            txt = txt.replace(/(- )/g, '');
+                            if (txt === '')
+                                return false;
+                            //OPEN DIALOG, COPY SELECTED TEXT
+                            $('#copy-text-container').html('<textarea style="width:99%;height:98%">' + txt + '</textarea>').dialog({
+                                autoOpen: true,
+                                modal: true,
+                                width: 640,
+                                height: 480,
+                                title: 'Press Ctrl+C to copy the text to clipboard.',
+                                buttons: {
+                                    'Close': function() {
+                                        $(this).dialog('destroy');
+                                    }
+                                },
+                                open: function() {
+                                    $('#copy-text-container > textarea').select();
+                                },
+                                close: function() {
                                     $(this).dialog('destroy');
                                 }
-                            },
-                            open: function() {
-                                $('#copy-text-container > textarea').select();
-                            },
-                            close: function() {
-                                $(this).dialog('destroy');
-                            }
-                        });
-                        //GET ROW DIMENSIONS AND SAVE MARKERS
-                    } else {
-                        var $t = $(this), $d = $t.prev(), pg = $t.parent().attr('id').split('-').pop(),
-                                markers = [], divs = '';
-                        $t.find(".ui-selected").each(function() {
-                            //GET COORDINATES
-                            var postop = Math.round(1000 * $(this).position().top / $t.height()) / 10,
-                                    posleft = Math.round(1000 * $(this).position().left / $t.width()) / 10,
-                                    w = Math.round(1000 * $(this).width() / $t.width()) / 10,
-                                    markid = 'marker-' + pg + '-' + 10 * postop + '-' + 10 * posleft;
-                            //IF UNIQUE, ADD MARKER TO PAGE AND ARRAY
-                            if ($('#' + markid).length === 0) {
-                                markers.push({id: markid, top: postop, left: posleft, width: w});
-                                divs += '<div id="' + markid + '" class="marker marker-yellow" style="top:'
-                                        + postop + '%;left:' + posleft + '%;width:'
-                                        + w + '%;height:1.2%" data-dbid=""></div>';
-                            }
-                        });
-                        $d.html($d.html() + divs);
-                        //SEND MARKERS ARRAY TO SERVER TO SAVE AND GET DBIDS BACK
-                        var finald = {'markers': markers, 'save': 1, 'type': 'yellowmarker', 'filename': fileName, 'page': pg};
-                        $.ajax({
-                            url: 'annotate.php', //?save=1&type=yellowmarker&filename=' + fileName + '&page=' + pg,
-                            data: finald,
-                            type: 'post',
-                            dataType: 'json',
-                            success: function(answer) {
-                                $.each(answer, function(key, row) {
-                                    $('#' + row.markid).attr('data-dbid', row.dbid);
-                                });
-                            }
-                        });
+                            });
+                            //GET ROW DIMENSIONS AND SAVE MARKERS
+                        } else {
+                            var $t = $(this), $d = $t.prev(), pg = $t.parent().attr('id').split('-').pop(),
+                                    markers = [], divs = '';
+                            $t.find(".ui-selected").each(function() {
+                                //GET COORDINATES
+                                var postop = Math.round(1000 * $(this).position().top / $t.height()) / 10,
+                                        posleft = Math.round(1000 * $(this).position().left / $t.width()) / 10,
+                                        w = Math.round(1000 * $(this).width() / $t.width()) / 10,
+                                        markid = 'marker-' + pg + '-' + 10 * postop + '-' + 10 * posleft;
+                                //IF UNIQUE, ADD MARKER TO PAGE AND ARRAY
+                                if ($('#' + markid).length === 0) {
+                                    markers.push({id: markid, top: postop, left: posleft, width: w});
+                                    divs += '<div id="' + markid + '" class="marker marker-yellow" style="top:'
+                                            + postop + '%;left:' + posleft + '%;width:'
+                                            + w + '%;height:1.2%" data-dbid=""></div>';
+                                }
+                            });
+                            $d.html($d.html() + divs);
+                            //SEND MARKERS ARRAY TO SERVER TO SAVE AND GET DBIDS BACK
+                            var finald = {'markers': markers, 'save': 1, 'type': 'yellowmarker', 'filename': fileName, 'page': pg};
+                            $.ajax({
+                                url: 'annotate.php',
+                                data: finald,
+                                type: 'post',
+                                dataType: 'json',
+                                success: function(answer) {
+                                    $.each(answer, function(key, row) {
+                                        $('#' + row.markid).attr('data-dbid', row.dbid);
+                                    });
+                                }
+                            });
+                        }
                     }
-                }
-            });
+                });
+            }
         });
     } else {
         //HIDE OPEN CONTAINERS, LEAVE CONTENT CACHED
-        $('.text-container').filter(':visible').css('cursor', 'inherit').hide();
+        $('.text-container').unbind('mouseenter mousemove mouseleave').css('cursor', 'inherit').hide();
         $('#pdf-viewer-img-div').clickNScroll();
         clearoverlay();
     }

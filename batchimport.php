@@ -442,7 +442,7 @@ if (!isset($_GET['commence'])) {
             if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=' . $temp_dir);
-                exec('soffice --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $file . '"');
+                exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . $temp_dir . '" "' . $file . '"');
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=""');
                 //copy file to temp to add it to supplement later

@@ -104,9 +104,9 @@ if (isset($_SESSION['auth'])) {
 
     while (list($cat_key, $cat_name) = each($cat_all)) {
         if (stristr("$paper[title] $paper[abstract]", $cat_name)) {
-            
-            $checkbox = '<span data-catid="'.$cat_key.'" style="cursor: pointer">';
-            
+
+            $checkbox = '<span data-catid="' . $cat_key . '" style="cursor: pointer">';
+
             if (in_array($cat_key, $cat_paper)) {
                 $checkbox .= '<i class="fa fa-check-square"></i> ';
             } else {
@@ -124,23 +124,24 @@ if (isset($_SESSION['auth'])) {
         <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;height:100%;margin-top: 0px">
             <tr>
                 <td class="alternating_row" style="width: 190px;padding: 5px">
-                    <input type="text" size="25" id="filtercategories" value="" placeholder="Filter categories" style="width:190px;margin-bottom:6px">
-                    <div class="separator" style="margin:0"></div>
                     <input type="submit" value="Save" style="display:none">
-                    
+                    <button id="newcatbutton" style="margin:0"><i class="fa fa-save"></i> Save</button><br>
                     <b>Add to new categories:</b><br>
                     <input type="text" size="25" name="category2[]" value="" style="width:190px"><br>
                     <input type="text" size="25" name="category2[]" value="" style="width:190px"><br>
                     <input type="text" size="25" name="category2[]" value="" style="width:190px"><br>
                     <input type="text" size="25" name="category2[]" value="" style="width:190px"><br>
                     <input type="text" size="25" name="category2[]" value="" style="width:190px"><br>
-                    <button id="newcatbutton" style="margin:6px 0"><i class="fa fa-save"></i> Save</button><br>
+                    <br>
                     <b>Suggestions:</b><br>
                     <span id="suggestions">
-    <?php if (!empty($suggested_categories)) print implode('<div style="clear:both"></div>', $suggested_categories); ?>
+                        <?php if (!empty($suggested_categories)) print implode('<div style="clear:both"></div>', $suggested_categories); ?>
                     </span>
                 </td>
                 <td>
+                    <div class="alternating_row">
+                        <input type="text" id="filtercategories" value="" placeholder="Filter categories" style="width:300px;margin:0.75em 0">
+                    </div>
                     <table class="categorieslist" style="width:49%;float:left;padding:2px">
                         <?php
                         $i = 1;
@@ -156,7 +157,7 @@ if (isset($_SESSION['auth'])) {
 
                             if (isset($cat_paper) && is_numeric(array_search($cat_key, $cat_paper)))
                                 $cat_selected = true;
-                            print PHP_EOL . '<tr><td data-catid="'.$cat_key.'" class="select_span';
+                            print PHP_EOL . '<tr><td data-catid="' . $cat_key . '" class="select_span';
                             if ($cat_selected)
                                 print ' alternating_row';
                             print '">';

@@ -698,7 +698,7 @@ function select_tesseract() {
     global $selected_tesseract;
 
     if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-        $selected_tesseract = 'tesseract.exe';
+        $selected_tesseract = '"%PROGRAMFILES%\\Tesseract-OCR\\tesseract.exe"';
     } elseif (PHP_OS == 'Linux') {
         $selected_tesseract = 'tesseract';
     } elseif (PHP_OS == 'Darwin') {
@@ -706,6 +706,23 @@ function select_tesseract() {
     }
 
     return $selected_tesseract;
+}
+
+/////////////select soffice//////////////////////
+
+function select_soffice() {
+
+    global $selected_soffice;
+
+    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
+        $selected_soffice = '"%PROGRAMFILES%\\LibreOffice 4\\program\\soffice.exe"';
+    } elseif (PHP_OS == 'Linux') {
+        $selected_soffice = 'soffice';
+    } elseif (PHP_OS == 'Darwin') {
+        $selected_soffice = 'soffice';
+    }
+
+    return $selected_soffice;
 }
 
 /////////////proxy_file_get_contents//////////////////////
