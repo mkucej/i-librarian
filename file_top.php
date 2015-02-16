@@ -453,9 +453,7 @@ if (isset($_GET['file'])) {
 
         print '<br><u>DOI:</u> <span id="file-doi">' . htmlspecialchars($paper['doi']) . '</span>';
 
-        if (!empty($paper['bibtex'])) {
-            print '<br><u>BibTex:</u> <input type="text" class="bibtex" value="' . htmlspecialchars($paper['bibtex']) . '" style="outline:none;width:200px" readonly>';
-        } else {
+        if (empty($paper['bibtex'])) {
             $bibtex_author = substr($paper['authors'], 3);
             $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, '"'));
             if (empty($bibtex_author))
@@ -465,10 +463,9 @@ if (isset($_GET['file'])) {
             $bibtex_year_array = explode('-', $paper['year']);
             if (!empty($bibtex_year_array[0]))
                 $bibtex_year = $bibtex_year_array[0];
-
-            $bibtex_key = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
-            print '<br><u>BibTex:</u> <input type="text" class="bibtex" value="' . $bibtex_key . '" style="outline:none;width:200px" readonly>';
+            $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
         }
+        print '<br><u>Citation Key:</u> <input type="text" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" style="width:' . strlen($paper['bibtex'])/1.45 . 'em" readonly>';
 
         $editor_string = '';
         if (!empty($paper['editor'])) {

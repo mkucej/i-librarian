@@ -2229,9 +2229,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
             print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;&nbsp;&nbsp;';
 
-            if (!empty($paper['bibtex'])) {
-                print htmlspecialchars($paper['bibtex']);
-            } else {
+            if (empty($paper['bibtex'])) {
                 $bibtex_author = strip_tags($paper['authors']);
                 $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
                 if (empty($bibtex_author))
@@ -2242,9 +2240,10 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 if (!empty($bibtex_year_array[0]))
                     $bibtex_year = $bibtex_year_array[0];
 
-                $bibtex_key = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
-                print htmlspecialchars($bibtex_key);
+                $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
             }
+            
+            echo '<input type="text" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" style="width:' . strlen($paper['bibtex'])/1.45 . 'em" readonly>';
 
             print '<br>';
 
@@ -2382,9 +2381,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
                 print '<b style="margin:0 0.5em">&middot;</b>';
 
-                if (!empty($paper['bibtex'])) {
-                    print htmlspecialchars($paper['bibtex']);
-                } else {
+                if (empty($paper['bibtex'])) {
                     $bibtex_author = strip_tags($paper['authors']);
                     $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
                     if (empty($bibtex_author))
@@ -2395,9 +2392,10 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                     if (!empty($bibtex_year_array[0]))
                         $bibtex_year = $bibtex_year_array[0];
 
-                    $bibtex_key = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
-                    print htmlspecialchars($bibtex_key);
+                    $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
                 }
+                
+                echo '<input type="text" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" style="width:' . strlen($paper['bibtex'])/1.45 . 'em" readonly>';
 
                 print '<b style="margin:0 0.5em">&middot;</b>';
 

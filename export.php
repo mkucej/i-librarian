@@ -56,8 +56,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
     }
 
     $orderby = 'id DESC';
-    if ($_GET['format'] == 'citations')
-        $orderby = 'authors COLLATE NOCASE ASC';
+//    if ($_GET['format'] == 'citations')
+//        $orderby = 'authors COLLATE NOCASE ASC';
 
     database_connect($database_path, 'library');
     $result = $dbHandle->query("SELECT * FROM library $export_files ORDER BY $orderby");

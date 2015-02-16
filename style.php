@@ -224,7 +224,8 @@ div.middle-panel:hover {
 input.bibtex {
     background-color: #" . $alternating_row_background_color . ";
     border: 0;
-    font-family: '" . $main_window_font_family . "',sans-serif;
+    outline:none;
+    font-family: monospace !important;
     font-size: " . $main_window_font_size . "px;
     color: #" . $main_window_color . ";
     cursor:pointer

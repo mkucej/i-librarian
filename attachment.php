@@ -15,17 +15,22 @@ if (isset($_GET['png'])) {
     $file = str_replace("/", "", $_GET['png']);
     $file = str_replace("\\", "", $file);
 }
+if (isset($_GET['rtf'])) {
+    $path = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id();
+    $file = str_replace("/", "", $_GET['rtf']);
+    $file = str_replace("\\", "", $file);
+}
 
 //MODE INLINE OR ATTACHMENT
 $mode = 'attachment';
 if (isset($_GET['mode']) && $_GET['mode'] == 'inline')
     $mode = 'inline';
 
-
 if (!empty($file) && is_file($path . DIRECTORY_SEPARATOR . $file)) {
 
     if (isset($_GET['attachment'])) $filename = substr(urldecode($file), 5);
     if (isset($_GET['png'])) $filename = urldecode($file);
+    if (isset($_GET['rtf'])) $filename = urldecode($file);
 
     $type = 'application/octet-stream';
     if (extension_loaded('fileinfo')) {

@@ -5,22 +5,22 @@ include_once 'data.php';
     <table cellspacing=0 style="margin:8px 0 6px 0;width:93%">
         <tr>
             <td class="leftleftbutton">&nbsp;</td>
-            <td class="leftbutton ui-widget-header ui-corner-right" id="settingslink">
-                Settings
+            <td class="leftbutton ui-widget-header ui-corner-right" id="rtfscanlink">
+                RTF Scan
+            </td>
+        </tr>
+    </table>
+    <table cellspacing=0 style="margin:6px 0;width:93%">
+        <tr>
+            <td class="leftleftbutton">&nbsp;</td>
+            <td class="leftbutton ui-widget-header ui-corner-right" id="citationstyleslink">
+                Citation Styles
             </td>
         </tr>
     </table>
     <?php
     if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
         ?>
-    <table cellspacing=0 style="margin:6px 0;width:93%">
-        <tr>
-            <td class="leftleftbutton">&nbsp;</td>
-            <td class="leftbutton ui-widget-header ui-corner-right" id="detailslink">
-                Installation Details
-            </td>
-        </tr>
-    </table>
     <table cellspacing=0 style="margin:6px 0;width:93%">
         <tr>
             <td class="leftleftbutton">&nbsp;</td>
@@ -89,12 +89,24 @@ include_once 'data.php';
     </table>
     <?php
     }
+    if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
+        ?>
+    <table cellspacing=0 style="margin:6px 0;width:93%">
+        <tr>
+            <td class="leftleftbutton">&nbsp;</td>
+            <td class="leftbutton ui-widget-header ui-corner-right" id="detailslink">
+                Installation Details
+            </td>
+        </tr>
+    </table>
+    <?php
+    }
     ?>
     <table cellspacing=0 style="margin:6px 0;width:93%">
         <tr>
             <td class="leftleftbutton">&nbsp;</td>
-            <td class="leftbutton ui-widget-header ui-corner-right" id="citationstyleslink">
-                Citation Styles
+            <td class="leftbutton ui-widget-header ui-corner-right" id="settingslink">
+                Settings
             </td>
         </tr>
     </table>
