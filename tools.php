@@ -6,7 +6,7 @@ include_once 'data.php';
         <tr>
             <td class="leftleftbutton">&nbsp;</td>
             <td class="leftbutton ui-widget-header ui-corner-right" id="rtfscanlink">
-                RTF Scan
+                Citation Scan
             </td>
         </tr>
     </table>

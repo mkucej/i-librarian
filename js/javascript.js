@@ -2157,6 +2157,18 @@ var exportitems = {
             $('input[name="format"][value="citations"]').parent().click();
             $('input[name="output"][value="inline"]').parent().click();
             $('#exportform').attr('target', 'exportwindow');
+            $('#last-style-tr').find('input').prop('checked', false);
+            $('#last-style-tr').find('i').removeClass('fa-check-square').addClass('fa-square-o');
+        });
+        if (localStorage.getItem('laststyle')) {
+            $('#last-style-tr').find('span').text(localStorage.getItem('laststyle'));
+            $('#last-style-tr').find('input').val(localStorage.getItem('laststyle'));
+            $('#last-style-tr').show();
+        }
+        $('#last-style-tr > td').click(function() {
+            $('input[name="format"][value="citations"]').parent().click();
+            $('input[name="output"][value="inline"]').parent().click();
+            $('#exportform').attr('target', 'exportwindow');
         });
     }
 };
@@ -2936,6 +2948,12 @@ var displaywindow = {
                     } else {
                         $('#exportform').attr('target', '');
                     }
+                    if ($('#citation-style').val() !== '')
+                        localStorage.setItem('laststyle', $('#citation-style').val());
+                    if ($('#last-style-tr').find('input').is(':checked'))
+                        localStorage.setItem('laststyle', $('#last-style-tr').find('input').val());
+                    $('#last-style-tr').find('span').text(localStorage.getItem('laststyle'));
+                    $('#last-style-tr').find('input').val(localStorage.getItem('laststyle'));
                     $('#exportform').submit();
                 },
                 "Reset": function() {
@@ -5767,6 +5785,7 @@ var fetch = {
 var rtfscan = {
     init: function() {
         common.init();
+        var start;
         $('#rtfscanform').find(':submit').button();
         if (localStorage.getItem('laststyle')) {
             $('#last-style-td').find('span').text(localStorage.getItem('laststyle'));
@@ -5776,10 +5795,13 @@ var rtfscan = {
         $('#citation-style').autocomplete({
             source: "ajaxstyles.php",
             minLength: 1
+        }).keydown(function() {
+            $('#last-style-td').find('input').prop('checked', false);
+            $('#last-style-td').find('i').removeClass('fa-check-square').addClass('fa-square-o');
         });
         $('#rtfscanform').ajaxForm(function(answer) {
+            localStorage.setItem('rtfname', $('#rtfscanform').find('input[name="manuscript"]').val());
             var answer = JSON.parse(answer);
-            localStorage.setItem('rtfname', $('#rtfscanform').find('input[name="rtf"]').val());
             $.ajax({
                 url: 'js/csl/citeproc.min.js',
                 dataType: "script",
@@ -5815,16 +5837,16 @@ var rtfscan = {
                             return references[id];
                         }
                     };
-                    // render bibliography
                     var citeproc = new CSL.Engine(citeprocSys, style);
                     citeproc.setOutputFormat("rtf");
                     citeproc.updateItems(itemIDs);
+                    // render bibliography
                     var bibResult = citeproc.makeBibliography();
-                    // load them into a container, convert to table
                     var refs = '';
                     $.each(bibResult[1], function(key, val) {
                         refs += '\n\\par ' + val;
                     });
+                    // render citations
                     var cites = [];
                     $.each(citations, function(key, val) {
                         var cite = citeproc.appendCitationCluster(val, true);
@@ -5845,10 +5867,12 @@ var rtfscan = {
                                     $('#rtfscan-results').html($('#rtfscan-results').html() + '<b>' + val + '</b><br>');
                                 });
                             }
+                            var end = new Date().getTime();
+                            var time = Math.round((end - start)/100)/10;
                             $('#rtfscan-results').html($('#rtfscan-results').html()
-                                    + 'Done.<br><br><a id="rtf-download" href="attachment.php?rtf=formatted-'
+                                    + 'Done in ' + time + ' sec.<br><br><a id="rtf-download" href="attachment.php?rtf=formatted-'
                                     + localStorage.getItem('rtfname').split('\\').pop()
-                                    + '">Download formatted RTF</a>');
+                                    + '">Download formatted manuscript</a>');
                             $('#rtf-download').button();
                         }
                     });
@@ -5856,7 +5880,8 @@ var rtfscan = {
             });
         });
         $('#rtfscanform').submit(function(e) {
-            $('#rtfscan-results').html('Uploading file.<br>');
+            start = new Date().getTime();
+            $('#rtfscan-results').html('<b>Log</b><br>Reading file.<br>');
             if ($('#citation-style').val() !== '')
                 localStorage.setItem('laststyle', $('#citation-style').val());
             if ($('#last-style-td').find('input').is(':checked'))

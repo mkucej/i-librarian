@@ -56,8 +56,6 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
     }
 
     $orderby = 'id DESC';
-//    if ($_GET['format'] == 'citations')
-//        $orderby = 'authors COLLATE NOCASE ASC';
 
     database_connect($database_path, 'library');
     $result = $dbHandle->query("SELECT * FROM library $export_files ORDER BY $orderby");
@@ -116,6 +114,9 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         }
 
         if ($_GET['format'] == 'citations') {
+            
+            if (!empty($_GET['last-style']))
+                $_GET['citation-style'] = $_GET['last-style'];
 
             if (empty($_GET['citation-style']))
                 die('Citation style required.');
@@ -181,7 +182,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $i++;
                 }
             }
-            
+
             $i = 0;
             $new_editors = array();
             $array = array();
@@ -523,8 +524,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             while (list($key, $value) = each($add_item)) {
 
                 $value = str_replace('&', '\&', $value);
-                $value = str_replace('{', '\{', $value);
-                $value = str_replace('}', '\}', $value);
+//                $value = str_replace('{', '\{', $value);
+//                $value = str_replace('}', '\}', $value);
                 $bibtex_name = array_search($key, $bibtex_translation);
                 if ($bibtex_name && !empty($value))
                     $columns[] = $bibtex_name . '{' . $value . '}';
@@ -865,7 +866,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             <td class="select_span">
                                 <input type="checkbox" name="column[]" value="Unique ID" style="display:none" checked>
                                 <i class="fa fa-check-square"></i>
-                                Unique ID
+                                Citation Key
                             </td>
                         </tr>
                     </table>
@@ -899,6 +900,24 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     <table>
                         <tr>
                             <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Secondary Title" style="display:none" checked>
+                                <i class="fa fa-check-square"></i>
+                                Secondary Title
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Tertiary Title" style="display:none" checked>
+                                <i class="fa fa-check-square"></i>
+                                Tertiary Title
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
                                 <input type="checkbox" name="column[]" value="Year" style="display:none" checked>
                                 <i class="fa fa-check-square"></i>
                                 Year
@@ -926,9 +945,45 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     <table>
                         <tr>
                             <td class="select_span">
-                                <input type="checkbox" name="column[]" value="Issue" style="display:none">
-                                <i class="fa fa-square-o"></i>
+                                <input type="checkbox" name="column[]" value="Issue" style="display:none" checked>
+                                <i class="fa fa-check-square"></i>
                                 Issue
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="DOI" style="display:none" checked>
+                                <i class="fa fa-check-square"></i>
+                                DOI
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Editor" style="display:none" checked>
+                                <i class="fa fa-check-square"></i>
+                                Editor
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Publisher" style="display:none" checked>
+                                <i class="fa fa-check-square"></i>
+                                Publisher
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="select_span">
+                                <input type="checkbox" name="column[]" value="Place Published" style="display:none" checked>
+                                <i class="fa fa-check-square"></i>
+                                Place Published
                             </td>
                         </tr>
                     </table>
@@ -938,24 +993,6 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                                 <input type="checkbox" name="column[]" value="Abstract" style="display:none">
                                 <i class="fa fa-square-o"></i>
                                 Abstract
-                            </td>
-                        </tr>
-                    </table>
-                    <table>
-                        <tr>
-                            <td class="select_span">
-                                <input type="checkbox" name="column[]" value="Secondary Title" style="display:none">
-                                <i class="fa fa-square-o"></i>
-                                Secondary Title
-                            </td>
-                        </tr>
-                    </table>
-                    <table>
-                        <tr>
-                            <td class="select_span">
-                                <input type="checkbox" name="column[]" value="Tertiary Title" style="display:none">
-                                <i class="fa fa-square-o"></i>
-                                Tertiary Title
                             </td>
                         </tr>
                     </table>
@@ -989,45 +1026,9 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     <table>
                         <tr>
                             <td class="select_span">
-                                <input type="checkbox" name="column[]" value="DOI" style="display:none">
-                                <i class="fa fa-square-o"></i>
-                                DOI
-                            </td>
-                        </tr>
-                    </table>
-                    <table>
-                        <tr>
-                            <td class="select_span">
                                 <input type="checkbox" name="column[]" value="URL" style="display:none">
                                 <i class="fa fa-square-o"></i>
                                 URL
-                            </td>
-                        </tr>
-                    </table>
-                    <table>
-                        <tr>
-                            <td class="select_span">
-                                <input type="checkbox" name="column[]" value="Editor" style="display:none">
-                                <i class="fa fa-square-o"></i>
-                                Editor
-                            </td>
-                        </tr>
-                    </table>
-                    <table>
-                        <tr>
-                            <td class="select_span">
-                                <input type="checkbox" name="column[]" value="Publisher" style="display:none">
-                                <i class="fa fa-square-o"></i>
-                                Publisher
-                            </td>
-                        </tr>
-                    </table>
-                    <table>
-                        <tr>
-                            <td class="select_span">
-                                <input type="checkbox" name="column[]" value="Place Published" style="display:none">
-                                <i class="fa fa-square-o"></i>
-                                Place Published
                             </td>
                         </tr>
                     </table>
@@ -1118,7 +1119,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                                 <input type="radio" name="format" value="citations" style="display:none">
                                 <i class="fa fa-circle-o"></i>
                                 Citation style:
-                                <table style="margin-left: 1em">
+                                <table style="margin-left: 1em;margin-top:0.5em">
                                     <tr>
                                         <td class="select_span">
                                             <input type="text" name="citation-style" id="citation-style" placeholder=" e.g. Cell" style="width:24em">
@@ -1127,8 +1128,15 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                                 </table>
                             </td>
                         </tr>
+                        <tr id="last-style-tr" style="display:none">
+                            <td class="select_span" style="padding-left:1em;padding-top:0.5em">
+                                <input type="checkbox" name="last-style" style="display:none" value="">
+                                <i class="fa fa-square-o"></i>
+                                <span></span>
+                            </td>
+                        </tr>
                     </table>
-                    <br><br><br>
+                    <br><br>
                     <b>Character encoding:</b><br><br>
                     <table>
                         <tr>
@@ -1146,7 +1154,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             </td>
                         </tr>
                     </table>
-                    <br><br><br>
+                    <br><br>
                     <b>Output options:</b><br><br>
                     <table>
                         <tr>
