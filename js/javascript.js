@@ -5799,96 +5799,116 @@ var rtfscan = {
             $('#last-style-td').find('input').prop('checked', false);
             $('#last-style-td').find('i').removeClass('fa-check-square').addClass('fa-square-o');
         });
-        $('#rtfscanform').ajaxForm(function(answer) {
-            localStorage.setItem('rtfname', $('#rtfscanform').find('input[name="manuscript"]').val());
-            var answer = JSON.parse(answer);
-            $.ajax({
-                url: 'js/csl/citeproc.min.js',
-                dataType: "script",
-                cache: true,
-                success: function() {
-                    // list of references in json format
-                    var references = answer.references;
-                    // list of citations in json format
-                    var citations = answer.citations;
-                    // user-selected style
-                    var style = answer.style;
-                    // errors
-                    var errors = answer.errors;
-                    if (errors) {
-                        $.each(errors, function(key, val) {
-                            $('#rtfscan-results').html($('#rtfscan-results').html() + '<b>' + val + '</b><br>');
+        $('#rtfscanform').ajaxForm({
+            beforeSubmit: function(arr, $f) {
+                var req = true;
+                $.each(arr, function(i, val) {
+                    if (val.name === 'manuscript' && val.value === '') {
+                        $.jGrowl('Manuscript file missing.');
+                        req = false;
+                        return false;
+                    } else
+                    if (val.name === 'citation-style' && val.value === '' && $f.find('input[name="last-style"]').prop('checked') !== true) {
+                        $.jGrowl('Citation style missing.');
+                        req = false;
+                        return false;
+                    }
+                });
+                if (!req) {
+                    return false;
+                }
+                start = new Date().getTime();
+                $('#rtfscan-results').html('<b>Log</b><br>Reading file.<br>');
+                if ($('#citation-style').val() !== '')
+                    localStorage.setItem('laststyle', $('#citation-style').val());
+                if ($('#last-style-td').find('input').is(':checked'))
+                    localStorage.setItem('laststyle', $('#last-style-td').find('input').val());
+                $('#last-style-td').find('span').text(localStorage.getItem('laststyle'));
+                $('#last-style-td').find('input').val(localStorage.getItem('laststyle'));
+                $('#last-style-td').parent().show();
+            },
+            success: function(answer) {
+                localStorage.setItem('rtfname', $('#rtfscanform').find('input[name="manuscript"]').val());
+                var answer = JSON.parse(answer);
+                $.ajax({
+                    url: 'js/csl/citeproc.min.js',
+                    dataType: "script",
+                    cache: true,
+                    success: function() {
+                        // list of references in json format
+                        var references = answer.references;
+                        // list of citations in json format
+                        var citations = answer.citations;
+                        // user-selected style
+                        var style = answer.style;
+                        // errors
+                        var errors = answer.errors;
+                        if (errors) {
+                            $.each(errors, function(key, val) {
+                                $('#rtfscan-results').html($('#rtfscan-results').html() + '<b>' + val + '</b><br>');
+                            });
+                        }
+                        // extract all reference keys
+                        var itemIDs = [];
+                        for (var key in references) {
+                            itemIDs.push(key);
+                        }
+                        // initialize citeproc object
+                        citeprocSys = {
+                            retrieveLocale: function(lang) {
+                                var xhr = new XMLHttpRequest();
+                                xhr.open('GET', 'js/csl/locales/locales-' + lang + '.xml', false);
+                                xhr.send(null);
+                                return xhr.responseText;
+                            },
+                            retrieveItem: function(id) {
+                                return references[id];
+                            }
+                        };
+                        var citeproc = new CSL.Engine(citeprocSys, style);
+                        citeproc.setOutputFormat("rtf");
+                        citeproc.updateItems(itemIDs);
+                        // render bibliography
+                        var bibResult = citeproc.makeBibliography();
+                        var refs = '';
+                        $.each(bibResult[1], function(key, val) {
+                            refs += '\n\\par ' + val;
+                        });
+                        // render citations
+                        var cites = [];
+                        $.each(citations, function(key, val) {
+                            var cite = citeproc.appendCitationCluster(val, true);
+                            cites[key] = cite[0][1];
+                        });
+                        $('#rtfscan-results').html($('#rtfscan-results').html() + 'Found ' + itemIDs.length + ' references cited ' + citations.length + ' times.<br>Formatting file.<br>');
+                        var finald = {'bibliography': refs, 'cites': cites, 'rtfname': localStorage.getItem('rtfname')};
+                        $.ajax({
+                            url: 'rtfscan.php',
+                            data: finald,
+                            type: 'post',
+                            dataType: 'json',
+                            success: function(answer) {
+                                // errors
+                                var errors = answer.errors;
+                                if (errors) {
+                                    $.each(errors, function(key, val) {
+                                        $('#rtfscan-results').html($('#rtfscan-results').html() + '<b>' + val + '</b><br>');
+                                    });
+                                }
+                                var end = new Date().getTime();
+                                var time = Math.round((end - start) / 100) / 10;
+                                $('#rtfscan-results').html($('#rtfscan-results').html()
+                                        + 'Done in ' + time + ' sec.<br><br><a id="rtf-download" href="attachment.php?rtf=formatted-'
+                                        + localStorage.getItem('rtfname').split('\\').pop()
+                                        + '">Download formatted manuscript</a>');
+                                $('#rtf-download').button();
+                            }
                         });
                     }
-                    // extract all reference keys
-                    var itemIDs = [];
-                    for (var key in references) {
-                        itemIDs.push(key);
-                    }
-                    // initialize citeproc object
-                    citeprocSys = {
-                        retrieveLocale: function(lang) {
-                            var xhr = new XMLHttpRequest();
-                            xhr.open('GET', 'js/csl/locales/locales-' + lang + '.xml', false);
-                            xhr.send(null);
-                            return xhr.responseText;
-                        },
-                        retrieveItem: function(id) {
-                            return references[id];
-                        }
-                    };
-                    var citeproc = new CSL.Engine(citeprocSys, style);
-                    citeproc.setOutputFormat("rtf");
-                    citeproc.updateItems(itemIDs);
-                    // render bibliography
-                    var bibResult = citeproc.makeBibliography();
-                    var refs = '';
-                    $.each(bibResult[1], function(key, val) {
-                        refs += '\n\\par ' + val;
-                    });
-                    // render citations
-                    var cites = [];
-                    $.each(citations, function(key, val) {
-                        var cite = citeproc.appendCitationCluster(val, true);
-                        cites[key] = cite[0][1];
-                    });
-                    $('#rtfscan-results').html($('#rtfscan-results').html() + 'Found ' + itemIDs.length + ' references cited ' + citations.length + ' times.<br>Formatting file.<br>');
-                    var finald = {'bibliography': refs, 'cites': cites, 'rtfname': localStorage.getItem('rtfname')};
-                    $.ajax({
-                        url: 'rtfscan.php',
-                        data: finald,
-                        type: 'post',
-                        dataType: 'json',
-                        success: function(answer) {
-                            // errors
-                            var errors = answer.errors;
-                            if (errors) {
-                                $.each(errors, function(key, val) {
-                                    $('#rtfscan-results').html($('#rtfscan-results').html() + '<b>' + val + '</b><br>');
-                                });
-                            }
-                            var end = new Date().getTime();
-                            var time = Math.round((end - start)/100)/10;
-                            $('#rtfscan-results').html($('#rtfscan-results').html()
-                                    + 'Done in ' + time + ' sec.<br><br><a id="rtf-download" href="attachment.php?rtf=formatted-'
-                                    + localStorage.getItem('rtfname').split('\\').pop()
-                                    + '">Download formatted manuscript</a>');
-                            $('#rtf-download').button();
-                        }
-                    });
-                }
-            });
+                });
+            }
         });
         $('#rtfscanform').submit(function(e) {
-            start = new Date().getTime();
-            $('#rtfscan-results').html('<b>Log</b><br>Reading file.<br>');
-            if ($('#citation-style').val() !== '')
-                localStorage.setItem('laststyle', $('#citation-style').val());
-            if ($('#last-style-td').find('input').is(':checked'))
-                localStorage.setItem('laststyle', $('#last-style-td').find('input').val());
-            $('#last-style-td').find('span').text(localStorage.getItem('laststyle'));
-            $('#last-style-td').find('input').val(localStorage.getItem('laststyle'));
-            $('#last-style-td').parent().show();
             e.preventDefault();
         });
     }
