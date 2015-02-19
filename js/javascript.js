@@ -5818,7 +5818,7 @@ var rtfscan = {
                     return false;
                 }
                 start = new Date().getTime();
-                $('#rtfscan-results').html('<b>Log</b><br>Reading file.<br>');
+                $('#rtfscan-results').html('<b>Log</b><br>Reading the file.<br>');
                 if ($('#citation-style').val() !== '')
                     localStorage.setItem('laststyle', $('#citation-style').val());
                 if ($('#last-style-td').find('input').is(':checked'))
@@ -5880,7 +5880,9 @@ var rtfscan = {
                             var cite = citeproc.appendCitationCluster(val, true);
                             cites[key] = cite[0][1];
                         });
-                        $('#rtfscan-results').html($('#rtfscan-results').html() + 'Found ' + itemIDs.length + ' references cited ' + citations.length + ' times.<br>Formatting file.<br>');
+                        $('#rtfscan-results').html($('#rtfscan-results').html()
+                                + 'Found ' + itemIDs.length + ' references cited '
+                                + citations.length + 'x.<br>Formatting the file.<br>');
                         var finald = {'bibliography': refs, 'cites': cites, 'rtfname': localStorage.getItem('rtfname')};
                         $.ajax({
                             url: 'rtfscan.php',
@@ -5898,7 +5900,8 @@ var rtfscan = {
                                 var end = new Date().getTime();
                                 var time = Math.round((end - start) / 100) / 10;
                                 $('#rtfscan-results').html($('#rtfscan-results').html()
-                                        + 'Done in ' + time + ' sec.<br><br><a id="rtf-download" href="attachment.php?rtf=formatted-'
+                                        + 'Finished in ' + time
+                                        + ' sec.<br><br><a id="rtf-download" href="attachment.php?rtf=formatted-'
                                         + localStorage.getItem('rtfname').split('\\').pop()
                                         + '">Download formatted manuscript</a>');
                                 $('#rtf-download').button();
