@@ -15,7 +15,7 @@ if (!empty($_GET['file'])) {
 
 $temp_xml = $temp_dir . DIRECTORY_SEPARATOR . $file_name;
 if (!file_exists($temp_xml . '.xml') || filemtime($temp_xml . '.xml') < filemtime($file)) {
-    system(select_pdftohtml() . ' -q -noframes -enc UTF-8 -nomerge -c -i -xml "' . $file . '" "' . $temp_xml . '"');
+    system(select_pdftohtml() . ' -q -noframes -enc UTF-8 -nomerge -c -i -hidden -xml "' . $file . '" "' . $temp_xml . '"');
 }
 if (file_exists($temp_xml . '.xml')) {
     $string = file_get_contents($temp_xml . '.xml');

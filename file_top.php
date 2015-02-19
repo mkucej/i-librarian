@@ -420,7 +420,7 @@ if (isset($_GET['file'])) {
             echo '<a href="' . htmlspecialchars('attachment.php?mode=inline&attachment='
                     . basename(graphical_abstract($paper['file']))) . '" target="_blank"><img src="'
             . htmlspecialchars('attachment.php?mode=inline&attachment='
-                    . basename(graphical_abstract($paper['file']))) . '" style="width:100%">';
+                    . basename(graphical_abstract($paper['file']))) . '" style="width:100%"></a>';
 
         print '</div>
             </div>

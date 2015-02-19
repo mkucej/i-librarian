@@ -794,7 +794,7 @@ background-color:rgba(255,255,255,0.01);
 
 .separator	{
 height:1px;
-background-color:rgba(0,0,0,0.15);
+background-color:rgba(0,0,0,0.12);
 margin:0;
 padding:0;
 }

@@ -41,7 +41,7 @@ foreach ($output_pages as $output_page) {
     $output_page = $output_page + 1;
     $temp_xml = $temp_dir.DIRECTORY_SEPARATOR.$file_name;
     if (!file_exists($temp_xml.$output_page.'.xml') || filemtime($temp_xml.$output_page.'.xml') < filemtime($file)) {
-        system(select_pdftohtml().' -q -noframes -enc UTF-8 -nomerge -c -i -xml -f '. $output_page .' -l '. $output_page .' "'.$file.'" "'.$temp_xml.$output_page.'"');
+        system(select_pdftohtml().' -q -noframes -enc UTF-8 -nomerge -c -i -hidden -xml -f '. $output_page .' -l '. $output_page .' "'.$file.'" "'.$temp_xml.$output_page.'"');
     }
     if (file_exists($temp_xml.$output_page.'.xml')) {
         $string = file_get_contents($temp_xml.$output_page.'.xml');
