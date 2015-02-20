@@ -587,9 +587,6 @@ var index2 = {
         });
         $('#signin-container input:password:first').focus();
         $('#signin-container input:text:first').focus();
-        $("#signin-container select").change(function() {
-            $('input[name="pass"]').focus();
-        });
         $('#signinbutton').click(function() {
             var $form = $('#signinform'), passwd = $form.find('input[name=pass]').val(), username = '', queryString = $form.formSerialize();
             if ($form.find('input[name=user]').length > 0)
@@ -612,13 +609,15 @@ var index2 = {
             return false;
         });
         if ($('#signinform').find('select').length === 1) {
-            $('#signinform').find('select').selectmenu()
-                    .data("ui-selectmenu")
-                    ._resizeMenu = function() {
-                        this.menu.width(parseInt($('#signinform').find('select').next('span').width()));
-                        if ($('#signinform select').find('option').length > 12)
-                            this.menu.height('300');
-                    };
+            $('#signinform').find('select').selectmenu({
+                select: function() {
+                    $('#signin-container input:password:first').focus();
+                }
+            }).data("ui-selectmenu")._resizeMenu = function() {
+                this.menu.width(parseInt($('#signinform').find('select').next('span').width()));
+                if ($('#signinform select').find('option').length > 12)
+                    this.menu.height('300');
+            };
         }
         $('#signupbutton').click(function() {
             var $form = $('#signupform'), passwd = $form.find('input[name=pass]').val(),
