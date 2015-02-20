@@ -1441,7 +1441,6 @@ var users = {
         $("#delete-confirm").dialog({
             autoOpen: false,
             resizable: false,
-            position: ['center', 200],
             buttons: {
                 'Delete User': function() {
                     var myform = $(this).data('myForm'), $this = $(this);
