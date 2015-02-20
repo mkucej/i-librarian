@@ -22,8 +22,17 @@
         </div>
         <div class="separator" style="margin:0"></div>
         <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto;">
+            <h2>
+                <a href="http://i-librarian.net/compare.php" target="_blank">
+                    <i class="fa fa-question-circle" style="font-size:1em"></i>
+                    Buy Support
+                </a>
+            </h2>
+        </div>
+        <div class="separator" style="margin:0"></div>
+        <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto;">
             <p>
-                <b><a href="http://i-librarian.net" target="_blank">I, Librarian home page</a></b>
+                <b><a href="http://i-librarian.net" target="_blank">I, Librarian web site</a></b>
                 <br>
                 <a href="http://code.google.com/p/i-librarian/issues/list" target="_blank">(issues and sugestions)</a>
             </p>
