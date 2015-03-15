@@ -1471,7 +1471,6 @@ function fetch_from_ieee($ieee_id) {
     function trim_arr(&$v, $k) {
         $v = trim($v);
     }
-
     $file_records = explode('ER  -', $ris);
     array_walk($file_records, 'trim_arr');
     $file_records = array_filter($file_records);
@@ -2002,7 +2001,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     copy($file, dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . $new_file);
 
     $hash = md5_file(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . $new_file);
-    
+
     //record office file into supplement
     if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
         //record original file into supplement
@@ -2243,8 +2242,8 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
                 $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
             }
-            
-            echo '<input type="text" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" style="width:' . strlen($paper['bibtex'])/1.45 . 'em" readonly>';
+
+            echo '<input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly>';
 
             print '</div>';
 
@@ -2396,8 +2395,8 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
                     $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
                 }
-                
-                echo '<input type="text" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" style="width:' . strlen($paper['bibtex'])/1.45 . 'em" readonly>';
+
+                echo '<input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly>';
 
                 print '<b style="margin:0 0.5em">&middot;</b>';
 
@@ -2547,7 +2546,6 @@ function update_notes($notesID, $fileID, $new_notes, $dbHandle) {
         $dbHandle->commit();
     }
 }
-
 #check nobody uses the record no shelfs no projects
 #if no, delete record from table library, notes, attachments
 #delete full text file and attachments
@@ -3048,5 +3046,4 @@ function mobile_show_search_results($result, $display) {
         print '</div>';
     }
 }
-
 ?>

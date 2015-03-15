@@ -466,7 +466,7 @@ if (isset($_GET['file'])) {
                 $bibtex_year = $bibtex_year_array[0];
             $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
         }
-        print '<br><u>Citation Key:</u> <input type="text" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" style="width:' . strlen($paper['bibtex'])/1.45 . 'em" readonly>';
+        echo '<br><u>Citation Key:</u> <input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly>';
 
         $editor_string = '';
         if (!empty($paper['editor'])) {
