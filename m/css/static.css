@@ -61,10 +61,10 @@ table		{
 /*ICON VIEW*/
 
 .thumb-items {
-                width:306px;
-                float:left;
-                margin:8px 0 12px 4px
-            }
+    width:306px;
+    float:left;
+    margin:8px 0 12px 4px
+}
 
 .thumb-items-top {
     position:relative;
@@ -85,4 +85,12 @@ table		{
     color:white;
     width:294px;
     padding:2px 6px 4px 6px;
+}
+
+.thumb-titles > div {
+    overflow:hidden;
+    white-space:nowrap;
+    font-weight:bold;
+    font-size:0.8em;
+    text-shadow:none
 }

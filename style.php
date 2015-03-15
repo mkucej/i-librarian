@@ -620,6 +620,11 @@ padding:2px 6px 4px 6px;
 cursor:pointer
 }
 
+.thumb-titles > div {
+overflow:hidden;
+white-space:nowrap;
+}
+
 #contextmenu {
 text-align:center;
 padding:10px;

@@ -2195,7 +2195,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
             print '<div class="item-container thumb-items" id="display-item-' . $paper['id'] . '" data-file="' . $paper['file'] . '"><div>';
 
-            print '<div class="thumb-titles"><div style="overflow:hidden;white-space:nowrap"><b>' . $paper['title'] . '</b><br>';
+            print '<div class="thumb-titles"><div><b>' . $paper['title'] . '</b><br>';
 
             print $first_author . $etal;
             if (!empty($paper['year']))
@@ -2223,7 +2223,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
             print PHP_EOL . '<table class="item-sticker" style="width:100%;border:1px solid #c5c6c8"><tr><td class="noprint ui-corner-all" style="padding:0.5em 0.75em">';
 
-            print '<i class="fa fa-info-circle quick-view" style="font-size:1.25em;margin-bottom:0.4em"></i>&nbsp;&nbsp;';
+            print '<div style="width:330px;white-space:nowrap;overflow:hidden"><i class="fa fa-info-circle quick-view" style="font-size:1.25em;margin-bottom:0.4em"></i>&nbsp;&nbsp;';
 
             print '<span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
             print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
@@ -2232,6 +2232,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             if (empty($paper['bibtex'])) {
                 $bibtex_author = strip_tags($paper['authors']);
                 $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
+                $bibtex_author = str_replace(' ', '', $bibtex_author);
                 if (empty($bibtex_author))
                     $bibtex_author = 'unknown';
 
@@ -2245,7 +2246,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             
             echo '<input type="text" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" style="width:' . strlen($paper['bibtex'])/1.45 . 'em" readonly>';
 
-            print '<br>';
+            print '</div>';
 
             if (isset($shelf_files) && in_array($paper['id'], $shelf_files)) {
                 print ' <span class="update_shelf clicked"><i class="update_shelf fa fa-check-square ui-state-error-text"></i>&nbsp;Shelf&nbsp;</span>';
@@ -2384,6 +2385,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 if (empty($paper['bibtex'])) {
                     $bibtex_author = strip_tags($paper['authors']);
                     $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
+                    $bibtex_author = str_replace(' ', '', $bibtex_author);
                     if (empty($bibtex_author))
                         $bibtex_author = 'unknown';
 
@@ -3008,7 +3010,7 @@ function mobile_show_search_results($result, $display) {
             if (is_readable('../library/' . $paper['file']))
                 print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block;text-decoration:none">';
 
-            print '<div class="thumb-items-top"><div class="thumb-titles"><div style="overflow:hidden;white-space:nowrap;font-weight:normal;font-size:0.8em">' . $paper['title'] . '<br>' . $first_author . $etal;
+            print '<div class="thumb-items-top"><div class="thumb-titles"><div>' . $paper['title'] . '<br>' . $first_author . $etal;
             if (!empty($paper['year']))
                 print ' (' . substr($paper['year'], 0, 4) . ')';
             print '</div></div>';

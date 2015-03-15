@@ -497,6 +497,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
     if (empty($paper['bibtex'])) {
         $bibtex_author = substr($paper['authors'], 3);
         $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, '"'));
+        $bibtex_author = str_replace(' ', '', $bibtex_author);
         if (empty($bibtex_author))
             $bibtex_author = 'unknown';
 
