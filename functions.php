@@ -2222,7 +2222,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
             print PHP_EOL . '<table class="item-sticker" style="width:100%;border:1px solid #c5c6c8"><tr><td class="noprint ui-corner-all" style="padding:0.5em 0.75em">';
 
-            print '<div style="width:330px;white-space:nowrap;overflow:hidden"><i class="fa fa-info-circle quick-view" style="font-size:1.25em;margin-bottom:0.4em"></i>&nbsp;&nbsp;';
+            print '<div style="float:left"><i class="fa fa-info-circle quick-view"></i>&nbsp;&nbsp;';
 
             print '<span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
             print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
@@ -2243,9 +2243,8 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
             }
 
-            echo '<input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly>';
-
-            print '</div>';
+            echo '</div><div style="width:260px;white-space:nowrap;overflow:hidden;margin-bottom:0.25em">'
+            . '<input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly></div>';
 
             if (isset($shelf_files) && in_array($paper['id'], $shelf_files)) {
                 print ' <span class="update_shelf clicked"><i class="update_shelf fa fa-check-square ui-state-error-text"></i>&nbsp;Shelf&nbsp;</span>';
