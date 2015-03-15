@@ -34,7 +34,7 @@
             <p>
                 <b><a href="http://i-librarian.net" target="_blank">I, Librarian web site</a></b>
                 <br>
-                <a href="http://code.google.com/p/i-librarian/issues/list" target="_blank">(issues and sugestions)</a>
+                <a href="https://github.com/mkucej/i-librarian/issues" target="_blank">(issues and sugestions)</a>
             </p>
         </div>
     </div>
