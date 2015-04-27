@@ -2525,25 +2525,29 @@ function read_desktop($dbHandle) {
 
 /////////////update notes/////////////////////////
 
-function update_notes($notesID, $fileID, $new_notes, $dbHandle) {
+function update_notes($fileID, $new_notes, $dbHandle) {
 
-    if (!empty($notesID))
-        $notesID = $dbHandle->quote($notesID);
+    $notesID = '';
     $userID = $dbHandle->quote($_SESSION['user_id']);
     $fileID = $dbHandle->quote($fileID);
+    
+    $dbHandle->beginTransaction();
+    
+    $result = $dbHandle->query("SELECT notesID FROM notes WHERE userID=" . $userID . " AND fileID=" . $fileID);
+    $notesID = $result->fetchColumn();
+    $result = null;
 
     if (empty($notesID) && !empty($new_notes)) {
         $new_notes = $dbHandle->quote($new_notes);
         $dbHandle->exec("INSERT INTO notes (userID,fileID,notes) VALUES ($userID,$fileID,$new_notes)");
     } elseif (!empty($notesID)) {
-        $dbHandle->beginTransaction();
         $dbHandle->exec("DELETE FROM notes WHERE notesID=$notesID");
         if (!empty($new_notes)) {
             $new_notes = $dbHandle->quote($new_notes);
             $dbHandle->exec("INSERT INTO notes (notesID,userID,fileID,notes) VALUES ($notesID,$userID,$fileID,$new_notes)");
         }
-        $dbHandle->commit();
     }
+    $dbHandle->commit();
 }
 #check nobody uses the record no shelfs no projects
 #if no, delete record from table library, notes, attachments

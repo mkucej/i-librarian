@@ -3033,7 +3033,7 @@ var displaywindow = {
         });
         // after reload, check item list in overlay layer, if displayed
         if ($('#items-left').length === 1) {
-            var files;
+            var files = '';
             $('#items-left').find('.listleft').each(function(i) {
                 var file = $(this).data('id');
                 files = files + '&files[]=' + file;

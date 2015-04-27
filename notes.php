@@ -6,13 +6,12 @@ if (!empty($_GET['file']))
     $_GET['file'] = intval($_GET['file']);
 if (!empty($_POST['file']))
     $_POST['file'] = intval($_POST['file']);
-if (!empty($_POST['notesID']))
-    $_POST['notesID'] = intval($_POST['notesID']);
 
 database_connect($database_path, 'library');
 
-if (isset($_POST['notesID']) && isset($_POST['file'])) {
-    update_notes($_POST['notesID'], $_POST['file'], $_POST['notes'], $dbHandle);
+if (!empty($_POST['file'])) {
+    update_notes($_POST['file'], $_POST['notes'], $dbHandle);
+    die();
 }
 
 if (isset($_GET['file'])) {
@@ -24,12 +23,9 @@ if (isset($_GET['file'])) {
     $title = $result->fetchColumn();
     $result = null;
 
-    $result = $dbHandle->query("SELECT notesID,notes FROM notes WHERE fileID=$query AND userID=$user_query LIMIT 1");
-    $fetched = $result->fetch(PDO::FETCH_ASSOC);
+    $result = $dbHandle->query("SELECT notes FROM notes WHERE fileID=$query AND userID=$user_query LIMIT 1");
+    $notes = $result->fetchColumn();
     $result = null;
-
-    $notesid = $fetched['notesID'];
-    $notes = $fetched['notes'];
 }
 
 $dbHandle = null;
@@ -38,7 +34,6 @@ if (isset($_GET['editnotes'])) {
     ?>
     <div style="width: 100%;height: 100%">
         <form method="post" action="notes.php" id="form-notes">
-            <input type="hidden" name="notesID" value="<?php echo $notesid; ?>">
             <input type="hidden" name="file" value="<?php echo $_GET['file'] ?>">
             <textarea id="notes" name="notes" rows="15" cols="65"><?php echo $notes; ?></textarea>
         </form>
