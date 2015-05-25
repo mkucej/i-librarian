@@ -2309,10 +2309,10 @@ var edit = {
                 var authors = [];
                 $(this).closest('div.author-inputs').find('div').each(function(i) {
                     authors[i] = '';
-                    var last = $(this).children('input').eq(0).val().replace(/[<>";]/g, '');
+                    var last = $(this).children('input').eq(0).val().replace(/[<>,;]/g, '');
                     last = $.trim(last);
                     if (last !== '')
-                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>";]/g, '')) + '"';
+                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>,;]/g, '')) + '"';
                 });
                 authors = jQuery.grep(authors, function(n) {
                     return (n !== '');
@@ -2324,10 +2324,10 @@ var edit = {
                 var authors = [];
                 $(this).closest('div.editor-inputs').find('div').each(function(i) {
                     authors[i] = '';
-                    var last = $(this).children('input').eq(0).val().replace(/[<>";]/g, '');
+                    var last = $(this).children('input').eq(0).val().replace(/[<>,;]/g, '');
                     last = $.trim(last);
                     if (last !== '')
-                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>";]/g, '')) + '"';
+                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>,;]/g, '')) + '"';
                 });
                 authors = jQuery.grep(authors, function(n) {
                     return (n !== '');
@@ -2360,9 +2360,9 @@ var edit = {
             var authors = [];
             $(this).closest('.author-inputs').find('div').each(function(i) {
                 authors[i] = '';
-                var last = $.trim($(this).children('input').eq(0).val().replace(/[<>";]/g, ''));
+                var last = $.trim($(this).children('input').eq(0).val().replace(/[<>,;]/g, ''));
                 if (last !== '')
-                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>";]/g, '')) + '"';
+                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>,;]/g, '')) + '"';
             });
             authors = jQuery.grep(authors, function(n) {
                 return (n !== '');
@@ -2382,10 +2382,10 @@ var edit = {
             var authors = [];
             $(this).closest('div.editor-inputs').find('div').each(function(i) {
                 authors[i] = '';
-                var last = $(this).children('input').eq(0).val().replace(/[<>";]/g, '');
+                var last = $(this).children('input').eq(0).val().replace(/[<>,;]/g, '');
                 last = $.trim(last);
                 if (last !== '')
-                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>";]/g, '')) + '"';
+                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace(/[<>,;]/g, '')) + '"';
             });
             authors = jQuery.grep(authors, function(n) {
                 return (n !== '');
@@ -4075,9 +4075,9 @@ var upload = {
                 var authors = [];
                 $(this).closest('.author-inputs').find('div').each(function(i) {
                     authors[i] = '';
-                    var last = $.trim($(this).children('input').eq(0).val().replace('"', ''));
+                    var last = $.trim($(this).children('input').eq(0).val().replace('<>,;', ''));
                     if (last !== '')
-                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('"', '')) + '"';
+                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('<>,;', '')) + '"';
                 });
                 authors = jQuery.grep(authors, function(n) {
                     return (n !== '');
@@ -4089,9 +4089,9 @@ var upload = {
                 var authors = [];
                 $(this).closest('.editor-inputs').find('div').each(function(i) {
                     authors[i] = '';
-                    var last = $.trim($(this).children('input').eq(0).val().replace('"', ''));
+                    var last = $.trim($(this).children('input').eq(0).val().replace('<>,;', ''));
                     if (last !== '')
-                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('"', '')) + '"';
+                        authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('<>,;', '')) + '"';
                 });
                 authors = jQuery.grep(authors, function(n) {
                     return (n !== '');
@@ -4131,9 +4131,9 @@ var upload = {
             var authors = [];
             $(this).prev().find('div').each(function(i) {
                 authors[i] = '';
-                var last = $.trim($(this).children('input').eq(0).val().replace('"', ''));
+                var last = $.trim($(this).children('input').eq(0).val().replace('<>,;', ''));
                 if (last !== '')
-                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('"', '')) + '"';
+                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('<>,;', '')) + '"';
             });
             authors = jQuery.grep(authors, function(n) {
                 return n !== '';
@@ -4145,16 +4145,17 @@ var upload = {
             var authors = [];
             $(this).closest('.author-inputs').find('div').each(function(i) {
                 authors[i] = '';
-                var last = $.trim($(this).children('input').eq(0).val().replace('"', ''));
+                var last = $.trim($(this).children('input').eq(0).val().replace('<>,;', ''));
                 if (last !== '')
-                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('"', '')) + '"';
+                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('<>,;', '')) + '"';
             });
             authors = jQuery.grep(authors, function(n) {
                 return n !== '';
             });
             var author = authors.join(';');
             $(this).closest('.author-inputs').next('input[name="authors"]').val(author);
-        }).autocomplete({
+        });
+        $('.uploadform .author-inputs input:even').autocomplete({
             source: 'ajaxfilter.php?open[]=authors',
             minLength: 1,
             select: function(e, data) {
@@ -4167,9 +4168,9 @@ var upload = {
             var authors = [];
             $(this).closest('.editor-inputs').find('div').each(function(i) {
                 authors[i] = '';
-                var last = $.trim($(this).children('input').eq(0).val().replace('"', ''));
+                var last = $.trim($(this).children('input').eq(0).val().replace('<>,;', ''));
                 if (last !== '')
-                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('"', '')) + '"';
+                    authors[i] = 'L:"' + last + '",F:"' + $.trim($(this).children('input').eq(1).val().replace('<>,;', '')) + '"';
             });
             authors = jQuery.grep(authors, function(n) {
                 return n !== '';

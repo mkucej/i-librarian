@@ -1209,6 +1209,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 <tr>
                     <td class="threedleft td-secondary-title">
                         <?php
+                        if (empty($_POST['reference_type']))
+                            $_POST['reference_type'] = 'article';
                         if (!empty($_POST['reference_type'])) {
                             switch ($_POST['reference_type']) {
                                 case 'article':

@@ -455,8 +455,8 @@ if (isset($_GET['file'])) {
 
         if (empty($paper['bibtex'])) {
             $bibtex_author = substr($paper['authors'], 3);
-            $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, '"'));
-            $bibtex_author = str_replace(' ', '', $bibtex_author);
+            $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ',') - 1);
+            $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
             if (empty($bibtex_author))
                 $bibtex_author = 'unknown';
 

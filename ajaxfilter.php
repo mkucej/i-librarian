@@ -86,8 +86,8 @@ if (isset($_GET['open']) && in_array("authors", $_GET['open'])) {
     
     while (list($key, $authors) = each($authors_unique)) {
         $authors = str_replace('L:"', '', $authors);
-        $authors = str_replace(',F:"', ', ', $authors);
-        $authors = str_replace('"', '', $authors);
+        $authors = str_replace('",F:"', ', ', $authors);
+        $authors = substr($authors, 0, -1);
         $json_authors[] = $authors;
         if (!isset($_GET['term'])) print PHP_EOL . '<span class="author" id="' . urlencode($authors) . '">' . htmlspecialchars($authors) . '</span><br>';
     }

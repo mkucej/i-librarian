@@ -2147,7 +2147,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                     $first = trim($array2[1]);
                     $first = substr($array2[1], 3, -1);
                     $new_authors[] = '<a href="display.php?select=' . $select . '&browse[' . urlencode($last . ', ' . $first) . ']=authors" class="navigation">'
-                            . htmlspecialchars($last . ', ' . $first) . '</a>';
+                            . htmlspecialchars($last . ', ' . $first, ENT_NOQUOTES) . '</a>';
                 }
                 $paper['authors'] = join('; ', $new_authors);
             }
@@ -2184,10 +2184,10 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 die('<p>&nbsp;Error! Icon view requires GD extension and Ghostscript.</p>');
 
             $first_author = '&nbsp;';
-            $auth_arr = explode(';', $paper['authors']);
-            $auth_arr2 = explode(',', strip_tags($auth_arr[0]));
-            if (!empty($auth_arr2[0]))
-                $first_author = $auth_arr2[0];
+            $auth_string = strip_tags($paper['authors']);
+            $auth_arr = explode(",", $auth_string);
+            if (!empty($auth_arr[0]))
+                $first_author = $auth_arr[0];
             $etal = '';
             if (count($auth_arr) > 1)
                 $etal = ', et al.';
@@ -2231,7 +2231,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             if (empty($paper['bibtex'])) {
                 $bibtex_author = strip_tags($paper['authors']);
                 $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
-                $bibtex_author = str_replace(' ', '', $bibtex_author);
+                $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
                 if (empty($bibtex_author))
                     $bibtex_author = 'unknown';
 
@@ -2379,11 +2379,11 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;';
 
                 print '<b style="margin:0 0.5em">&middot;</b>';
-
+                
                 if (empty($paper['bibtex'])) {
                     $bibtex_author = strip_tags($paper['authors']);
                     $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
-                    $bibtex_author = str_replace(' ', '', $bibtex_author);
+                    $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
                     if (empty($bibtex_author))
                         $bibtex_author = 'unknown';
 
@@ -2530,9 +2530,9 @@ function update_notes($fileID, $new_notes, $dbHandle) {
     $notesID = '';
     $userID = $dbHandle->quote($_SESSION['user_id']);
     $fileID = $dbHandle->quote($fileID);
-    
+
     $dbHandle->beginTransaction();
-    
+
     $result = $dbHandle->query("SELECT notesID FROM notes WHERE userID=" . $userID . " AND fileID=" . $fileID);
     $notesID = $result->fetchColumn();
     $result = null;

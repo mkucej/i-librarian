@@ -279,8 +279,8 @@ if (isset($_GET['open']) && in_array("authors", $_GET['open'])) {
     while (list($key, $authors) = each($authors_array)) {
             if ($i >= $from && $i < ($from + 1000)) {
                 $authors = str_replace('L:"', '', $authors);
-                $authors = str_replace(',F:"', ', ', $authors);
-                $authors = str_replace('"', '', $authors);
+                $authors = str_replace('",F:"', ', ', $authors);
+                $authors = substr($authors, 0, -1);
                 print '<span class="author" id="' . urlencode($authors) . '">' . htmlspecialchars($authors) . '</span><br>';
             }
             $i = $i + 1;

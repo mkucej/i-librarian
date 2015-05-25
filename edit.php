@@ -496,8 +496,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
     if (empty($paper['bibtex'])) {
         $bibtex_author = substr($paper['authors'], 3);
-        $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, '"'));
-        $bibtex_author = str_replace(' ', '', $bibtex_author);
+        $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ',') - 1);
+        $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
         if (empty($bibtex_author))
             $bibtex_author = 'unknown';
 
@@ -535,7 +535,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
                                 ?>
-                                PubMed
+                                       PubMed
                             </td>
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="nasaads"
@@ -546,7 +546,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
                                 ?>
-                                NASA ADS
+                                       NASA ADS
                             </td>
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="ieee"
@@ -557,7 +557,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
                                 ?>
-                                IEEE Xplore
+                                       IEEE Xplore
                             </td>
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="crossref"
@@ -568,7 +568,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
                                 ?>
-                                CrossRef
+                                       CrossRef
                             </td>
                         </tr>
                     </table>
@@ -651,9 +651,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     $first = trim($array2[1]);
                                     $first = substr($array2[1], 3, -1);
                                     if (!empty($last))
-                                        print '<div>Last name: <input type="text" value="' . $last . '">
+                                        print '<div>Last name: <input type="text" value="' . htmlspecialchars($last) . '">
                                         &nbsp;<i class="fa fa-exchange flipnames"></i>&nbsp;
-                                        First name: <input type="text" value="' . $first . '"></div>';
+                                        First name: <input type="text" value="' . htmlspecialchars($first) . '"></div>';
                                 }
                             }
                         }
