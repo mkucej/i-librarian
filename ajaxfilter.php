@@ -129,4 +129,56 @@ if (isset($_GET['open']) && in_array("keywords", $_GET['open'])) {
         }
     }
 }
+
+######################################################################
+
+if (isset($_GET['open']) && in_array("editors", $_GET['open'])) {
+
+    $filter_arr = array();
+    if (strstr($filter, ',') !== 0)
+        $filter_arr = explode(',', $filter);
+    if (!empty($filter_arr[0]))
+        $author_filter = $dbHandle->quote('%L:"' . trim($filter_arr[0]) . '%');
+    if (!empty($filter_arr[1]))
+        $author_filter = $dbHandle->quote('%L:"' . trim($filter_arr[0]) . '",F:"' . trim($filter_arr[1]) . '%');
+
+    $result = $dbHandle->query("SELECT editor FROM library WHERE $in $and (editor LIKE $author_filter)");
+    $authors = $result->fetchAll(PDO::FETCH_COLUMN);
+
+    $dbHandle = null;
+
+    $authors_string = '';
+
+    $authors_string = implode(";", $authors);
+    $authors = explode(";", $authors_string);
+
+    function filter_authors($var) {
+        global $filter_arr;
+        return stripos($var, 'L:"' . trim($filter_arr[0])) === 0;
+    }
+
+    $authors = array_filter($authors, 'filter_authors');
+
+    if (empty($authors)) {
+        print 'No such authors.';
+        die();
+    }
+
+    $authors_unique = array_unique($authors);
+    usort($authors_unique, "strnatcasecmp");
+
+    $json_authors = array();
+    
+    while (list($key, $authors) = each($authors_unique)) {
+        $authors = str_replace('L:"', '', $authors);
+        $authors = str_replace('",F:"', ', ', $authors);
+        $authors = substr($authors, 0, -1);
+        $json_authors[] = $authors;
+        if (!isset($_GET['term'])) print PHP_EOL . '<span class="author" id="' . urlencode($authors) . '">' . htmlspecialchars($authors) . '</span><br>';
+    }
+    
+    // autocomplete
+    if (isset($_GET['term']))
+        echo json_encode($json_authors);
+}
 ?>
