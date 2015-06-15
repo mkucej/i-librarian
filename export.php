@@ -7,6 +7,11 @@ $nozip = false;
 if (extension_loaded('zip'))
     $nozip = true;
 
+(!empty($_SESSION['custom1'])) ? $custom1 = $_SESSION['custom1'] : $custom1 = 'Custom 1';
+(!empty($_SESSION['custom2'])) ? $custom2 = $_SESSION['custom2'] : $custom2 = 'Custom 2';
+(!empty($_SESSION['custom3'])) ? $custom3 = $_SESSION['custom3'] : $custom3 = 'Custom 3';
+(!empty($_SESSION['custom4'])) ? $custom4 = $_SESSION['custom4'] : $custom4 = 'Custom 4';
+
 if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
     if (!isset($_GET['column']))
@@ -437,10 +442,10 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "address = " => "place_published",
                 "doi = " => "doi",
                 "url = " => "url",
-                "custom1 = " => "custom1",
-                "custom2 = " => "custom2",
-                "custom3 = " => "custom3",
-                "custom4 = " => "custom4");
+                $custom1 . " = " => "custom1",
+                $custom2 . " = " => "custom2",
+                $custom3 . " = " => "custom3",
+                $custom4 . " = " => "custom4");
 
             if (isset($add_item['authors'])) {
 
@@ -1037,7 +1042,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             <td class="select_span">
                                 <input type="checkbox" name="column[]" value="Custom 1" style="display:none">
                                 <i class="fa fa-square-o"></i>
-                                Custom 1
+                                <?php echo $custom1 ?>
                             </td>
                         </tr>
                     </table>
@@ -1046,7 +1051,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             <td class="select_span">
                                 <input type="checkbox" name="column[]" value="Custom 2" style="display:none">
                                 <i class="fa fa-square-o"></i>
-                                Custom 2
+                                <?php echo $custom2 ?>
                             </td>
                         </tr>
                     </table>
@@ -1055,7 +1060,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             <td class="select_span">
                                 <input type="checkbox" name="column[]" value="Custom 3" style="display:none">
                                 <i class="fa fa-square-o"></i>
-                                Custom 3
+                                <?php echo $custom3 ?>
                             </td>
                         </tr>
                     </table>
@@ -1064,7 +1069,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             <td class="select_span">
                                 <input type="checkbox" name="column[]" value="Custom 4" style="display:none">
                                 <i class="fa fa-square-o"></i>
-                                Custom 4
+                                <?php echo $custom4 ?>
                             </td>
                         </tr>
                     </table>

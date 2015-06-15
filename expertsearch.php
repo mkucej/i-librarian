@@ -591,10 +591,10 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
                     <div class="metadata-buttons" style="margin-top:5px">
                         <button title="keyword" style="width:52px;margin-left:4px">[KW]</button>
                         <button title="publication year" style="width:52px">[YR]</button>
-                        <button title="custom 1" style="width:52px">[C1]</button>
-                        <button title="custom 2" style="width:52px">[C2]</button>
-                        <button title="custom 3" style="width:52px">[C3]</button>
-                        <button title="custom 4" style="width:52px">[C4]</button>
+                        <button title="<?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1' ?>" style="width:52px">[C1]</button>
+                        <button title="<?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2' ?>" style="width:52px">[C2]</button>
+                        <button title="<?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3' ?>" style="width:52px">[C3]</button>
+                        <button title="<?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4' ?>" style="width:52px">[C4]</button>
                     </div>
                 </td>
             </tr>

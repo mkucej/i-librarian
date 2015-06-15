@@ -881,7 +881,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    Custom 1:
+                    <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1' ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom1" style="width: 99%" value="<?php print isset($paper['custom1']) ? htmlspecialchars($paper['custom1']) : ''  ?>">
@@ -889,7 +889,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    Custom 2:
+                    <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2' ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom2" style="width: 99%" value="<?php print isset($paper['custom2']) ? htmlspecialchars($paper['custom2']) : ''  ?>">
@@ -897,7 +897,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    Custom 3:
+                    <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3' ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom3" style="width: 99%" value="<?php print isset($paper['custom3']) ? htmlspecialchars($paper['custom3']) : ''  ?>">
@@ -905,7 +905,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    Custom 4:
+                    <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4' ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom4" style="width: 99%" value="<?php print isset($paper['custom4']) ? htmlspecialchars($paper['custom4']) : ''  ?>">

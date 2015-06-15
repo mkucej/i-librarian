@@ -1109,7 +1109,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             </tr>
             <tr class="refrow">
                 <td class="threed">
-                    Custom 1:
+                    <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1' ?>:
                 </td>
                 <td class="threed" colspan="3">
                     <?php search_row('custom1'); ?>
@@ -1117,7 +1117,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             </tr>
             <tr class="refrow">
                 <td class="threed">
-                    Custom 2:
+                    <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2' ?>:
                 </td>
                 <td class="threed" colspan="3">
                     <?php search_row('custom2'); ?>
@@ -1125,7 +1125,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             </tr>
             <tr class="refrow">
                 <td class="threed">
-                    Custom 3:
+                    <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3' ?>:
                 </td>
                 <td class="threed" colspan="3">
                     <?php search_row('custom3'); ?>
@@ -1133,7 +1133,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             </tr>
             <tr class="refrow">
                 <td class="threed">
-                    Custom 4:
+                    <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4' ?>:
                 </td>
                 <td class="threed" colspan="3">
                     <?php search_row('custom4'); ?>

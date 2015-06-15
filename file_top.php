@@ -505,10 +505,10 @@ if (isset($_GET['file'])) {
                 . '<br><u>Editor:</u> ' . htmlspecialchars($editor_string)
                 . '<br><u>Publisher:</u> ' . htmlspecialchars($paper['publisher'])
                 . '<br><u>Place published:</u> ' . htmlspecialchars($paper['place_published'])
-                . '<br><u>Custom 1:</u> ' . htmlspecialchars($paper['custom1'])
-                . '<br><u>Custom 2:</u> ' . htmlspecialchars($paper['custom2'])
-                . '<br><u>Custom 3:</u> ' . htmlspecialchars($paper['custom3'])
-                . '<br><u>Custom 4:</u> ' . htmlspecialchars($paper['custom4'])
+                . '<br><u>' . (!empty($_SESSION['custom1']) ? $_SESSION['custom1'] : 'Custom 1') . ':</u> ' . htmlspecialchars($paper['custom1'])
+                . '<br><u>' . (!empty($_SESSION['custom2']) ? $_SESSION['custom2'] : 'Custom 2') . ':</u> ' . htmlspecialchars($paper['custom2'])
+                . '<br><u>' . (!empty($_SESSION['custom3']) ? $_SESSION['custom3'] : 'Custom 3') . ':</u> ' . htmlspecialchars($paper['custom3'])
+                . '<br><u>' . (!empty($_SESSION['custom4']) ? $_SESSION['custom4'] : 'Custom 4') . ':</u> ' . htmlspecialchars($paper['custom4'])
                 . '</div>
             </div>';
 

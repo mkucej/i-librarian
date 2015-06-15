@@ -78,6 +78,13 @@ if (isset($_SESSION['auth'])) {
                 $new_setting['global_proxy_username'] = $_GET['proxy_username'];
             if (isset($_GET['proxy_password']) && isset($new_setting['global_proxy_name']))
                 $new_setting['global_proxy_password'] = $_GET['proxy_password'];
+            
+            if ($_GET['connection'] == 'direct') {
+                $_SESSION['proxy_name'] = null;
+                $_SESSION['proxy_port'] = null;
+                $_SESSION['proxy_username'] = null;
+                $_SESSION['proxy_password'] = null;
+            }
 
             if (!isset($_GET['disallow_signup']))
                 $new_setting['global_disallow_signup'] = 1;
@@ -93,25 +100,18 @@ if (isset($_SESSION['auth'])) {
 
             if ($_GET['signin_mode'] == 'textinput')
                 $new_setting['global_signin_mode'] = $_GET['signin_mode'];
-        }
-
-        $_SESSION['limit'] = intval($_GET['limit']);
-        $_SESSION['display'] = $_GET['display'];
-        $_SESSION['orderby'] = $_GET['orderby'];
-        $_SESSION['pdfviewer'] = $_GET['pdfviewer'];
-
-        if (isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
-            if ($_GET['connection'] == 'direct') {
-                $_SESSION['proxy_name'] = null;
-                $_SESSION['proxy_port'] = null;
-                $_SESSION['proxy_username'] = null;
-                $_SESSION['proxy_password'] = null;
-            } else {
-                $_SESSION['proxy_name'] = $_GET['proxy_name'];
-                $_SESSION['proxy_port'] = $_GET['proxy_port'];
-                $_SESSION['proxy_username'] = $_GET['proxy_username'];
-                $_SESSION['proxy_password'] = $_GET['proxy_password'];
-            }
+            
+            if (!empty($_GET['custom1']))
+                $new_setting['global_custom1'] = filter_var($_GET['custom1'], FILTER_SANITIZE_STRING);
+            
+            if (!empty($_GET['custom2']))
+                $new_setting['global_custom2'] = filter_var($_GET['custom2'], FILTER_SANITIZE_STRING);
+            
+            if (!empty($_GET['custom3']))
+                $new_setting['global_custom3'] = filter_var($_GET['custom3'], FILTER_SANITIZE_STRING);
+            
+            if (!empty($_GET['custom4']))
+                $new_setting['global_custom4'] = filter_var($_GET['custom4'], FILTER_SANITIZE_STRING);
         }
 
         database_connect($usersdatabase_path, 'users');
@@ -154,6 +154,10 @@ if (isset($_SESSION['auth'])) {
     $default_permissions = 'U';
     $watermarks = '';
     $_SESSION['watermarks'] = '';
+    unset($_SESSION['custom1']);
+    unset($_SESSION['custom2']);
+    unset($_SESSION['custom3']);
+    unset($_SESSION['custom4']);
 
     database_connect($usersdatabase_path, 'users');
     $user_query = $dbHandle->quote($_SESSION['user_id']);
@@ -249,6 +253,26 @@ if (isset($_SESSION['auth'])) {
         $watermarks = $settings_global_watermarks;
         $_SESSION['watermarks'] = $settings_global_watermarks;
     }
+    
+    if (isset($settings_global_custom1)) {
+        $custom1 = $settings_global_custom1;
+        $_SESSION['custom1'] = $settings_global_custom1;
+    }
+    
+    if (isset($settings_global_custom2)) {
+        $custom2 = $settings_global_custom2;
+        $_SESSION['custom2'] = $settings_global_custom2;
+    }
+    
+    if (isset($settings_global_custom3)) {
+        $custom3 = $settings_global_custom3;
+        $_SESSION['custom3'] = $settings_global_custom3;
+    }
+    
+    if (isset($settings_global_custom4)) {
+        $custom4 = $settings_global_custom4;
+        $_SESSION['custom4'] = $settings_global_custom4;
+    }
     ?>
 
     <form enctype="multipart/form-data" action="settings.php" method="GET" id="form-settings">
@@ -331,7 +355,6 @@ if (isset($_SESSION['auth'])) {
                         <input type="radio" name="watermarks" value="" <?php print ($watermarks == '') ? 'checked' : ''  ?>>no watermark
                     </td>
                 </tr>
-
                 <tr>
                     <td class="details" STYLE="white-space: nowrap">Sign in mode:</td>
                     <td class="details">
@@ -339,7 +362,6 @@ if (isset($_SESSION['auth'])) {
                         <input type="radio" name="signin_mode" value="textinput" <?php print ($signin_mode == 'textinput') ? 'checked' : ''  ?>>text input (more secure)
                     </td>
                 </tr>
-
                 <tr>
                     <td class="details" STYLE="white-space: nowrap">User registration:</td>
                     <td class="details">
@@ -358,7 +380,15 @@ if (isset($_SESSION['auth'])) {
                         Guest - cannot add, delete, or edit records
                     </td>
                 </tr>
-
+                <tr>
+                    <td class="details" STYLE="white-space: nowrap">Rename custom fields:</td>
+                    <td class="details">
+                        Custom 1: <input type="text" name="custom1" value="<?php print (!empty($custom1)) ? $custom1 : ''  ?>"><br>
+                        Custom 2: <input type="text" name="custom2" value="<?php print (!empty($custom2)) ? $custom2 : ''  ?>"><br>
+                        Custom 3: <input type="text" name="custom3" value="<?php print (!empty($custom3)) ? $custom3 : ''  ?>"><br>
+                        Custom 4: <input type="text" name="custom4" value="<?php print (!empty($custom4)) ? $custom4 : ''  ?>">
+                    </td>
+                </tr>
                 <?php
             }
             if ($hosted == false) {
