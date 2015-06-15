@@ -4974,6 +4974,16 @@ var leftindex = {
                 ref = "display.php?browse[Others'+Items]=miscellaneous&select=" + sel;
                 $('.misc').removeClass('clicked');
                 $t.addClass('clicked');
+            } else
+            if ($t.attr('id') === 'withnotes') {
+                ref = "display.php?browse[Items+with+Notes]=miscellaneous&select=" + sel;
+                $('.misc').removeClass('clicked');
+                $t.addClass('clicked');
+            } else
+            if ($t.attr('id') === 'discussed') {
+                ref = "display.php?browse[Discussed+Items]=miscellaneous&select=" + sel;
+                $('.misc').removeClass('clicked');
+                $t.addClass('clicked');
             }
             $('#right-panel').load(ref, function () {
                 $("#right-panel").scrollTop(0);

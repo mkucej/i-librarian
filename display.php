@@ -292,6 +292,44 @@ if (isset($_GET['browse'])) {
             $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
 						FROM library WHERE $display_files");
         }
+        
+        if (array_key_exists('Items with Notes', $_GET['browse'])) {
+
+            $result = $dbHandle->query("SELECT id FROM library WHERE id IN "
+                    . "(SELECT fileID FROM notes WHERE userID=" . intval($_SESSION['user_id']) . ") ORDER BY $orderby COLLATE NOCASE $ordering");
+
+            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
+            $result = null;
+            save_export_files($total_files_array);
+
+            $display_files_array = array_slice($total_files_array, $from, $limit);
+            $display_files = join(",", $display_files_array);
+            $display_files = "id IN ($display_files)";
+
+            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
+						FROM library WHERE $display_files");
+        }
+        
+        if (array_key_exists('Discussed Items', $_GET['browse'])) {
+
+            $dbHandle->exec("ATTACH DATABASE '" . $database_path . "discussions.sq3' AS discussionsdatabase");
+
+            $result = $dbHandle->query("SELECT id FROM library WHERE id IN (SELECT fileID FROM discussionsdatabase.filediscussion)"
+                    . " ORDER BY $orderby COLLATE NOCASE $ordering");
+            
+            $dbHandle->exec("DETACH DATABASE discussionsdatabase");
+
+            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
+            $result = null;
+            save_export_files($total_files_array);
+
+            $display_files_array = array_slice($total_files_array, $from, $limit);
+            $display_files = join(",", $display_files_array);
+            $display_files = "id IN ($display_files)";
+
+            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
+						FROM library WHERE $display_files");
+        }
     } elseif ($column_string == 'history') {
 
         $quoted_history = $dbHandle->quote($database_path . 'history.sq3');

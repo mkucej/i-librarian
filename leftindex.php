@@ -223,6 +223,8 @@ if ($_GET['select'] == 'desk') {
             <span class="misc" id="noindex">Items with unindexed PDF</span><br>
             <span class="misc" id="myitems">Items added by me</span><br>
             <span class="misc" id="othersitems">Items added by others</span><br>
+            <span class="misc" id="withnotes">Items with Notes</span><br>
+            <span class="misc" id="discussed">Discussed Items</span><br>
         </div>
         <table border=0 cellspacing=0 cellpadding=0 width="95%" style="margin: 6px 0">
             <tr>
