@@ -166,6 +166,9 @@ a.topindex_clicked {
     background-color: rgba(0,0,0,0.15);
 }
 
+#search-menu > div:hover,
+#search-menu > div:focus,
+#search-menu > div.tabclicked,
 #items-menu > div:hover,
 #items-menu > div:focus,
 #items-menu > div.tabclicked,
@@ -511,6 +514,14 @@ padding: 8px 0
 
 #items-menu .fa {
 font-size: 16px
+}
+
+#search-menu > div {
+    width: 25%;
+    float:left;
+    text-align:center;
+    padding: 5px 0;
+    cursor: pointer;
 }
 
 div.file-title  {

@@ -2504,8 +2504,7 @@ var desktop = {
         });
         //////////////////////////////quick search///////////////////////////////////
         $("#quicksearch #search").button().click(function () {
-            var searchvalue = $("#quicksearch input[name='anywhere']").val();
-            if (searchvalue === '')
+            if ($("#quicksearch input:text:visible").val() === '')
                 return false;
             var q = $("#quicksearch").formSerialize();
             $('#right-panel').load('search.php?' + q, function () {
@@ -2515,7 +2514,7 @@ var desktop = {
             return false;
         }).tipsy();
         $("#quicksearch #clear").button().click(function () {
-            $("#quicksearch input[name='anywhere']").val('').focus();
+            $("#quicksearch input:text:visible").val('').focus();
             $("#quicksearch input[value='AND']").parent('td.select_span').click();
             $.get('search.php?newsearch=1');
         }).tipsy();
@@ -2523,6 +2522,73 @@ var desktop = {
             $("#quicksearch #search").click();
             return false;
         });
+        
+        $('#search-menu div:eq(0)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(0).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(0).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('metadata');
+            $('#quicksearch input[name="searchmode"]').val('quick');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 0);
+        });
+        $('#search-menu div:eq(1)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(1).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(1).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('pdf');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 1);
+        });
+        $('#search-menu div:eq(2)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(2).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(2).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('pdfnotes');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 2);
+        });
+        $('#search-menu div:eq(3)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(3).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(3).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('notes');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 3);
+        });
+        $('#search-menu div').tipsy({'gravity': 'nw'});
+        // clicked tab memory
+        var clickedTab = localStorage.getItem("search-menu-tab");
+        if (!clickedTab) clickedTab = 0;
+        $('#search-menu div:eq(' + clickedTab + ')').click();
+        
         $("#advancedsearchbutton").click(function () {
             var proj = $('body').data('proj');
             $("#advancedsearch").load('advancedsearch.php?select=desk&project=' + proj, function () {
@@ -4206,8 +4272,7 @@ var leftindex = {
 
         //////////////////////////////quick search///////////////////////////////////
         $("#quicksearch #search").button().click(function () {
-            var searchvalue = $("#quicksearch input[name='anywhere']").val();
-            if (searchvalue === '')
+            if ($("#quicksearch input:text:visible").val() === '')
                 return false;
             var q = $("#quicksearch").formSerialize();
             $('#right-panel').load('search.php?' + q, function () {
@@ -4217,7 +4282,7 @@ var leftindex = {
             return false;
         }).tipsy();
         $("#quicksearch #clear").button().click(function () {
-            $("#quicksearch input[name='anywhere']").val('').focus();
+            $("#quicksearch input:text:visible").val('').focus();
             $("#quicksearch input[value='AND']").parent('td.select_span').click();
             $.get('search.php?newsearch=1');
         }).tipsy();
@@ -4225,6 +4290,72 @@ var leftindex = {
             $("#quicksearch #search").click();
             return false;
         });
+        
+        $('#search-menu div:eq(0)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(0).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(0).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('metadata');
+            $('#quicksearch input[name="searchmode"]').val('quick');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 0);
+        });
+        $('#search-menu div:eq(1)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(1).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(1).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('pdf');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 1);
+        });
+        $('#search-menu div:eq(2)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(2).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(2).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('pdfnotes');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 2);
+        });
+        $('#search-menu div:eq(3)').click(function() {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide();
+            $(".quicksearch").find(':text').eq(3).show();
+            $(".quicksearch").find('table').hide();
+            $(".quicksearch").find('table').eq(3).show();
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('notes');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 3);
+        });
+        $('#search-menu div').tipsy({'gravity': 'nw'});
+        // clicked tab memory
+        var clickedTab = localStorage.getItem("search-menu-tab");
+        if (!clickedTab) clickedTab = 0;
+        $('#search-menu div:eq(' + clickedTab + ')').click();
 
         /////////////////////////////button effects///////////////////////////////////
 

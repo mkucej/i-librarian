@@ -26,7 +26,14 @@ $number_of_users = count($users);
         <table class="ui-state-highlight" style="width:100%;border-bottom:1px solid rgba(0,0,0,0.15)">
             <tr>
                 <td class="quicksearch">
-                    <input type="text" size="28" name="anywhere" placeholder="Quick Search" style="width:99%" value="<?php print isset($_SESSION['session_anywhere']) ? htmlspecialchars($_SESSION['session_anywhere']) : ''; ?>">
+                    <input type="text" name="anywhere" placeholder="Quick Search" style="width:99%"
+                           value="<?php print isset($_SESSION['session_anywhere']) ? htmlspecialchars($_SESSION['session_anywhere']) : ''; ?>">
+                    <input type="text" name="fulltext" placeholder="PDF Search" style="width:99%;display:none"
+                           value="<?php print isset($_SESSION['session_fulltext']) ? htmlspecialchars($_SESSION['session_fulltext']) : ''; ?>">
+                    <input type="text" name="pdfnotes" placeholder="PDF Notes Search" style="width:99%;display:none" 
+                           value="<?php print isset($_SESSION['session_pdfnotes']) ? htmlspecialchars($_SESSION['session_pdfnotes']) : ''; ?>">
+                    <input type="text" name="notes" placeholder="Rich-Text Notes Search" style="width:99%;display:none"
+                           value="<?php print isset($_SESSION['session_notes']) ? htmlspecialchars($_SESSION['session_notes']) : ''; ?>">
                 </td>
             </tr>
             <tr>
@@ -47,26 +54,79 @@ $number_of_users = count($users);
                             </td>
                         </tr>
                     </table>
+                    <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
+                        <tr>
+                            <td class="select_span">
+                                <input type="radio" name="fulltext_separator" value="AND" style="display:none" checked>
+                                <i class="fa fa-circle"></i> and&nbsp;&nbsp;
+                            </td>
+                            <td class="select_span">
+                                <input type="radio" name="fulltext_separator" value="OR" style="display:none">
+                                <i class="fa fa-circle-o"></i> or&nbsp;&nbsp;
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
+                        <tr>
+                            <td class="select_span">
+                                <input type="radio" name="pdfnotes_separator" value="AND" style="display:none" checked>
+                                <i class="fa fa-circle"></i> and&nbsp;&nbsp;
+                            </td>
+                            <td class="select_span">
+                                <input type="radio" name="pdfnotes_separator" value="OR" style="display:none">
+                                <i class="fa fa-circle-o"></i> or&nbsp;&nbsp;
+                            </td>
+                            <td class="select_span">
+                                <input type="radio" name="pdfnotes_separator" value="PHRASE" style="display:none">
+                                <i class="fa fa-circle-o"></i> phrase
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
+                        <tr>
+                            <td class="select_span">
+                                <input type="radio" name="notes_separator" value="AND" style="display:none" checked>
+                                <i class="fa fa-circle"></i> and&nbsp;&nbsp;
+                            </td>
+                            <td class="select_span">
+                                <input type="radio" name="notes_separator" value="OR" style="display:none">
+                                <i class="fa fa-circle-o"></i> or&nbsp;&nbsp;
+                            </td>
+                            <td class="select_span">
+                                <input type="radio" name="notes_separator" value="PHRASE" style="display:none">
+                                <i class="fa fa-circle-o"></i> phrase
+                            </td>
+                        </tr>
+                    </table>
                     <button id="search" style="width:34px;height:24px" title="Search"><i class="fa fa-search"></i></button><button
                         id="clear" style="width:24px;height:24px" title="Clear"><i class="fa fa-trash-o"></i></button>
-                    <input type="hidden" name="select" value="desk">
-                    <input type="hidden" name="project" value="<?php print htmlspecialchars($firstproject); ?>">
-                    <input type="hidden" name="searchtype" value="metadata">
-                    <input type="hidden" name="searchmode" value="quick">
-                    <input type="hidden" name="rating[]" value="1">
-                    <input type="hidden" name="rating[]" value="2">
-                    <input type="hidden" name="rating[]" value="3">
                 </td>
             </tr>
         </table>
+        <input type="hidden" name="select" value="desk">
+        <input type="hidden" name="project" value="<?php print htmlspecialchars($firstproject); ?>">
+        <input type="hidden" name="searchtype" value="metadata">
+        <input type="hidden" name="searchmode" value="quick">
+        <input type="hidden" name="rating[]" value="1">
+        <input type="hidden" name="rating[]" value="2">
+        <input type="hidden" name="rating[]" value="3">
     </form>
-    <div id="advancedsearchbutton" class="ui-corner-bl leftleftbutton" style="width:6.2em;float:left;margin-left:8px;text-align:center;height:auto;cursor:pointer">
-        Advanced
-    </div>
-    <div id="expertsearchbutton" class="ui-corner-br leftleftbutton" style="width:5.2em;float:left;margin-left:1px;text-align:center;height:auto;cursor:pointer">
-        Expert
+    <div id="search-menu" style="width:100%">
+        <div class="tabclicked" title="Search metadata"><i class="fa fa-list"></i></div>
+        <div class="" title="Search PDFs"><i class="fa fa-file-pdf-o"></i></div>
+        <div class="" title="Search PDF notes"><i class="fa fa-comment"></i></div>
+        <div class="" title="Search rich-text notes"><i class="fa fa-pencil"></i></div>
     </div>
     <div style="clear:both"></div>
+    <div class="ui-state-highlight">
+        <div id="advancedsearchbutton" style="width:50%;float:left;padding:4px 0">
+            Advanced <i class="fa fa-search"></i>
+        </div>
+        <div id="expertsearchbutton" style="width:50%;float:left;padding:4px 0">
+            Expert <i class="fa fa-search"></i>
+        </div>
+        <div style="clear:both"></div>
+    </div>
     <br>
     <form action="ajaxdesk.php" method="GET">
         <input type="hidden" name="create" value="create">
@@ -89,8 +149,8 @@ $number_of_users = count($users);
             <table style="width:98%">
                 <tr>
                     <td class="select_span desk-active" style="width:50%">
-                        <input type="checkbox" style="display:none" <?php echo (isset($project['active']) && $project['active'] == '1') ? 'checked' : ''  ?>>
-                        <i class="fa fa-<?php echo (isset($project['active']) && $project['active'] == '1') ? 'check-square' : 'square-o'  ?>"></i>
+                        <input type="checkbox" style="display:none" <?php echo (isset($project['active']) && $project['active'] == '1') ? 'checked' : '' ?>>
+                        <i class="fa fa-<?php echo (isset($project['active']) && $project['active'] == '1') ? 'check-square' : 'square-o' ?>"></i>
                         active
                     </td>
                     <td style="text-align:right">
