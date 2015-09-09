@@ -12,8 +12,8 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
 
 ### Windows manual installation
 **Before you start, un-install Microsoft IIS, close Skype or any other software using port 80.**
-  1. Install *Apache 2.4+* and *PHP 5.5+* using a Windows installer like WAMPServer or ZendServer.
-  2. Edit Apache configuration file (httpd.conf). Append this at the end using Notepad:
+  * Install *Apache 2.4+* and *PHP 5.5+* using a Windows installer like WAMPServer or ZendServer.
+  * Edit Apache configuration file (httpd.conf). Append this at the end using Notepad:
 
 ```apache_conf
       Alias /librarian "C:\I, Librarian"
@@ -31,12 +31,12 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
           Order allow,deny
       </Directory>
 ```
-  3. You may change `C:\I, Librarian` to any directory where you want to have *I, Librarian*, including an external drive. For a groupware use, you need to allow access to more IP numbers or domain names. Just add more `Allow` from directives (`Allow from mydomain.net`).
-  4. Restart either Apache server.
-  5. Unzip I, Librarian files into the directory defined by `Alias` in `httpd.conf`.
+  * You may change `C:\I, Librarian` to any directory where you want to have *I, Librarian*, including an external drive. For a groupware use, you need to allow access to more IP numbers or domain names. Just add more `Allow` from directives (`Allow from mydomain.net`).
+  * Restart either Apache server.
+  * Unzip I, Librarian files into the directory defined by `Alias` in `httpd.conf`.
 
 ### Linux manual installation
-1. Linux users, if you did not use the DEB package, make sure you have installed these packages from repositories:
+* Linux users, if you did not use the DEB package, make sure you have installed these packages from repositories:
   - **apache2 (may also be named httpd)**: a web server (you may run *I, Librarian* with a different web server).
   - **php5 (may also be called php)**: *I, Librarian* is written in PHP5.
   - **php5-sqlite (may also be named php-pdo)**: SQLite database for PHP5.
@@ -45,18 +45,18 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
   - **tesseract-ocr**: required for OCR.
   - **ghostscript**: required for the built-in PDF viewer.
   - **pdftk**: required for PDF bookmarks, attachments and watermarking.
-2. If you are installing from the tar.gz, login as `root` or use `sudo`, and extract files into 'librarian' directory in your web sever's root directory. Example:
+* If you are installing from the tar.gz, login as `root` or use `sudo`, and extract files into 'librarian' directory in your web sever's root directory. Example:
 
 ```bash
   tar zxf I,-Librarian-*.tar.gz -C /var/www/html/librarian
 ```
-3. Change the owner of the library sub-folder to Apache. Example:
+* Change the owner of the library sub-folder to Apache. Example:
 
 ```bash
   chown -R apache:apache /var/www/html/librarian/library
   chown root:root /var/www/html/librarian/library/.htaccess
 ```
-4. Insert a safe setting like this example into your Apache configuration file:
+* Insert a safe setting like this example into your Apache configuration file:
 
 ```apache_conf
   <Directory "/var/www/html/librarian">
@@ -73,12 +73,12 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
     Order allow,deny
   </Directory>
 ```
-5. To enable access from the Network, you need to allow access to more IP numbers or domain names. Just add more Allow from directives (`Allow from mydomain.net`).
-6. Restart Apache server.
+* To enable access from the Network, you need to allow access to more IP numbers or domain names. Just add more Allow from directives (`Allow from mydomain.net`).
+* Restart Apache server.
 
 ### Mac OS X manual installation
-1. Download and install an Apache + PHP stack. These instructions are generic. Details may very depending on which PHP stack are you using.
-2. Edit httpd.conf using TextEdit:
+* Download and install an Apache + PHP stack. These instructions are generic. Details may very depending on which PHP stack are you using.
+* Edit httpd.conf using TextEdit:
 
 ```apache_conf
   Alias /librarian /Users/yourusername/Sites/librarian
@@ -97,13 +97,14 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
   </Directory>
 ```
 *Don't forget to change "yourusername" to your actual user name. You can find out your user name by typing `whoami` in Terminal.*
-3. Restart Apache.
-4. Download and install Pdftk and Tesseract OCR.
-5. Download *I, Librarian* for Mac OSX and double-click the file to extract its contents.
-6. Rename the extracted directory to 'librarian' and move it to your *Sites* folder.
-7. Make sure that your *Sites* directory is accessible to *Others*. Use the `Get Info` dialog of the *Sites* directory to change permissions for *Everyone* to access and read. You also need to make sure *Everyone* has **Execute** permissions for your home directory.
-8. Change the owner of the 'library' sub-folder to Apache.
-9. Open your web browser and go to [http://127.0.0.1/librarian](http://127.0.0.1/librarian).
+
+* Restart Apache.
+* Download and install Pdftk and Tesseract OCR.
+* Download *I, Librarian* for Mac OSX and double-click the file to extract its contents.
+* Rename the extracted directory to 'librarian' and move it to your *Sites* folder.
+* Make sure that your *Sites* directory is accessible to *Others*. Use the `Get Info` dialog of the *Sites* directory to change permissions for *Everyone* to access and read. You also need to make sure *Everyone* has **Execute** permissions for your home directory.
+* Change the owner of the 'library' sub-folder to Apache.
+* Open your web browser and go to [http://127.0.0.1/librarian](http://127.0.0.1/librarian).
 
 ### First use
 * In order to start *I, Librarian*, open your web browser, and visit: [http://127.0.0.1/librarian](http://127.0.0.1/librarian)
