@@ -14,7 +14,8 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
 **Before you start, un-install Microsoft IIS, close Skype or any other software using port 80.**
   1. Install *Apache 2.4+* and *PHP 5.5+* using a Windows installer like WAMPServer or ZendServer.
   2. Edit Apache configuration file (httpd.conf). Append this at the end using Notepad:
-  ```
+
+```apache_conf
       Alias /librarian "C:\I, Librarian"
       <Directory "C:\I, Librarian">
           AllowOverride None
@@ -29,7 +30,7 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
       <Directory "C:\I, Librarian\library">
           Order allow,deny
       </Directory>
-  ```
+```
   3. You may change `C:\I, Librarian` to any directory where you want to have *I, Librarian*, including an external drive. For a groupware use, you need to allow access to more IP numbers or domain names. Just add more `Allow` from directives (`Allow from mydomain.net`).
   4. Restart either Apache server.
   5. Unzip I, Librarian files into the directory defined by `Alias` in `httpd.conf`.
@@ -45,16 +46,19 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
   - **ghostscript**: required for the built-in PDF viewer.
   - **pdftk**: required for PDF bookmarks, attachments and watermarking.
 2. If you are installing from the tar.gz, login as `root` or use `sudo`, and extract files into 'librarian' directory in your web sever's root directory. Example:
-  ```bash
+
+```bash
   tar zxf I,-Librarian-*.tar.gz -C /var/www/html/librarian
-  ```
+```
 3. Change the owner of the library sub-folder to Apache. Example:
-  ```bash
+
+```bash
   chown -R apache:apache /var/www/html/librarian/library
   chown root:root /var/www/html/librarian/library/.htaccess
-  ```
+```
 4. Insert a safe setting like this example into your Apache configuration file:
-  ```
+
+```apache_conf
   <Directory "/var/www/html/librarian">
     AllowOverride None
     Order deny,allow
@@ -68,14 +72,15 @@ You can download and execute installers for Windows Vista, 7, and 8 plus a DEB p
   <Directory "/var/www/html/librarian/library">
     Order allow,deny
   </Directory>
-  ```
+```
 5. To enable access from the Network, you need to allow access to more IP numbers or domain names. Just add more Allow from directives (`Allow from mydomain.net`).
 6. Restart Apache server.
 
 ### Mac OS X manual installation
 1. Download and install an Apache + PHP stack. These instructions are generic. Details may very depending on which PHP stack are you using.
 2. Edit httpd.conf using TextEdit:
-  ```
+
+```apache_conf
   Alias /librarian /Users/yourusername/Sites/librarian
   <Directory /Users/Yourusername/Sites/librarian>
     AllowOverride None
