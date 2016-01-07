@@ -40,9 +40,13 @@ $ldap_version = $ini_array['ldap_version'];
 $ldap_server = $ini_array['ldap_server'];
 $ldap_port = $ini_array['ldap_port'];
 $ldap_basedn = $ini_array['ldap_basedn'];
-$ldap_rdn = $ini_array['ldap_rdn'];
-$ldap_cn = $ini_array['ldap_cn'];
-$ldap_admin_cn = $ini_array['ldap_admin_cn'];
+$ldap_binduser_rdn = $ini_array['ldap_binduser_rdn'];
+$ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
+$ldap_user_rdn = $ini_array['ldap_user_rdn'];
+$ldap_group_rdn = $ini_array['ldap_group_rdn'];
+$ldap_username_attr = $ini_array['ldap_username_attr'];
+$ldap_usergroup_cn = $ini_array['ldap_usergroup_cn'];
+$ldap_admingroup_cn = $ini_array['ldap_admingroup_cn'];
 $ldap_filter = $ini_array['ldap_filter'];
 if (!extension_loaded('ldap'))
     $ldap_active = false;
@@ -127,25 +131,63 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
     /* IS THE USER AN LDAP USER? */
     if ($ldap_active) {
 
+        /* CONNECT */
         if (!$ldap_connect = ldap_connect($ldap_server, $ldap_port))
             die("Could not connect to LDAP server");
 
         if (!ldap_set_option($ldap_connect, LDAP_OPT_PROTOCOL_VERSION, $ldap_version))
             die("Failed to set version to protocol $ldap_version");
 
-        $ldap_dn = $ldap_cn . $username . ',' . $ldap_rdn['users'] . ',' . $ldap_basedn;
+        /* BIND */
+        $ldap_binduser_dn = $ldap_binduser_rdn . ',' . $ldap_basedn;
+        if (!$ldap_bind = @ldap_bind($ldap_connect, $ldap_binduser_dn, $ldap_binduser_pw))
+            die("Failed to bind as proxy user.");
+
+        /* LOOKUP */
+        /* Users matching the following criteria are eligible:
+         * - must be a person object of class user or iNetOrgPerson
+         * - username must match the CN attribute specified in INI file
+         * - must be situated below the base search DN
+         */
+
+        $ldap_filter_string = '(&(|(objectClass=user)(objectClass=iNetOrgPerson))' .
+            '(' . $ldap_username_attr . '=' . $username . '))';
+
+        if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_user_rdn . ',' . $ldap_basedn, $ldap_filter_string, array($ldap_username_attr)))
+            die("Bad username or password.");
+        $ldap_num_entries = ldap_count_entries($ldap_connect, $ldap_sr);
+        if ($ldap_num_entries != 1)
+            die("Bad username or password.");
+        $ldap_user_sr = ldap_first_entry($ldap_connect, $ldap_sr);
+        $ldap_user_dn = ldap_get_dn($ldap_connect, $ldap_user_sr);
 
         /* AUTHENTICATE */
-        if ($ldap_bind = @ldap_bind($ldap_connect, $ldap_dn, $password)) {
+        if ($ldap_bind = @ldap_bind($ldap_connect, $ldap_user_dn, $password)) {
 
-            /* AUTHORIZE ADMIN */
-            $ldap_dn = $ldap_admin_cn . ',' . $ldap_rdn['groups'] . ',' . $ldap_basedn;
-            $ldap_sr = @ldap_read($ldap_connect, $ldap_dn, '(' . $ldap_filter . $username . ')', array('memberUid'));
+            /* AUTHORIZE */
+            /* Check if user is in admin group */
+            $ldap_admin_group_dn = $ldap_admingroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
+            $ldap_sr = @ldap_read($ldap_connect, $ldap_admin_group_dn, '(' . $ldap_filter . '=' . $ldap_user_dn . ')', array('member'));
             $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
 
-            $permissions = 'U';
-            if ($ldap_info_group['count'] > 0)
+            if ($ldap_info_group['count'] > 0) {
                 $permissions = 'A';
+            } else {
+                /* If we don't have a ldap_usergroup_cn setting, assume all
+                 * users under the search base are eligible */
+                if (is_null($ldap_usergroup_cn)) {
+                    $permissions = 'U';
+                } else {
+                    $ldap_user_group_dn = $ldap_usergroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
+                    $ldap_sr = @ldap_read($ldap_connect, $ldap_user_group_dn, '(' . $ldap_filter . '=' . $user_dn . ')', array('member'));
+                    $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
+                    if ($ldap_info_group['count'] > 0) {
+                        $permissions = 'U';
+                    } else {
+                        die("Bad username or password.");
+                    }
+                }
+            }
 
             $dbHandle->beginTransaction();
 
