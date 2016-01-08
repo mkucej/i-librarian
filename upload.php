@@ -106,7 +106,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	remove line breaks from certain POST values	##########
 
         $order = array("\r\n", "\n", "\r");
-        $keys = array('authors', 'affiliation', 'title', 'abstract', 'keywords');
+        $keys = array('affiliation', 'title', 'abstract', 'keywords');
 
         while (list($key, $field) = each($keys)) {
             if (!empty($_POST[$field])) {
@@ -158,13 +158,27 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
         $stmt->bindParam(':bibtex_type', $bibtex_type, PDO::PARAM_STR);
 
-        if (empty($_POST['authors'])) {
+        if (empty($_POST['authors']) && empty($_POST['last_name'])) {
 
             $authors = '';
             $authors_ascii = '';
-        } else {
+        } elseif(!empty($_POST['authors'])) {
 
-            $authors = $_POST['authors'];
+            $authors = htmlspecialchars_decode($_POST['authors']);
+            $authors_ascii = utf8_deaccent($authors);
+        } elseif(!empty($_POST['last_name'])) {
+
+            if (is_string($_POST['last_name'])) {
+                $_POST['last_name'] = json_decode($_POST['last_name'], true);
+            }
+            if (is_string($_POST['first_name'])) {
+                $_POST['first_name'] = json_decode($_POST['first_name'], true);
+            }
+            for ($i = 0; $i < count($_POST['last_name']); $i++) {
+                // Get last and first name, deaccent.
+                $names[] = 'L:"' . $_POST['last_name'][$i] . '",F:"' . $_POST['first_name'][$i] . '"';
+            }
+            $authors = join(';', $names);
             $authors_ascii = utf8_deaccent($authors);
         }
 
@@ -203,7 +217,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         empty($_POST['pages']) ? $pages = '' : $pages = $_POST['pages'];
 
-        empty($_POST['editor']) ? $editor = '' : $editor = $_POST['editor'];
+        empty($_POST['editor']) ? $editor = '' : $editor = htmlspecialchars_decode($_POST['editor']);
 
         empty($_POST['url'][0]) ? $url = '' : $url = join('|', array_filter($_POST['url']));
 
@@ -257,9 +271,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         // Save default citation key.
         if (empty($_POST['bibtex'])) {
-            
+
             $stmt = $dbHandle->prepare("UPDATE library SET bibtex=:bibtex WHERE id=:id");
-            
+
             $stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
@@ -268,7 +282,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             empty($_POST['year']) ? $bibtex_year = '0000' : $bibtex_year = substr($_POST['year'], 0, 4);
 
             $bibtex = $bibtex_author . '-' . $bibtex_year . '-ID' . $id;
-            
+
             $stmt->execute();
         }
 
@@ -704,7 +718,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         //FETCH FROM ARXIV
-        if (isset($_POST['fetch-arxiv']) && !empty($arxiv_id) && empty($doi)) {
+        if (!empty($arxiv_id)) {
             $response = array();
             fetch_from_arxiv($arxiv_id);
             $_POST = array_replace_recursive($_POST, $response);
@@ -712,21 +726,28 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         //FETCH FROM PUBMED
-        if (isset($_POST['fetch-pubmed']) && (!empty($pmid) || !empty($doi))) {
+        if (!empty($pmid) || (isset($_POST['fetch-pubmed']) && !empty($doi))) {
             $response = array();
             fetch_from_pubmed($doi, $pmid);
             $_POST = array_replace_recursive($_POST, $response);
         }
 
         // FETCH FROM NASA ADS
-        if (isset($_POST['fetch-nasaads']) && (!empty($doi) || !empty($nasa_id)) && empty($pmid)) {
+        if (!empty($nasa_id) || (isset($_POST['fetch-nasaads']) && !empty($doi) && empty($pmid))) {
             $response = array();
             fetch_from_nasaads($doi, $nasa_id);
             $_POST = array_replace_recursive($_POST, $response);
         }
+        
+        // FETCH FROM IEEE
+        if (!empty($ieee_id) || (isset($_POST['fetch-ieee']) && !empty($doi) && empty($pmid) && empty($nasa_id))) {
+            $response = array();
+            fetch_from_ieee($doi, $ieee_id);
+            $_POST = array_replace_recursive($_POST, $response);
+        }
 
         // FETCH FROM CROSSREF
-        if (isset($_POST['fetch-crossref']) && !empty($doi) && empty($pmid)) {
+        if (isset($_POST['fetch-crossref']) && !empty($doi) && empty($pmid) && empty($nasa_id) && empty($ieee_id)) {
             $response = array();
             fetch_from_crossref($doi);
             $_POST = array_replace_recursive($_POST, $response);
@@ -739,13 +760,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $_POST = array_replace_recursive($_POST, $response);
             $_POST['reference_type'] = 'patent';
             $_POST['url'] = 'https://www.google.com/patents/' . $patent_id;
-        }
-
-        // FETCH FROM IEEE XPLORE
-        if (!empty($ieee_id)) {
-            $response = array();
-            fetch_from_ieee($ieee_id);
-            $_POST = array_replace_recursive($_POST, $response);
         }
 
         // FETCH FROM OPEN LIBRARY
@@ -766,12 +780,13 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         if (!empty($_POST['doi'])) {
             $doi_query = $dbHandle->quote($_POST['doi']);
             $result = $dbHandle->query("SELECT id,title FROM library WHERE doi=$doi_query LIMIT 1");
+            $result = $result->fetchAll(PDO::FETCH_ASSOC);
         } elseif (!empty($_POST['title'])) {
             $title_query = $dbHandle->quote($_POST['title']);
             $result = $dbHandle->query("SELECT id,title FROM library WHERE title=$title_query LIMIT 1");
+            $result = $result->fetchAll(PDO::FETCH_ASSOC);
         }
-
-        $result = $result->fetchAll(PDO::FETCH_ASSOC);
+        
         $dbHandle = null;
 
         if (count($result) > 0) {
@@ -909,7 +924,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                         <td class="select_span" style="line-height:22px;padding-right:1em">
                                             <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-pubmed" value="1" checked>
                                             <i class="fa fa-check-square"></i>
-                                            Pubmed
+                                            PubMed
                                         </td>
                                         <?php
                                     }
@@ -919,19 +934,19 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                         <td class="select_span" style="line-height:22px;padding-right:1em">
                                             <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-nasaads" value="1" checked>
                                             <i class="fa fa-check-square"></i>
-                                            NASA ADS
+                                            NASA
                                         </td>
                                         <?php
                                     }
-                                    if (!isset($_SESSION['remove_arxiv'])) {
-
+                                    if (!isset($_SESSION['remove_ieee'])) {
                                         ?>
                                         <td class="select_span" style="line-height:22px;padding-right:1em">
-                                            <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-arxiv" value="1" checked>
+                                            <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-ieee" value="1" checked>
                                             <i class="fa fa-check-square"></i>
-                                            Arxiv
+                                            IEEE
                                         </td>
-                                    <?php } ?>
+                                        <?php
+                                    }?>
                                     <td class="select_span" style="line-height:22px;padding-right:1em">
                                         <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-crossref" value="1" checked>
                                         <i class="fa fa-check-square"></i>
@@ -1233,7 +1248,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 for ($i = 0; $i < count($_POST['last_name']); $i++) {
                                     $last = htmlspecialchars($_POST['last_name'][$i]);
                                     $first = htmlspecialchars($_POST['first_name'][$i]);
-                                        if (!empty($last))
+                                    if (!empty($last))
                                         print '<div>Last name: <input class="author-last" type="text" name="last_name[]" value="' . $last . '">'
                                                 . ' First name: <input class="author-first" name="first_name[]" type="text" value="' . $first . '"></div>';
                                 }
@@ -1399,8 +1414,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                         $array2 = explode(',', $author);
                                         $last = trim($array2[0]);
                                         $last = substr($array2[0], 3, -1);
-                                        $first = trim($array2[1]);
-                                        $first = substr($array2[1], 3, -1);
+                                        $first = '';
+                                        if (isset($array2[1])) {
+                                            $first = trim($array2[1]);
+                                            $first = substr($array2[1], 3, -1);
+                                        }
                                         if (!empty($last))
                                             print '<div>Last name: <input class="author-last" type="text" value="' . $last . '"> First name: <input class="author-first" type="text" value="' . $first . '"></div>';
                                     }

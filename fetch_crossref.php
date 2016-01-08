@@ -52,8 +52,11 @@ if (isset($_GET['doi'])) {
                 $array2 = explode(',', $name);
                 $last = trim($array2[0]);
                 $last = substr($array2[0], 3, -1);
-                $first = trim($array2[1]);
-                $first = substr($array2[1], 3, -1);
+                $first = '';
+                if (isset($array2[1])) {
+                    $first = trim($array2[1]);
+                    $first = substr($array2[1], 3, -1);
+                }
                 if (!empty($last))
                     $new_names[] = $last . ', ' . $first;
             }

@@ -68,13 +68,13 @@ function perform_search($sql) {
     if (isset($_GET['select']) && $_GET['select'] == 'clipboard') {
         attach_clipboard($dbHandle);
     }
-    
+
     $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'fulltext.sq3');
 
     if ((isset($_GET['browse']) && array_key_exists('Not Indexed', $_GET['browse'])) || (isset($_GET['searchtype']) && $_GET['searchtype'] == 'pdf') || (isset($_GET['searchtype']) && $_GET['searchtype'] == 'global')) {
         $dbHandle->exec("ATTACH DATABASE $quoted_path AS fulltextdatabase");
     }
-    
+
     $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'discussions.sq3');
 
     if (isset($_GET['browse']) && array_key_exists('Discussed Items', $_GET['browse'])) {
@@ -750,9 +750,9 @@ function database_connect($database_path, $database_name) {
 function sqlite_regexp($string1, $string2, $case) {
 
     if ($case == 1) {
-        $pattern = '/([^a-zA-Z0-9]|^)' . $string2 . '([^a-zA-Z0-9]|$)/u';
+        $pattern = '/([^a-zA-Z0-9]|^)' . preg_quote($string2) . '([^a-zA-Z0-9]|$)/u';
     } else {
-        $pattern = '/([^a-zA-Z0-9]|^)' . $string2 . '([^a-zA-Z0-9]|$)/ui';
+        $pattern = '/([^a-zA-Z0-9]|^)' . preg_quote($string2) . '([^a-zA-Z0-9]|$)/ui';
     }
 
     if (preg_match($pattern, $string1) > 0) {
@@ -1523,9 +1523,9 @@ function fetch_from_crossref($doi) {
                 foreach ($contributor->attributes() as $a => $b) {
 
                     if ($a == 'contributor_role' && $b == 'author') {
-                $authors1 = html_entity_decode($contributor->surname);
-                $authors2 = html_entity_decode($contributor->given_name);
-                $authors[] = 'L:"' . $authors1 . '",F:"' . $authors2 . '"';
+                        $authors1 = html_entity_decode($contributor->surname);
+                        $authors2 = html_entity_decode($contributor->given_name);
+                        $authors[] = 'L:"' . $authors1 . '",F:"' . $authors2 . '"';
                         $response['last_name'][] = $authors1;
                         $response['first_name'][] = $authors2;
                     } elseif ($a == 'contributor_role' && $b == 'editor') {
@@ -1663,11 +1663,17 @@ function fetch_from_ol($ol_id, $isbn) {
 }
 
 //FETCH METADATA FROM IEEE XPLORE
-function fetch_from_ieee($ieee_id) {
+function fetch_from_ieee($doi, $ieee_id) {
+
+    if (!empty($doi)) {
+        $query = "doi=" . urlencode($doi);
+    } elseif (!empty($ieee_id)) {
+        $query = "an=" . urlencode($ieee_id);
+    }
 
     global $proxy_name, $proxy_port, $proxy_username, $proxy_password, $response;
 
-    $request_url = "http://ieeexplore.ieee.org/gateway/ipsSearch.jsp?an=" . $ieee_id;
+    $request_url = "http://ieeexplore.ieee.org/gateway/ipsSearch.jsp?" . $query;
 
     $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -1678,7 +1684,7 @@ function fetch_from_ieee($ieee_id) {
 
     $count = 0;
     $count = (string) $xml->totalfound;
-    
+
     if ($count == 0) {
         die("Error! No record found.");
     }
@@ -1705,11 +1711,17 @@ function fetch_from_ieee($ieee_id) {
 
             $response['first_name'][] = trim(substr($author, 0, $space));
             $response['last_name'][] = trim(substr($author, $space + 1));
+            $name_array[] = 'L:"' . trim(substr($author, $space + 1)) . '",F:"' . trim(substr($author, 0, $space)) . '"';
         } else {
 
             $response['last_name'][] = trim(substr($author, 0, $comma));
             $response['first_name'][] = trim(substr($author, $comma + 1));
+            $name_array[] = 'L:"' . trim(substr($author, 0, $comma)) . '",F:"' . trim(substr($author, $comma + 1)) . '"';
         }
+    }
+
+    if (isset($name_array)) {
+        $response['authors'] = join(";", $name_array);
     }
 
     // Affiliation.
@@ -2291,8 +2303,11 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                     $array2 = explode(',', $author);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_authors[] = '<a href="display.php?select=' . $select . '&browse[' . urlencode($last . ', ' . $first) . ']=authors" class="navigation">'
                             . htmlspecialchars($last . ', ' . $first, ENT_NOQUOTES) . '</a>';
                 }
@@ -2528,7 +2543,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                 print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;';
 
                 print '<b style="margin:0 0.5em">&middot;</b>';
-                
+
                 if (empty($paper['bibtex'])) {
                     $bibtex_author = strip_tags($paper['authors']);
                     $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
@@ -2644,7 +2659,7 @@ function read_shelf($dbHandle, $id_array) {
             $id_array2[] = $dbHandle->quote($id);
         }
         $id_string = join(",", $id_array2);
-            $user_query = $dbHandle->quote($_SESSION['user_id']);
+        $user_query = $dbHandle->quote($_SESSION['user_id']);
 
         // Query database.
         $shelf_result = $dbHandle->query("SELECT fileID FROM shelves WHERE fileID IN ($id_string) AND userID=$user_query LIMIT 1000");
@@ -2662,12 +2677,12 @@ function read_desktop($dbHandle) {
 
     if (isset($_SESSION['auth'])) {
         $files_array = array();
-            $id_query = $dbHandle->quote($_SESSION['user_id']);
-            $query = $dbHandle->query("SELECT DISTINCT projects.projectID AS projectID,project FROM projects
+        $id_query = $dbHandle->quote($_SESSION['user_id']);
+        $query = $dbHandle->query("SELECT DISTINCT projects.projectID AS projectID,project FROM projects
                         LEFT OUTER JOIN projectsusers ON projects.projectID=projectsusers.projectID
                         WHERE (projects.userID=$id_query OR projectsusers.userID=$id_query) AND projects.active='1' ORDER BY project COLLATE NOCASE ASC");
-            $files_array = $query->fetchAll(PDO::FETCH_ASSOC);
-            $query = null;
+        $files_array = $query->fetchAll(PDO::FETCH_ASSOC);
+        $query = null;
         return $files_array;
     }
 
@@ -2763,7 +2778,7 @@ function delete_record($dbHandle, $files) {
     // delete discussions
     if (file_exists(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'discussions.sq3')) {
 
-        $fdbHandle = database_connect($database_path, 'discussions');
+        $fdbHandle = database_connect(IL_DATABASE_PATH, 'discussions');
         $fdbHandle->exec("DELETE FROM filediscussion WHERE fileID IN (" . join(',', $files) . ")");
         $fdbHandle = null;
     }
@@ -3178,8 +3193,11 @@ function mobile_show_search_results($result, $clip_files) {
                     $array2 = explode(',', $author);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_authors[] = $last . ', ' . $first;
                 }
                 $paper['authors'] = join('; ', $new_authors);

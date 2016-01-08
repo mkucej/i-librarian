@@ -153,9 +153,9 @@ if (isset($_GET['browse'])) {
         } elseif ($column == 'authors') {
             $query2_array = explode(',', $query2);
             $query2 = 'L:"' . trim($query2_array[0]) . '",F:"' . trim($query2_array[1]) . '"';
-            $browse_string_array[] = "(authors LIKE '%$query2%' ESCAPE '\' OR authors_ascii LIKE '%$query2%' ESCAPE '\') AND (regexp_match(authors, '$query2', 0) OR regexp_match(authors_ascii, '$query2', 0))";
+            $browse_string_array[] = "authors LIKE '%$query2%' ESCAPE '\' OR authors_ascii LIKE '%$query2%' ESCAPE '\'";
         } elseif ($column == 'year') {
-            $browse_string_array[] = "(year LIKE '$query2%' ESCAPE '\')";
+            $browse_string_array[] = "year LIKE '$query2%' ESCAPE '\'";
         } else {
             $browse_string_array[] = "$column='$query2'";
         }
@@ -264,7 +264,7 @@ if (isset($_GET['browse'])) {
                     perform_search("SELECT id FROM library $all_in $where id IN (" . $category_sql . ") $ordering");
             }
         } else {
-
+            
             perform_search("SELECT id FROM library $all_in $where $browse_string $ordering");
         }
     }

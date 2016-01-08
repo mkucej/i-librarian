@@ -396,8 +396,6 @@ if (!empty($_GET['searchmode'])) {
     if ($orderby == 'id')
         $ordering = '';
 
-    empty($in) ? $where = 'WHERE' : $where = '';
-
     $anywhere_array = array();
     $authors_array = array();
     $title_array = array();
@@ -425,18 +423,13 @@ if (!empty($_GET['searchmode'])) {
     $search_query_array = array_merge((array) $anywhere_array, (array) $authors_array, (array) $journal_array, (array) $secondary_title_array, (array) $affiliation_array, (array) $keywords_array, (array) $title_array, (array) $abstract_array, (array) $year_array, (array) $search_id_array, (array) $fulltext_array, (array) $notes_array);
 
     $search_query = join(' ', $search_query_array);
-    $_GET['search_query'] = $search_query;
 
 //SEARCH
 
     $result_array = array();
     $rows = 0;
 
-    if (isset($searches[$md5_query])) {
-
-        $result_array = $searches[$md5_query]['result'];
-        $rows = count($result_array);
-    } elseif (!empty($search_string) && $_GET['searchtype'] == 'metadata') {
+    if (!empty($search_string) && $_GET['searchtype'] == 'metadata') {
 
         $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
         if ($case == 1)
@@ -445,15 +438,11 @@ if (!empty($_GET['searchmode'])) {
         $dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
 
         if ($_GET['select'] == 'shelf') {
-            $result = $dbHandle->query("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search $search_string ORDER BY $orderby COLLATE NOCASE $ordering");
+            perform_search("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search $search_string $ordering");
         } else {
-            $result = $dbHandle->query("SELECT id FROM library WHERE $in $rating_search $type_search $category_search $search_string ORDER BY $orderby COLLATE NOCASE $ordering");
+            perform_search("SELECT id FROM library WHERE $in $rating_search $type_search $category_search $search_string $ordering");
         }
-        if ($result) {
-            $result_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $rows = count($result_array);
-        }
-        $result = null;
+
     } elseif (!empty($search_string) && $_GET['searchtype'] == 'notes') {
 
         $notes_in = str_replace("id IN", "fileID IN", $in);
@@ -470,12 +459,8 @@ if (!empty($_GET['searchmode'])) {
             $notes_query = "SELECT fileID FROM notes WHERE $notes_in userID=" . intval($_SESSION['user_id']) . " AND $notes_category_search $search_string";
         }
 
-        $result = $dbHandle->query("SELECT id FROM library WHERE $rating_search $type_search id IN ($notes_query) ORDER BY $orderby COLLATE NOCASE $ordering");
+        perform_search("SELECT id FROM library WHERE $rating_search $type_search id IN ($notes_query) $ordering");
 
-        if ($result) {
-            $result_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $rows = count($result_array);
-        }
     } elseif (!empty($search_string) && $_GET['searchtype'] == 'pdfnotes') {
 
         $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
@@ -485,15 +470,11 @@ if (!empty($_GET['searchmode'])) {
         $notes_query = "SELECT filename FROM annotations WHERE userID=" . intval($_SESSION['user_id']) . " AND $search_string";
 
         if ($_GET['select'] == 'shelf') {
-            $result = $dbHandle->query("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search file IN ($notes_query) ORDER BY $orderby COLLATE NOCASE $ordering");
+            perform_search("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search file IN ($notes_query) $ordering");
         } else {
-            $result = $dbHandle->query("SELECT id FROM library WHERE $in $rating_search $type_search $category_search file IN ($notes_query) ORDER BY $orderby COLLATE NOCASE $ordering");
+            perform_search("SELECT id FROM library WHERE $in $rating_search $type_search $category_search file IN ($notes_query) $ordering");
         }
 
-        if ($result) {
-            $result_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $rows = count($result_array);
-        }
     } elseif ($_GET['searchtype'] == 'pdf') {
 
         $dbHandle = null;
@@ -501,7 +482,7 @@ if (!empty($_GET['searchmode'])) {
         $fulltext_in = str_replace("id IN", "fileID IN", $in);
         $fulltext_category_search = str_replace("id IN", "fileID IN", $category_search);
 
-        database_connect($database_path, 'fulltext');
+        database_connect(IL_DATABASE_PATH, 'fulltext');
 
         $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
 
@@ -515,23 +496,6 @@ if (!empty($_GET['searchmode'])) {
             $result = $dbHandle->query("SELECT fileID FROM full_text WHERE $fulltext_in $fulltext_category_search $search_string");
         }
 
-        /*
-          ###fts3 index search
-          if ($_GET["fulltext_separator'] == 'AND') {
-          $result = $dbHandle->query("SELECT full_text.fileID AS fileID
-          FROM full_text INNER JOIN full_text_fts ON full_text.id=full_text_fts.docid
-          WHERE $fulltext_category_search full_text_fts.full_text MATCH '$search_string'");
-          } else {
-          foreach($fulltext_array as $term) {
-          $queries[] = "SELECT full_text.fileID AS fileID
-          FROM full_text INNER JOIN full_text_fts ON full_text.id=full_text_fts.docid
-          WHERE $fulltext_category_search full_text_fts.full_text MATCH '$term'";
-          }
-          $query = join (" UNION ", $queries);
-          $result = $dbHandle->query($query);
-          }
-         */
-
         $result_ids = array();
         if ($result)
             $result_ids = $result->fetchAll(PDO::FETCH_COLUMN);
@@ -541,52 +505,39 @@ if (!empty($_GET['searchmode'])) {
         $result_string = join(",", $result_ids);
         $result_string = "id IN ($result_string)";
 
-        database_connect($database_path, 'library');
-        $result = $dbHandle->query("SELECT id FROM library WHERE $rating_search $type_search $result_string ORDER BY $orderby COLLATE NOCASE $ordering");
-        $result_array = $result->fetchAll(PDO::FETCH_COLUMN);
-        $rows = count($result_array);
-        $result = null;
+        database_connect(IL_DATABASE_PATH, 'library');
+        perform_search("SELECT id FROM library WHERE $rating_search $type_search $result_string ORDER BY $orderby COLLATE NOCASE $ordering");
+
     }
-
-// SAVE RESULT SEARCH INTO EXPORT_FILES
-    save_export_files($result_array);
-
-//PULL DATA FOR ITEMS TO DISPLAY FROM DATABASE
-
-    $limited_result = array();
-
-    if (!empty($result_array)) {
-        $limited_result = array_slice($result_array, $from, $limit);
-        $result_string = join(",", $limited_result);
-        $result_string = "id IN ($result_string)";
-        $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex FROM library WHERE $result_string ORDER BY $orderby COLLATE NOCASE $ordering");
-        $result = $result->fetchAll(PDO::FETCH_ASSOC);
-        $dbHandle = null;
-    }
-
-//SAVE SEARCH IN CACHE
-
-    if ($_GET['select'] != 'clipboard' && !isset($searches[$md5_query])) {
-        $searches[$md5_query]['result'] = $result_array;
-        $searches[$md5_query]['query_time'] = time();
-        save_search($searches_file, $searches);
-    }
-
-//TRUNCATE SHELF FILES ARRAY TO ONLY DISPLAYED FILES IMPROVES PERFROMANCE FOR LARGE SHELVES
-    if (count($shelf_files) > 5000)
-        $shelf_files = array_intersect((array) $limited_result, (array) $shelf_files);
 
 //PRE-FETCH CATEGORIES, PROJECTS FOR DISPLAYED ITEMS IN A BATCH INTO TEMP DATABASE TO OFFLOAD THE MAIN DATABASE
-    if (!empty($result_array)) {
+    if ($rows > 0) {
+        
+        $result = $result->fetchAll(PDO::FETCH_ASSOC);
 
-        $display_files2 = join(",", $limited_result);
+        foreach ($result as $item) {
+
+            $display_files_array[] = $item['id'];
+        }
+
+        $display_files2 = join(",", $display_files_array);
+        
+        // Read shelf files.
+        $shelf_files = read_shelf($dbHandle, $display_files_array);
+    
+        // Read clipboard files.
+        attach_clipboard($dbHandle);
+        $clip_result = $dbHandle->query("SELECT id FROM clipboard.files WHERE id IN ($display_files2)");
+        $clip_files = $clip_result->fetchAll(PDO::FETCH_COLUMN);
+        $clip_result = null;
+        
         try {
             $tempdbHandle = new PDO('sqlite::memory:');
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage() . "<br/>";
             die();
         }
-        $quoted_path = $tempdbHandle->quote($database_path . 'library.sq3');
+        $quoted_path = $tempdbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3');
         $tempdbHandle->exec("ATTACH DATABASE $quoted_path AS librarydb");
 
         $tempdbHandle->beginTransaction();
@@ -624,7 +575,7 @@ if (!empty($_GET['searchmode'])) {
 
     if ($rows > 0) {
 
-        print '<div id="display-content" data-redirection="' . preg_replace('/(from=\d*)(\&|$)/', '$2', basename($_SERVER['PHP_SELF']) . '?' . $_SERVER['QUERY_STRING']) . '">';
+        print '<div id="display-content">';
         ?>
         <div class="alternating_row" style="padding:0.35em;padding-bottom: 0;border-bottom:1px solid #c5c6c8">
             <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;padding:0.2em 0.4em">
@@ -671,17 +622,6 @@ if (!empty($_GET['searchmode'])) {
         </div>
         <?php
     }
-
-    if (!empty($_GET['search_query']))
-        $search_query = htmlspecialchars($_GET['search_query']);
-    if (!empty($_GET['search-metadata']))
-        $search_query = htmlspecialchars($_GET['search-metadata']);
-    if (!empty($_GET['search-pdfs']))
-        $search_query = htmlspecialchars($_GET['search-pdfs']);
-    if (!empty($_GET['search-pdfnotes']))
-        $search_query = htmlspecialchars($_GET['search-pdfnotes']);
-    if (!empty($_GET['search-notes']))
-        $search_query = htmlspecialchars($_GET['search-notes']);
 
     if (isset($_GET['select']) && $_GET['select'] == 'shelf' && isset($_SESSION["auth"])) {
         $what = "Shelf";

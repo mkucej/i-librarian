@@ -102,8 +102,11 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
                 $array2 = explode(',', $author);
                 $last = trim($array2[0]);
                 $last = substr($array2[0], 3, -1);
-                $first = trim($array2[1]);
-                $first = substr($array2[1], 3, -1);
+                $first = '';
+                if (isset($array2[1])) {
+                    $first = trim($array2[1]);
+                    $first = substr($array2[1], 3, -1);
+                }
                 $new_authors[$i]['family'] = $last;
                 $new_authors[$i]['given'] = $first;
                 $i++;
@@ -120,8 +123,11 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
                 $array2 = explode(',', $editor);
                 $last = trim($array2[0]);
                 $last = substr($array2[0], 3, -1);
-                $first = trim($array2[1]);
-                $first = substr($array2[1], 3, -1);
+                $first = '';
+                if (isset($array2[1])) {
+                    $first = trim($array2[1]);
+                    $first = substr($array2[1], 3, -1);
+                }
                 $new_editors[$i]['family'] = $last;
                 $new_editors[$i]['given'] = $first;
                 $i++;

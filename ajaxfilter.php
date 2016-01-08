@@ -67,7 +67,11 @@ if (isset($_GET['open']) && in_array("authors", $_GET['open'])) {
     $authors = array_filter($authors, 'filter_authors');
 
     if (empty($authors)) {
-        print 'No such authors.';
+        if (isset($_GET['term'])) {
+            echo json_encode(array());
+        } else {
+            echo 'No such authors.';
+        }
         die();
     }
 

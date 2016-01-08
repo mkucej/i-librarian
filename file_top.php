@@ -80,8 +80,11 @@ if (isset($_GET['file'])) {
                     $array2 = explode(',', $author);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_authors[] = $last . ', ' . $first;
                 }
                 $authors_string = join('; ', $new_authors);
@@ -470,8 +473,11 @@ if (isset($_GET['file'])) {
                     $array2 = explode(',', $editor);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_editor[] = $last . ', ' . $first;
                 }
                 $editor_string = join('; ', $new_editor);
@@ -501,13 +507,13 @@ if (isset($_GET['file'])) {
         }
 
         echo '<br><u>Editor:</u> ' . htmlspecialchars($editor_string)
-                . '<br><u>Publisher:</u> ' . htmlspecialchars($paper['publisher'])
-                . '<br><u>Place published:</u> ' . htmlspecialchars($paper['place_published'])
-                . '<br><u>' . (!empty($_SESSION['custom1']) ? $_SESSION['custom1'] : 'Custom 1') . ':</u> ' . htmlspecialchars($paper['custom1'])
-                . '<br><u>' . (!empty($_SESSION['custom2']) ? $_SESSION['custom2'] : 'Custom 2') . ':</u> ' . htmlspecialchars($paper['custom2'])
-                . '<br><u>' . (!empty($_SESSION['custom3']) ? $_SESSION['custom3'] : 'Custom 3') . ':</u> ' . htmlspecialchars($paper['custom3'])
-                . '<br><u>' . (!empty($_SESSION['custom4']) ? $_SESSION['custom4'] : 'Custom 4') . ':</u> ' . htmlspecialchars($paper['custom4'])
-                . '</div>
+        . '<br><u>Publisher:</u> ' . htmlspecialchars($paper['publisher'])
+        . '<br><u>Place published:</u> ' . htmlspecialchars($paper['place_published'])
+        . '<br><u>' . (!empty($_SESSION['custom1']) ? $_SESSION['custom1'] : 'Custom 1') . ':</u> ' . htmlspecialchars($paper['custom1'])
+        . '<br><u>' . (!empty($_SESSION['custom2']) ? $_SESSION['custom2'] : 'Custom 2') . ':</u> ' . htmlspecialchars($paper['custom2'])
+        . '<br><u>' . (!empty($_SESSION['custom3']) ? $_SESSION['custom3'] : 'Custom 3') . ':</u> ' . htmlspecialchars($paper['custom3'])
+        . '<br><u>' . (!empty($_SESSION['custom4']) ? $_SESSION['custom4'] : 'Custom 4') . ':</u> ' . htmlspecialchars($paper['custom4'])
+        . '</div>
             </div>';
 
         print '<div style="clear:both"></div><div style="padding:12px"><b>Added:</b> ' . date('F jS, Y', strtotime($paper['addition_date'])) . ' by ' . htmlspecialchars(get_username($dbHandle, $paper['added_by']));

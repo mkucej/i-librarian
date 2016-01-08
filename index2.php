@@ -69,7 +69,7 @@ if (is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
     if (!$is_2_11)
         include_once 'migrate4.php';
     // Upgrade to 3.6.
-    if ($db_version != '36')
+    if (empty($db_version) || $db_version < '36')
         include_once 'migrate5.php';
 }
 

@@ -546,7 +546,7 @@ font-size: 16px
 }
 
 #search-menu > div {
-    width: 20%;
+    width: 25%;
     float:left;
     text-align:center;
     padding: 5px 0;

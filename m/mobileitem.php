@@ -33,8 +33,11 @@ if (!empty($paper['authors'])) {
             $array2 = explode(',', $author);
             $last = trim($array2[0]);
             $last = substr($array2[0], 3, -1);
-            $first = trim($array2[1]);
-            $first = substr($array2[1], 3, -1);
+            $first = '';
+            if (isset($array2[1])) {
+                $first = trim($array2[1]);
+                $first = substr($array2[1], 3, -1);
+            }
             $new_authors[] = $last . ', ' . $first;
         }
         $paper['authors'] = join('; ', $new_authors);

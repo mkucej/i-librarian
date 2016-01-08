@@ -288,7 +288,10 @@ if (isset($_GET['id'])) {
             foreach ($array as $author) {
                 $array2 = explode(',', $author);
                 $last = trim($array2[0]);
-                $first = trim($array2[1]);
+                $first = '';
+                if (isset($array2[1])) {
+                    $first = trim($array2[1]);
+                }
                 $new_authors[] = 'L:"' . $last . '",F:"' . $first . '"';
             }
             $names = join(';', $new_authors);

@@ -1,8 +1,8 @@
 <?php
 
-include_once 'data.php';
-include_once 'functions.php';
-include_once 'pdfclass.php';
+include_once '../data.php';
+include_once '../functions.php';
+include_once '../pdfclass.php';
 session_write_close();
 
 // Sanitize PDF filename.

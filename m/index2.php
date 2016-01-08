@@ -117,11 +117,11 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
                                     <input type="text" name="anywhere" placeholder="Quick Search" data-mini="true">
                                     <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
                                         <input name="anywhere_separator" id="anywhere_separator_and" value="AND" checked type="radio">
-                                        <label for="anywhere_separator_and" style="width:67px">AND</label>
+                                        <label for="anywhere_separator_and" style="width:38px;text-align:center">and</label>
                                         <input name="anywhere_separator" id="anywhere_separator_or" value="OR" type="radio">
-                                        <label for="anywhere_separator_or" style="width:67px">OR</label>
+                                        <label for="anywhere_separator_or" style="width:38px;text-align:center">or</label>
                                         <input name="anywhere_separator" id="anywhere_separator_phrase" value="PHRASE" type="radio">
-                                        <label for="anywhere_separator_phrase" style="width:72px">phrase</label>
+                                        <label for="anywhere_separator_phrase" style="width:48px;text-align:center">phrase</label>
                                     </fieldset>
                                     <table style="width:100%">
                                         <tr>

@@ -182,8 +182,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $array2 = explode(',', $author);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_authors[$i]['family'] = $last;
                     $new_authors[$i]['given'] = $first;
                     $i++;
@@ -200,8 +203,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $array2 = explode(',', $editor);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_editors[$i]['family'] = $last;
                     $new_editors[$i]['given'] = $first;
                     $i++;
@@ -245,8 +251,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $array2 = explode(',', $author);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_authors[] = $last . ', ' . $first;
                 }
                 $authors = join('; ', $new_authors);
@@ -298,8 +307,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $array2 = explode(',', $author);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_authors[] = $last . ', ' . $first;
                 }
                 $add_item['authors'] = join('; ', $new_authors);
@@ -313,8 +325,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     $array2 = explode(',', $author);
                     $last = trim($array2[0]);
                     $last = substr($array2[0], 3, -1);
-                    $first = trim($array2[1]);
-                    $first = substr($array2[1], 3, -1);
+                    $first = '';
+                    if (isset($array2[1])) {
+                        $first = trim($array2[1]);
+                        $first = substr($array2[1], 3, -1);
+                    }
                     $new_authors[] = $last . ', ' . $first;
                 }
                 $add_item['editor'] = join('; ', $new_authors);
@@ -369,8 +384,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         $array2 = explode(',', $author);
                         $last = trim($array2[0]);
                         $last = substr($array2[0], 3, -1);
-                        $first = trim($array2[1]);
-                        $first = substr($array2[1], 3, -1);
+                        $first = '';
+                        if (isset($array2[1])) {
+                            $first = trim($array2[1]);
+                            $first = substr($array2[1], 3, -1);
+                        }
                         $new_authors[] = $last . ', ' . $first;
                     }
                 }
@@ -388,8 +406,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         $array2 = explode(',', $author);
                         $last = trim($array2[0]);
                         $last = substr($array2[0], 3, -1);
-                        $first = trim($array2[1]);
-                        $first = substr($array2[1], 3, -1);
+                        $first = '';
+                        if (isset($array2[1])) {
+                            $first = trim($array2[1]);
+                            $first = substr($array2[1], 3, -1);
+                        }
                         $new_authors[] = $last . ', ' . $first;
                     }
                 }
@@ -459,8 +480,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         $array2 = explode(',', $author);
                         $last = trim($array2[0]);
                         $last = substr($array2[0], 3, -1);
-                        $first = trim($array2[1]);
-                        $first = substr($array2[1], 3, -1);
+                        $first = '';
+                        if (isset($array2[1])) {
+                            $first = trim($array2[1]);
+                            $first = substr($array2[1], 3, -1);
+                        }
                         $new_authors[] = $last . ', ' . $first;
                     }
                 }
@@ -490,8 +514,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         $array2 = explode(',', $author);
                         $last = trim($array2[0]);
                         $last = substr($array2[0], 3, -1);
-                        $first = trim($array2[1]);
-                        $first = substr($array2[1], 3, -1);
+                        $first = '';
+                        if (isset($array2[1])) {
+                            $first = trim($array2[1]);
+                            $first = substr($array2[1], 3, -1);
+                        }
                         $new_authors[] = $last . ', ' . $first;
                     }
                 }
@@ -593,8 +620,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         $array2 = explode(',', $author);
                         $last = trim($array2[0]);
                         $last = substr($array2[0], 3, -1);
-                        $first = trim($array2[1]);
-                        $first = substr($array2[1], 3, -1);
+                        $first = '';
+                        if (isset($array2[1])) {
+                            $first = trim($array2[1]);
+                            $first = substr($array2[1], 3, -1);
+                        }
                         $new_authors[] = $last . ', ' . $first;
                     }
                 }
@@ -612,8 +642,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         $array2 = explode(',', $author);
                         $last = trim($array2[0]);
                         $last = substr($array2[0], 3, -1);
-                        $first = trim($array2[1]);
-                        $first = substr($array2[1], 3, -1);
+                        $first = '';
+                        if (isset($array2[1])) {
+                            $first = trim($array2[1]);
+                            $first = substr($array2[1], 3, -1);
+                        }
                         $new_authors[] = $last . ', ' . $first;
                     }
                 }

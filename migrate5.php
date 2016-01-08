@@ -1,19 +1,63 @@
 <?php
-// TODO: Generate default citation keys.
+
 include_once 'data.php';
 include_once 'functions.php';
 
 // Upgrade library table.
 $dbHandle = database_connect(IL_DATABASE_PATH, 'library');
 
+// Set db version.
+$dbHandle->exec("PRAGMA user_version = 36");
+
+// Add new column.
 $query = "ALTER TABLE library ADD COLUMN bibtex_type TEXT NOT NULL DEFAULT ''";
 $stmt = $dbHandle->prepare($query);
 $stmt->execute();
 $stmt = null;
 
-// Set db version.
-$dbHandle->exec("PRAGMA user_version = 36");
+// Create new indexes.
+$dbHandle->exec("CREATE INDEX IF NOT EXISTS title_ind ON library(title)");
 
+$dbHandle->exec("CREATE INDEX IF NOT EXISTS year_ind ON library(year DESC)");
+
+$dbHandle->exec("CREATE INDEX IF NOT EXISTS rating_ind ON library(rating DESC)");
+
+$dbHandle->exec("CREATE INDEX IF NOT EXISTS added_by_ind ON library(added_by)");
+
+$dbHandle->exec("CREATE INDEX IF NOT EXISTS doi_ind ON library(doi)");
+
+$dbHandle->exec("CREATE UNIQUE INDEX IF NOT EXISTS file_ind ON library(file)");
+
+$dbHandle->exec("CREATE UNIQUE INDEX IF NOT EXISTS notes_ind ON notes(userID, fileID)");
+
+// Generate default citation keys.
+$stmt = $dbHandle->prepare("UPDATE library SET bibtex=:bibtex WHERE id=:id");
+
+$stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
+$stmt->bindParam(':id', $id, PDO::PARAM_STR);
+
+$result = $dbHandle->query("SELECT id, authors, year FROM library WHERE bibtex=''");
+
+while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+
+    extract($row);
+
+    $bibtex_author = 'unknown';
+    $bibtex_author = substr($authors, 3);
+    $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ',') - 1);
+    $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
+
+    $bibtex_year = '0000';
+    $bibtex_year_array = explode('-', $year);
+    if (!empty($bibtex_year_array[0]) && is_int($bibtex_year_array[0])) {
+        $bibtex_year = $bibtex_year_array[0];
+    }
+    $bibtex = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $id;
+
+    $stmt->execute();
+}
+
+$stmt = null;
 $dbHandle = null;
 
 // Upgrade settings.

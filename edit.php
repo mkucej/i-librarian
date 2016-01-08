@@ -56,6 +56,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $nasa_id = '';
         $arxiv_id = '';
         $pmid = '';
+        $ieee_id = '';
         if (!empty($_POST['doi'])) {
             $doi = trim($_POST['doi']);
             if (stripos($doi, 'doi:') === 0)
@@ -238,9 +239,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         if ($_POST['database'] == 'ieee') {
             // FETCH FROM IEEE XPLORE
-            if (!empty($ieee_id)) {
+            if (!empty($doi) || !empty($ieee_id)) {
                 $response = array();
-                fetch_from_ieee($ieee_id);
+                fetch_from_ieee($doi, $ieee_id);
                 if (isset($response['uid'])) {
                     $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
                     $response['uid'] = array_unique($response['uid']);
@@ -403,13 +404,27 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $file_id = (integer) $_POST['file'];
 
-        if (empty($_POST['authors'])) {
+        if (empty($_POST['authors']) && empty($_POST['last_name'])) {
 
             $authors = '';
             $authors_ascii = '';
-        } else {
+        } elseif(!empty($_POST['authors'])) {
 
-            $authors = trim($_POST['authors']);
+            $authors = htmlspecialchars_decode($_POST['authors']);
+            $authors_ascii = utf8_deaccent($authors);
+        } elseif(!empty($_POST['last_name'])) {
+
+            if (is_string($_POST['last_name'])) {
+                $_POST['last_name'] = json_decode($_POST['last_name'], true);
+            }
+            if (is_string($_POST['first_name'])) {
+                $_POST['first_name'] = json_decode($_POST['first_name'], true);
+            }
+            for ($i = 0; $i < count($_POST['last_name']); $i++) {
+                // Get last and first name, deaccent.
+                $names[] = 'L:"' . $_POST['last_name'][$i] . '",F:"' . $_POST['first_name'][$i] . '"';
+            }
+            $authors = join(';', $names);
             $authors_ascii = utf8_deaccent($authors);
         }
 
@@ -692,8 +707,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     $array2 = explode(',', $author);
                                     $last = trim($array2[0]);
                                     $last = substr($array2[0], 3, -1);
-                                    $first = trim($array2[1]);
-                                    $first = substr($array2[1], 3, -1);
+                                    $first = '';
+                                    if (isset($array2[1])) {
+                                        $first = trim($array2[1]);
+                                        $first = substr($array2[1], 3, -1);
+                                    }
                                     if (!empty($last))
                                         print '<div>Last name: <input type="text" name="last_name[]" value="' . htmlspecialchars($last) . '">
                                         &nbsp;<i class="fa fa-exchange flipnames"></i>&nbsp;
@@ -701,6 +719,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 }
                             }
                         }
+
                         ?>
                         <div>Last name: <input type="text" name="last_name[]" value="">
                             &nbsp;<i class="fa fa-exchange flipnames"></i>&nbsp;
@@ -913,7 +932,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1'  ?>:
+    <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom1" style="width: 99%" value="<?php print isset($paper['custom1']) ? htmlspecialchars($paper['custom1']) : ''  ?>">
@@ -921,7 +940,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2'  ?>:
+    <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom2" style="width: 99%" value="<?php print isset($paper['custom2']) ? htmlspecialchars($paper['custom2']) : ''  ?>">
@@ -929,7 +948,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3'  ?>:
+    <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom3" style="width: 99%" value="<?php print isset($paper['custom3']) ? htmlspecialchars($paper['custom3']) : ''  ?>">
@@ -937,7 +956,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4'  ?>:
+    <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom4" style="width: 99%" value="<?php print isset($paper['custom4']) ? htmlspecialchars($paper['custom4']) : ''  ?>">

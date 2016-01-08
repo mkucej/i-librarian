@@ -1,12 +1,12 @@
 <?php
 
-include_once 'data.php';
-include_once 'functions.php';
+include_once '../data.php';
+include_once '../functions.php';
 
 /**
  * Parse ilibrarian.ini.
  */
-$ini_array = parse_ini_file("ilibrarian.ini");
+$ini_array = parse_ini_file("../ilibrarian.ini");
 
 /**
  * LDAP settings from ilibrarian.ini.
