@@ -36,6 +36,8 @@ $stmt = $dbHandle->prepare("UPDATE library SET bibtex=:bibtex WHERE id=:id");
 $stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
 $stmt->bindParam(':id', $id, PDO::PARAM_STR);
 
+$dbHandle->beginTransaction();
+
 $result = $dbHandle->query("SELECT id, authors, year FROM library WHERE bibtex=''");
 
 while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -49,13 +51,15 @@ while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 
     $bibtex_year = '0000';
     $bibtex_year_array = explode('-', $year);
-    if (!empty($bibtex_year_array[0]) && is_int($bibtex_year_array[0])) {
+    if (!empty($bibtex_year_array[0]) && is_numeric($bibtex_year_array[0])) {
         $bibtex_year = $bibtex_year_array[0];
     }
     $bibtex = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $id;
 
     $stmt->execute();
 }
+
+$dbHandle->commit();
 
 $stmt = null;
 $dbHandle = null;
@@ -162,7 +166,7 @@ foreach ($dir as $file) {
         if (pathinfo($oldname, PATHINFO_EXTENSION) === 'pdf') {
             $int = intval(substr(basename($oldname), 0, 5));
             if ($int >= 1 && $int < 100000) {
-                rename(IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . $oldname, IL_PDF_CACHE_PATH . DIRECTORY_SEPARATOR . '01' . DIRECTORY_SEPARATOR . $oldname);
+                rename(IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . $oldname, IL_PDF_PATH . DIRECTORY_SEPARATOR . '01' . DIRECTORY_SEPARATOR . $oldname);
             }
         }
     }
