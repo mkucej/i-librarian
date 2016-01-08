@@ -1,7 +1,7 @@
 <?php
 //THIS SCRIPT UPGRADES I, LIBRARIAN DATABASES FROM 2.1 to 2.4 FORMAT
 //ADD BIBTEX COLUMN TO TABLE LIBRARY AND SOME INDECES, UPGRADE AUTHORS
-
+die("Upgrading from version <2.4 is no longer supported.");
 ignore_user_abort();
 
 include_once 'data.php';

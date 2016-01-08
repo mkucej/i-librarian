@@ -10,16 +10,16 @@ $allowed_databases = array ('library', 'fulltext', 'users', 'discussions', 'hist
 
 if (!empty($_GET['db']) && in_array($_GET['db'], $allowed_databases)) {
     if ($_GET['db'] == 'users') {
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
     } else {
-        database_connect($database_path, $_GET['db']);
+        database_connect(IL_DATABASE_PATH, $_GET['db']);
     }
     $dbHandle->exec('VACUUM');
     $dbHandle = null;
     if ($_GET['db'] == 'users') {
-        $dbsize = filesize($usersdatabase_path.DIRECTORY_SEPARATOR.'users.sq3');
+        $dbsize = filesize(IL_USER_DATABASE_PATH . DIRECTORY_SEPARATOR . 'users.sq3');
     } else {
-        $dbsize = filesize($database_path.DIRECTORY_SEPARATOR.$_GET['db'].'.sq3');
+        $dbsize = filesize(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $_GET['db'].'.sq3');
     }
     if ($dbsize < 1048576) $size = round($dbsize / 1024, 1).' kB';
     if ($dbsize >= 1048576) $size = round($dbsize / 1048576, 1).' MB';

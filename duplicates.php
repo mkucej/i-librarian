@@ -15,7 +15,7 @@ if (isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
         . '<div style="padding:0 8px"><h3>Done.</h3></div>';
 
         // DELETE ITEMS
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
         delete_record($dbHandle, $_POST['ids']);
         $dbHandle = null;
     } elseif (isset($_GET['find_duplicates']) && $_GET['find_duplicates'] == 'similar') {
@@ -28,7 +28,7 @@ if (isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
 
         $duplicates_array = array();
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $dbHandle->exec("PRAGMA cache_size = 200000");
         $dbHandle->exec("PRAGMA temp_store = MEMORY");
@@ -94,7 +94,7 @@ if (isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
 
         echo '<form action="duplicates.php" method="POST">';
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
         $result = $dbHandle->query("SELECT id,title FROM library WHERE lower(title) IN (SELECT lower(title) FROM library GROUP BY lower(title) HAVING count(*) > 1) ORDER BY title ASC");
         $dbHandle = null;
 
@@ -124,15 +124,15 @@ if (isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
 
         echo '<form action="duplicates.php" method="POST">';
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         //CALCULATE MD5 HASH FOR EACH PDF IF EMPTY
         $result = $dbHandle->query("SELECT id,file,filehash FROM library");
 
         $hashes = array();
         while ($row = $result->fetch(PDO::FETCH_NAMED)) {
-            if (empty($row['filehash']) && is_file($library_path . $row['file'])) {
-                $hashes[$row['id']] = md5_file($library_path . $row['file']);
+            if (empty($row['filehash']) && is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($row['file']) . DIRECTORY_SEPARATOR . $row['file'])) {
+                $hashes[$row['id']] = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($row['file']) . DIRECTORY_SEPARATOR . $row['file']);
             }
         }
         

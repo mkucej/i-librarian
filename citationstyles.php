@@ -4,13 +4,7 @@ include_once 'data.php';
 include_once 'functions.php';
 session_write_close();
 
-try {
-    $dbHandle = new PDO('sqlite:' . __DIR__ . DIRECTORY_SEPARATOR . 'styles.sq3');
-} catch (PDOException $e) {
-    print "Error: " . $e->getMessage() . "<br/>";
-    print "PHP extensions PDO and PDO_SQLite must be installed.";
-    die();
-}
+$dbHandle = database_connect(__DIR__, 'styles');
 
 // select style titles
 

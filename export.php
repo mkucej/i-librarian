@@ -17,11 +17,6 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
     if (!isset($_GET['column']))
         $_GET['column'][] = 'Title';
 
-    if ($_GET['export_files'] == 'session') {
-        $export_files = read_export_files(0);
-        $_GET['export_files'] = implode(" ", $export_files);
-    }
-
     $column_translation = array(
         "Unique ID" => "id",
         "Authors" => "authors",
@@ -50,28 +45,31 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
     $column_translation = array_flip($column_translation);
 
-    $export_files = preg_replace('/[^0-9\s]/i', '', $_GET['export_files']);
-    $export_files = explode(" ", $export_files);
-    $export_files = join("','", $export_files);
-    $export_files = "WHERE id IN ('$export_files')";
-
     if ($_GET['format'] == 'zip') {
         $zip = new ZipArchive;
-        $zip->open($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip', ZIPARCHIVE::OVERWRITE);
+        $zip->open(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip', ZIPARCHIVE::OVERWRITE);
     }
 
     $orderby = 'id DESC';
 
-    database_connect($database_path, 'library');
-    $result = $dbHandle->query("SELECT * FROM library $export_files ORDER BY $orderby");
-    $dbHandle = null;
+    database_connect(IL_DATABASE_PATH, 'library');
 
-    $items = $result->fetchAll(PDO::FETCH_ASSOC);
+    if ($_GET['export_files'] == 'session') {
+
+        $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'history.sq3');
+        $dbHandle->exec("ATTACH DATABASE $quoted_path as history");
+
+        $result = $dbHandle->query("SELECT * FROM library WHERE id IN (SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY $orderby LIMIT 100000) ORDER BY $orderby");
+    } else {
+
+        $file_quote = $dbHandle->quote($_GET['export_files']);
+        $result = $dbHandle->query("SELECT * FROM library WHERE id=" . $file_quote);
+    }
 
     $paper = '';
     $i = 1;
 
-    while (list($key, $item) = each($items)) {
+    while ($item = $result->fetch(PDO::FETCH_ASSOC)) {
 
         $add_item = array();
 
@@ -99,23 +97,26 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         }
 
         if (isset($add_item['id'])) {
+            
+            if (!empty($item['bibtex'])) {
 
-            $id_author = substr($item['authors'], 3);
-            $id_author = substr($id_author, 0, strpos($id_author, '"'));
-            if (empty($id_author))
-                $id_author = 'unknown';
-
-            $id_year_array = explode('-', $item['year']);
-            $id_year = '0000';
-            if (!empty($id_year_array[0]))
-                $id_year = $id_year_array[0];
-
-            $add_item['id'] = utf8_deaccent($id_author) . '-' . $id_year . '-ID' . $item['id'];
-
-            if ($_GET['format'] == 'BibTex' && !empty($item['bibtex']))
                 $add_item['id'] = $item['bibtex'];
+            } else {
 
-            $add_item['id'] = str_replace(' ', '', $add_item['id']);
+                $id_author = substr($item['authors'], 3);
+                $id_author = substr($id_author, 0, strpos($id_author, '"'));
+                if (empty($id_author))
+                    $id_author = 'unknown';
+
+                $id_year_array = explode('-', $item['year']);
+                $id_year = '0000';
+                if (!empty($id_year_array[0]))
+                    $id_year = $id_year_array[0];
+
+                $add_item['id'] = utf8_deaccent($id_author) . '-' . $id_year . '-ID' . $item['id'];
+
+                $add_item['id'] = str_replace(' ', '', $add_item['id']);
+            }
         }
 
         if ($_GET['format'] == 'citations') {
@@ -171,6 +172,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 $publisher_place = $add_item['place_published'];
 
             $i = 0;
+
             $new_authors = array();
             $array = array();
             $array = explode(';', $authors);
@@ -251,10 +253,10 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             }
 
             $paper .= '<p style="text-align: justify;border:1px solid #959698;margin:10px;padding:10px;background-color:#fff;border-radius:4px">';
-            if ($i < 513 && is_readable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
+            if ($i < 513 && is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
                 $paper .= '<a href="library/' . $item['file'] . '">';
             $paper .= '<b style="font-size:1.2em">' . $add_item['title'] . '</b>';
-            if ($i < 513 && is_readable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
+            if ($i < 513 && is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
                 $paper .= '</a>';
             if (!empty($item['authors']))
                 $paper .= '<br>' . $authors;
@@ -271,17 +273,17 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             if (!empty($item['pages']))
                 $paper .= ': ' . $item['pages'];
             $paper .= '<br>';
-            if ($i < 513 && is_readable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
+            if ($i < 513 && is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
                 $paper .= '<a href="library/' . $item['file'] . '">';
             $paper .= $item['file'];
-            if ($i < 513 && is_readable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
+            if ($i < 513 && is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf']))
                 $paper .= '</a>';
             if (!empty($item['abstract']))
                 $paper .= '<br>' . $item['abstract'];
             $paper .= '</p>' . PHP_EOL;
 
-            if ($i < 513 && is_readable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf'])) {
-                $zip->addFile(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file'], 'library' . DIRECTORY_SEPARATOR . $item['file']);
+            if ($i < 513 && is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file']) && isset($_GET['include_pdf'])) {
+                $zip->addFile(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file'], 'library' . DIRECTORY_SEPARATOR . $item['file']);
                 $i = $i + 1;
             }
         }
@@ -442,10 +444,10 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "address = " => "place_published",
                 "doi = " => "doi",
                 "url = " => "url",
-                $custom1 . " = " => "custom1",
-                $custom2 . " = " => "custom2",
-                $custom3 . " = " => "custom3",
-                $custom4 . " = " => "custom4");
+                str_replace(' ', '-', strtolower($custom1)) . " = " => "custom1",
+                str_replace(' ', '-', strtolower($custom2)) . " = " => "custom2",
+                str_replace(' ', '-', strtolower($custom3)) . " = " => "custom3",
+                str_replace(' ', '-', strtolower($custom4)) . " = " => "custom4");
 
             if (isset($add_item['authors'])) {
 
@@ -473,7 +475,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             }
 
             // bibtex does not have a journal abbreviation tag, but if user wants it, put abbreviation in journal tag
-            if ($item['reference_type'] == 'article' && isset($add_item['journal']) && !isset($add_item['secondary_title'])) {
+            if ($item['reference_type'] == 'article' && !empty($add_item['journal']) && empty($add_item['secondary_title'])) {
 
                 $add_item['secondary_title'] = $add_item['journal'];
             }
@@ -538,13 +540,17 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
             reset($add_item);
 
-            $type = convert_type($item['reference_type'], 'ilib', 'bibtex');
+            if (!empty($item['bibtex_type'])) {
+                $type = $item['bibtex_type'];
+            } else {
+                $type = convert_type($item['reference_type'], 'ilib', 'bibtex');
+            }
             $line = join(',' . PHP_EOL, $columns);
             $paper .= '@' . $type . '{' . $add_item['id'] . ',';
             $paper .= PHP_EOL . $line;
-            if ($hosted == false && is_file(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file'])) {
+            if ($hosted == false && is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file'])) {
                 $paper .= ',' . PHP_EOL . 'file = {FULLTEXT:';
-                $paper .= dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file'] . ':PDF}' . PHP_EOL;
+                $paper .= IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file'] . ':PDF}' . PHP_EOL;
             }
             $paper .= '}' . PHP_EOL . PHP_EOL;
             $columns = null;
@@ -652,11 +658,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             $line = join(PHP_EOL, $columns);
             $paper .= 'TY  - ' . $type . PHP_EOL;
             $paper .= $line . PHP_EOL;
-            if ($hosted == false && is_file(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file'])) {
+            if ($hosted == false && is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file'])) {
                 $paper .= 'L1  - file://';
                 if (substr(strtoupper(PHP_OS), 0, 3) == 'WIN')
                     $paper .= '/';
-                $paper .= dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $item['file'] . PHP_EOL;
+                $paper .= IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file'] . PHP_EOL;
             }
             $paper .= 'ER  - ' . PHP_EOL . PHP_EOL;
             $columns = null;
@@ -670,12 +676,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         $content = str_replace('"', '\"', $content);
 
         // fetch citation style
-        try {
-            $dbHandle = new PDO('sqlite:' . __DIR__ . DIRECTORY_SEPARATOR . 'styles.sq3');
-        } catch (PDOException $e) {
-            print "Error: " . $e->getMessage();
-            die();
-        }
+        $dbHandle = database_connect(__DIR__, 'styles');
         $title_q = $dbHandle->quote(strtolower($_GET['citation-style']));
         $result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
         $style = $result->fetchColumn();
@@ -686,6 +687,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         $style = str_replace("'", "\'", $style);
 
         // print citations to a browser window
+
         ?>
         <!DOCTYPE html>
         <html>
@@ -732,13 +734,13 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     var style = '<?php echo $style ?>';
                     // initialize citeproc object
                     citeprocSys = {
-                        retrieveLocale: function(lang) {
+                        retrieveLocale: function (lang) {
                             var xhr = new XMLHttpRequest();
                             xhr.open('GET', 'js/csl/locales/locales-' + lang + '.xml', false);
                             xhr.send(null);
                             return xhr.responseText;
                         },
-                        retrieveItem: function(id) {
+                        retrieveItem: function (id) {
                             return citations[id];
                         }
                     };
@@ -747,7 +749,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     citeproc.updateItems(itemIDs);
                     var bibResult = citeproc.makeBibliography();
                     // load them into a container, convert to table
-                    $.each(bibResult[1], function(key, val) {
+                    $.each(bibResult[1], function (key, val) {
                         // two columns vs one column layout
                         if ($(val).children("div").length === 2) {
                             $('tbody').append('<tr><td class="td-csl-left" valign="top" width="80">'
@@ -834,13 +836,13 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         print '<!DOCTYPE html><html><head><title>I, Librarian - Export</title></head><body><pre>';
 
     if ($_GET['format'] == 'zip') {
-        $handle = fopen($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip', 'rb');
+        $handle = fopen(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip', 'rb');
         while (!feof($handle)) {
             $content = fread($handle, 1024 * 1024);
             print $content;
         }
         fclose($handle);
-        unlink($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip');
+        unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip');
     } else {
         print $content;
     }
@@ -856,6 +858,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
     if (ini_get('safe_mode'))
         print 'Warning! Your php.ini configuration does not alow to run scipts for a long time.
 				This may cause the export of a larger number (>10,000) of items to fail. Please unset safe_mode directive in your php.ini.';
+
     ?>
     <form id="exportform" action="export.php" method="GET">
         <table style="margin: auto;margin:10px auto">
@@ -1183,4 +1186,5 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
     </form>
     <?php
 }
+
 ?>

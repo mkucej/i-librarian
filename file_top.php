@@ -4,24 +4,10 @@ include_once 'data.php';
 include_once 'functions.php';
 session_write_close();
 
-if (isset($_SESSION['auth'])) {
-    $cache_name = cache_name();
-    $db_change = database_change(array(
-        'library',
-        'shelves',
-        'projectsusers',
-        'projectsfiles',
-        'filescategories',
-        'notes',
-        'annotations'
-    ));
-    cache_start($db_change);
-}
-
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 
 $shelf_files = array();
-$shelf_files = read_shelf($dbHandle);
+$shelf_files = read_shelf($dbHandle, $_GET['file']);
 
 $desktop_projects = array();
 $desktop_projects = read_desktop($dbHandle);
@@ -44,6 +30,12 @@ if (isset($_GET['select'])) {
 if (isset($_GET['file'])) {
 
     $query = $dbHandle->quote($_GET['file']);
+
+    // Read clipboard files.
+    attach_clipboard($dbHandle);
+    $clip_result = $dbHandle->query("SELECT id FROM clipboard.files WHERE id=$query");
+    $clip_files = $clip_result->fetchAll(PDO::FETCH_COLUMN);
+    $clip_result = null;
 
     if (!isset($paper)) {
         $result = $dbHandle->query("SELECT * FROM library WHERE id=$query LIMIT 1");
@@ -147,14 +139,14 @@ if (isset($_GET['file'])) {
         $category_string = join(", ", $category_array);
         $category_array = null;
 
-        if (is_file("library/$paper[file]") && isset($_SESSION['auth'])) {
+        if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file']) && isset($_SESSION['auth'])) {
 
             if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                print '&nbsp;<b>&middot;</b> <a title="Open PDF in new window. Right-click to download it." href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" class="pdf_link">
+                print '&nbsp;<b>&middot;</b> <a title="Open PDF in new window. Right-click to download it." href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" class="pdf_link">
 				<span class="ui-state-highlight" style="padding:0px 2px 0px 2px;margin-right:2px">&nbsp;PDF&nbsp;</span></a>';
 
             if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                print '&nbsp;<b>&middot;</b> <a title="Open PDF in new window. Right-click to download it." href="' . htmlspecialchars('viewpdf.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" class="pdf_link">
+                print '&nbsp;<b>&middot;</b> <a title="Open PDF in new window. Right-click to download it." href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" class="pdf_link">
 				<span class="ui-state-highlight ui-corner-all" style="padding:0px 2px 0px 2px;margin-right:2px">&nbsp;PDF&nbsp;</span></a>';
         }
 
@@ -297,7 +289,7 @@ if (isset($_GET['file'])) {
                 print '<span class="update_shelf"><i class="update_shelf fa fa-square-o"></i>&nbsp;Shelf&nbsp;</span>';
             }
 
-            if (isset($_SESSION['session_clipboard']) && in_array($paper['id'], $_SESSION['session_clipboard'])) {
+            if (in_array($paper['id'], $clip_files)) {
                 print ' &nbsp;<span class="update_clipboard clicked"><i class="update_clipboard fa fa-check-square ui-state-error-text"></i>&nbsp;Clipboard&nbsp;</span>';
             } else {
                 print ' &nbsp;<span class="update_clipboard"><i class="update_clipboard fa fa-square-o"></i>&nbsp;Clipboard&nbsp;</span>';
@@ -345,7 +337,7 @@ if (isset($_GET['file'])) {
         $url_filenames = array();
         if (isset($_SESSION['auth'])) {
             $integer = sprintf("%05d", intval($paper['file']));
-            $files_to_display = glob('library/supplement/' . $integer . '*');
+            $files_to_display = glob(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($integer) . DIRECTORY_SEPARATOR . $integer . '*');
             if (is_array($files_to_display)) {
                 foreach ($files_to_display as $supplementary_file) {
 
@@ -395,24 +387,24 @@ if (isset($_GET['file'])) {
         }
 
         print '<div class="file-grid" style="border-bottom:0">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Abstract</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Abstract</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row abstract" style="padding:4px 10px;overflow:auto;height:220px;column-count:auto;-moz-column-count:auto;-webkit-column-count:auto">'
                 . $paper['abstract']
                 . '</div>
             </div>
             <div class="file-grid" style="border-bottom:0">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0;">Notes</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0;">Notes</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" id="file-top-notes" style="padding:4px 10px;height:220px;overflow:auto">' . $notes . '</div>
             </div>
             <div class="file-grid" style="width:33.33%;border-bottom:0;border-right:0">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">PDF Notes</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">PDF Notes</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:220px">' . $annotation . '</div>
             </div>
             <div class="file-grid" style="border-bottom:0">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Graphical Abstract</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Graphical Abstract</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="height:188px;overflow:auto">';
 
@@ -425,19 +417,19 @@ if (isset($_GET['file'])) {
         print '</div>
             </div>
             <div class="file-grid" style="border-bottom:0">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0;position:relative">
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0;position:relative">
                     Files
                 </div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:180px">';
-        if (is_file($library_path . DIRECTORY_SEPARATOR . $paper['file']))
-            print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . $paper['file']) . '" target="_blank">'
+        if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file']))
+            print '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . $paper['file']) . '" target="_blank">'
                     . '<i class="fa fa-external-link" style="color:initial;margin-right:0.5em"></i></a>'
-                    . '<a href="' . htmlspecialchars('downloadpdf.php?mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a><br>';
+                    . '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a><br>';
         print $url_filename . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%;border-bottom:0">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">IDs</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">IDs</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:180px">';
 
@@ -466,6 +458,7 @@ if (isset($_GET['file'])) {
                 $bibtex_year = $bibtex_year_array[0];
             $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
         }
+
         echo '<br><u>Citation Key:</u> <input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly>';
 
         $editor_string = '';
@@ -488,21 +481,26 @@ if (isset($_GET['file'])) {
         print '</div>
             </div>
             <div class="file-grid">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Categories</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Categories</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">' . $category_string . '</div>
             </div>
             <div class="file-grid">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Keywords</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Keywords</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">' . htmlspecialchars($paper['keywords']) . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%">
-                <div class="ui-widget-header ui-dialog-titlebar items" style="border:0;border-radius:0">Miscellaneous</div>
+                <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Miscellaneous</div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">
-                <u>Publication type:</u> ' . htmlspecialchars($paper['reference_type'])
-                . '<br><u>Editor:</u> ' . htmlspecialchars($editor_string)
+                <u>Publication type:</u> ' . htmlspecialchars($paper['reference_type']);
+
+        if (!empty($paper['bibtex_type'])) {
+            echo ' (' . htmlspecialchars($paper['bibtex_type']) . ')';
+        }
+
+        echo '<br><u>Editor:</u> ' . htmlspecialchars($editor_string)
                 . '<br><u>Publisher:</u> ' . htmlspecialchars($paper['publisher'])
                 . '<br><u>Place published:</u> ' . htmlspecialchars($paper['place_published'])
                 . '<br><u>' . (!empty($_SESSION['custom1']) ? $_SESSION['custom1'] : 'Custom 1') . ':</u> ' . htmlspecialchars($paper['custom1'])
@@ -512,16 +510,13 @@ if (isset($_GET['file'])) {
                 . '</div>
             </div>';
 
-        print '<div style="clear:both"></div><div style="padding:12px"><b>Added:</b> ' . date('F jS, Y', strtotime($paper['addition_date'])) . ' by ' . htmlspecialchars(get_username($dbHandle, $database_path, $paper['added_by']));
+        print '<div style="clear:both"></div><div style="padding:12px"><b>Added:</b> ' . date('F jS, Y', strtotime($paper['addition_date'])) . ' by ' . htmlspecialchars(get_username($dbHandle, $paper['added_by']));
 
         if (!empty($paper['modified_date']))
-            print " <b>&middot; Modified:</b> " . date("F jS, Y, g:i A", strtotime($paper['modified_date'])) . " by " . htmlspecialchars(get_username($dbHandle, $database_path, $paper['modified_by']));
+            print " <b>&middot; Modified:</b> " . date("F jS, Y, g:i A", strtotime($paper['modified_date'])) . " by " . htmlspecialchars(get_username($dbHandle, $paper['modified_by']));
 
         print '</div>';
         print '<script type="text/javascript">$("title").text("' . $paper['title'] . '")</script>';
     }
 }
 
-if (isset($_SESSION['auth']))
-    cache_store();
-?>

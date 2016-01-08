@@ -12,7 +12,7 @@ if (isset($_SESSION['auth'])) {
 
     ##########	read reference data	##########
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $file_query = $dbHandle->quote($_GET['file']);
 
@@ -22,7 +22,7 @@ if (isset($_SESSION['auth'])) {
     $record = null;
     $dbHandle = null;
 
-    database_connect($database_path, 'fulltext');
+    database_connect(IL_DATABASE_PATH, 'fulltext');
 
     $file_query = $dbHandle->quote($_GET['file']);
 
@@ -60,14 +60,14 @@ if (isset($_SESSION['auth'])) {
             </td>
             <td style="width:90%;padding: 2px 6px">
                 <div style="border-bottom:1px solid #cfcecc;font-weight:bold">PDF file:</div>
-                <?php if (file_exists("library/$paper[file]")) { ?>
+                <?php if (file_exists(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file'])) { ?>
                     <table border=0 cellspacing=0 cellpadding=0 style="width:100%;margin:0px">
                         <tr class="file-highlight" data-fileid="<?php print $_GET['file'] ?>">
                             <td style="height:22px;line-height:22px">
                                 <i class="fa fa-file-pdf-o" style="width:1.5em"></i>
                                 <?php
-                                echo '<a href="' . htmlspecialchars('downloadpdf.php?mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a>';
-                                echo '<a href="' . htmlspecialchars('downloadpdf.php?file=' . $paper['file']) . '" target="_blank">'
+                                echo '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a>';
+                                echo '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . $paper['file']) . '" target="_blank">'
                                         . '<i class="fa fa-external-link" style="color:initial;margin-left:0.5em"></i></a>';
                                 ?>
                             </td>
@@ -113,7 +113,7 @@ if (isset($_SESSION['auth'])) {
                         <div style="width:100%;margin-top:1em;border-bottom:1px solid #cfcecc;font-weight:bold">Graphical Abstract:</div>
                         <?php
                         $integer = sprintf("%05d", intval($paper['file']));
-                        $gr_abs = glob("library/supplement/" . $integer . "graphical_abstract.*");
+                        $gr_abs = glob(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($integer) . DIRECTORY_SEPARATOR . $integer . "graphical_abstract.*");
                         if (!empty($gr_abs[0])) {
                             $url_filename = htmlspecialchars(substr(basename($gr_abs[0]), 5));
 
@@ -136,7 +136,7 @@ if (isset($_SESSION['auth'])) {
                         <table cellspacing=0 style="width:100%">
                             <tr><td></td><td></td><td></td></tr>
                             <?php
-                            $files_to_display = glob('library/supplement/' . $integer . '*');
+                            $files_to_display = glob(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($integer) . DIRECTORY_SEPARATOR . $integer . '*');
 
                             if (is_array($files_to_display)) {
 

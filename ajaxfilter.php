@@ -2,36 +2,28 @@
 
 include_once 'data.php';
 include_once 'functions.php';
+session_write_close();
 
-if ($_GET['select'] != 'library' &&
+if (!isset($_GET['select']) || ($_GET['select'] != 'library' &&
         $_GET['select'] != 'shelf' &&
         $_GET['select'] != 'project' &&
-        $_GET['select'] != 'clipboard') {
+        $_GET['select'] != 'clipboard')) {
 
     $_GET['select'] = 'library';
 }
 
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 
 $in = '';
 
 if ($_GET['select'] == 'shelf') {
-    $shelf_files = array();
-    $shelf_files = read_shelf($dbHandle);
-    $in = join("','", $shelf_files);
-    $in = "id IN ('$in')";
+    $in = "id IN (SELECT fileID FROM shelves WHERE fileID>0 AND userID=" . intval($_SESSION['user_id']) . ")";
 }
 
-if ($_GET['select'] == 'clipboard' && !empty($_SESSION['session_clipboard'])) {
-    $in = join("', '", $_SESSION['session_clipboard']);
-    $in = "id IN ('$in')";
+if ($_GET['select'] == 'clipboard') {
+    attach_clipboard($dbHandle);
+    $in = "id IN (SELECT id FROM clipboard.files)";
 }
-
-if ($_GET['select'] == 'clipboard' && empty($_SESSION['session_clipboard'])) {
-    $in = "id IN ('')";
-}
-
-session_write_close();
 
 empty($in) ? $and = '' : $and = 'AND';
 

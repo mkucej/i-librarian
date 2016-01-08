@@ -22,13 +22,13 @@ if ($_GET['select'] == 'desk') {
             <tr>
                 <td class="quicksearch">
                     <input type="text" name="anywhere" placeholder="Quick Search" style="width:99%"
-                           value="<?php print isset($_SESSION['session_anywhere']) ? htmlspecialchars($_SESSION['session_anywhere']) : ''; ?>">
+                           value="<?php echo isset($_SESSION['session_anywhere']) ? htmlspecialchars($_SESSION['session_anywhere']) : ''; ?>">
                     <input type="text" name="fulltext" placeholder="PDF Search" style="width:99%;display:none"
-                           value="<?php print isset($_SESSION['session_fulltext']) ? htmlspecialchars($_SESSION['session_fulltext']) : ''; ?>">
+                           value="<?php echo isset($_SESSION['session_fulltext']) ? htmlspecialchars($_SESSION['session_fulltext']) : ''; ?>">
                     <input type="text" name="pdfnotes" placeholder="PDF Notes Search" style="width:99%;display:none" 
-                           value="<?php print isset($_SESSION['session_pdfnotes']) ? htmlspecialchars($_SESSION['session_pdfnotes']) : ''; ?>">
+                           value="<?php echo isset($_SESSION['session_pdfnotes']) ? htmlspecialchars($_SESSION['session_pdfnotes']) : ''; ?>">
                     <input type="text" name="notes" placeholder="Rich-Text Notes Search" style="width:99%;display:none"
-                           value="<?php print isset($_SESSION['session_notes']) ? htmlspecialchars($_SESSION['session_notes']) : ''; ?>">
+                           value="<?php echo isset($_SESSION['session_notes']) ? htmlspecialchars($_SESSION['session_notes']) : ''; ?>">
                 </td>
             </tr>
             <tr>
@@ -36,60 +36,192 @@ if ($_GET['select'] == 'desk') {
                     <table style="float:left;margin-top:0.2em;margin-left:2px">
                         <tr>
                             <td class="select_span">
-                                <input type="radio" name="anywhere_separator" value="AND" style="display:none" checked>
-                                <i class="fa fa-circle"></i> and&nbsp;&nbsp;
+                                <input type="radio" name="anywhere_separator" value="AND" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'AND') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'AND') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> and&nbsp;&nbsp;
                             </td>
                             <td class="select_span">
-                                <input type="radio" name="anywhere_separator" value="OR" style="display:none">
-                                <i class="fa fa-circle-o"></i> or&nbsp;&nbsp;
+                                <input type="radio" name="anywhere_separator" value="OR" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'OR') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'OR') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> or&nbsp;&nbsp;
                             </td>
                             <td class="select_span">
-                                <input type="radio" name="anywhere_separator" value="PHRASE" style="display:none">
-                                <i class="fa fa-circle-o"></i> phrase
+                                <input type="radio" name="anywhere_separator" value="PHRASE" style="display:none"
+                                <?php
+                                if (!isset($_SESSION['session_anywhere_separator']) || (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'PHRASE')) echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (!isset($_SESSION['session_anywhere_separator']) || (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'PHRASE')) {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> phrase
                             </td>
                         </tr>
                     </table>
                     <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
                         <tr>
                             <td class="select_span">
-                                <input type="radio" name="fulltext_separator" value="AND" style="display:none" checked>
-                                <i class="fa fa-circle"></i> and&nbsp;&nbsp;
+                                <input type="radio" name="fulltext_separator" value="AND" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'AND') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'AND') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> and&nbsp;&nbsp;
                             </td>
                             <td class="select_span">
-                                <input type="radio" name="fulltext_separator" value="OR" style="display:none">
-                                <i class="fa fa-circle-o"></i> or&nbsp;&nbsp;
+                                <input type="radio" name="fulltext_separator" value="OR" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'OR') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'OR') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> or&nbsp;&nbsp;
                             </td>
                         </tr>
                     </table>
                     <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
                         <tr>
                             <td class="select_span">
-                                <input type="radio" name="pdfnotes_separator" value="AND" style="display:none" checked>
-                                <i class="fa fa-circle"></i> and&nbsp;&nbsp;
+                                <input type="radio" name="pdfnotes_separator" value="AND" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'AND') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'AND') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> and&nbsp;&nbsp;
                             </td>
                             <td class="select_span">
-                                <input type="radio" name="pdfnotes_separator" value="OR" style="display:none">
-                                <i class="fa fa-circle-o"></i> or&nbsp;&nbsp;
+                                <input type="radio" name="pdfnotes_separator" value="OR" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'OR') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'OR') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> or&nbsp;&nbsp;
                             </td>
                             <td class="select_span">
-                                <input type="radio" name="pdfnotes_separator" value="PHRASE" style="display:none">
-                                <i class="fa fa-circle-o"></i> phrase
+                                <input type="radio" name="pdfnotes_separator" value="PHRASE" style="display:none"
+                                <?php
+                                if (!isset($_SESSION['session_pdfnotes_separator']) || (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'PHRASE')) echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (!isset($_SESSION['session_pdfnotes_separator']) || (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'PHRASE')) {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> phrase
                             </td>
                         </tr>
                     </table>
                     <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
                         <tr>
                             <td class="select_span">
-                                <input type="radio" name="notes_separator" value="AND" style="display:none" checked>
-                                <i class="fa fa-circle"></i> and&nbsp;&nbsp;
+                                <input type="radio" name="notes_separator" value="AND" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'AND') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'AND') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> and&nbsp;&nbsp;
                             </td>
                             <td class="select_span">
-                                <input type="radio" name="notes_separator" value="OR" style="display:none">
-                                <i class="fa fa-circle-o"></i> or&nbsp;&nbsp;
+                                <input type="radio" name="notes_separator" value="OR" style="display:none"
+                                <?php
+                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'OR') echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'OR') {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> or&nbsp;&nbsp;
                             </td>
                             <td class="select_span">
-                                <input type="radio" name="notes_separator" value="PHRASE" style="display:none">
-                                <i class="fa fa-circle-o"></i> phrase
+                                <input type="radio" name="notes_separator" value="PHRASE" style="display:none"
+                                <?php
+                                if (!isset($_SESSION['session_notes_separator']) || (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'PHRASE')) echo 'checked';
+                                ?>
+                                >
+                                <i class="fa
+                                <?php
+                                if (!isset($_SESSION['session_notes_separator']) || (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'PHRASE')) {
+                                    echo 'fa-circle';
+                                } else {
+                                    echo 'fa-circle-o';
+                                }
+                                ?>
+                                "></i> phrase
                             </td>
                         </tr>
                     </table>

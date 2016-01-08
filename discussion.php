@@ -3,7 +3,7 @@ include_once 'data.php';
 include_once 'functions.php';
 session_write_close();
 
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 $id_query = $dbHandle->quote($_GET['project']);
 $query = $dbHandle->query("SELECT project FROM projects WHERE projectID=$id_query LIMIT 1");
 $project_name = $query->fetchColumn();

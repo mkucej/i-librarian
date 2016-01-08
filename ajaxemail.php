@@ -7,7 +7,7 @@ include_once 'functions.php';
 
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
     $id_query = $dbHandle->quote($_GET['id']);
     $result = $dbHandle->query("SELECT title,abstract,doi FROM library WHERE id=" . $id_query);
     $row = $result->fetch(PDO::FETCH_ASSOC);
@@ -23,6 +23,6 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
             . wordwrap(substr($abstract, 0, 500), 65, '%0A', true)
             . (strlen($abstract) > 500 ? '...' : '') . '%0A%0A'
             . (!empty($doi) ? 'Publisher link:%0Ahttp://dx.doi.org/' . $doi . '%0A%0A' : '')
-            . 'I, Librarian link:%0A' . $url . '?id=' . $_GET['id'] . '%0A%0A');
+            . 'I, Librarian link:%0A' . IL_URL . '?id=' . $_GET['id'] . '%0A%0A');
 }
 ?>

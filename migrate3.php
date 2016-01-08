@@ -1,7 +1,7 @@
 <?php
 //THIS SCRIPT UPGRADES I, LIBRARIAN DATABASES FROM 2.7 to 2.8 FORMAT
 //ADD TABLE LOG INTO LIBRARY AND FULLTEXT PLUS TRIGGERS
-
+die("Upgrading from version <2.8 is no longer supported.");
 ignore_user_abort();
 
 include_once 'data.php';

@@ -2,7 +2,6 @@
 include_once 'data.php';
 include_once 'functions.php';
 set_time_limit(0);
-session_write_close();
 
 if ($hosted == true)
     die();
@@ -46,7 +45,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
             $required_space = null;
             $f_number = 1;
 
-            $lit = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . DIRECTORY_SEPARATOR . 'library'));
+            $lit = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(IL_LIBRARY_PATH));
             while ($lit->valid()) {
                 $file = $lit->key();
                 if (is_file($file)) {
@@ -65,7 +64,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
 
             if ($is_dir && is_writable($directory)) {
 
-                database_connect($usersdatabase_path, 'users');
+                database_connect(IL_USER_DATABASE_PATH, 'users');
                 save_setting($dbHandle, 'backup_dir', $directory);
                 $dbHandle = null;
 
@@ -74,7 +73,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 @mkdir($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'supplement');
                 @mkdir($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'pngs');
 
-                $lit = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . DIRECTORY_SEPARATOR . 'library'));
+                $lit = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(IL_LIBRARY_PATH));
                 while ($lit->valid()) {
                     $file = $lit->key();
                     if (is_file($file)) {
@@ -102,9 +101,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
             }
         }
 
-        database_connect($usersdatabase_path, 'users');
-        $backup_dir = get_setting($dbHandle, 'backup_dir');
-        $dbHandle = null;
+        $backup_dir = get_setting('backup_dir');
         ?>
 
         <table style="width: 100%"><tr><td class="details alternating_row"><b>Backup</b></td></tr></table>
@@ -155,27 +152,27 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 $is_dir = true;
             }
 
-            if ($is_dir && is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library')) {
+            if ($is_dir && is_writable(IL_LIBRARY_PATH)) {
 
                 if (!is_readable($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'library.sq3'))
                     die('Error! Access denied or directory does not exist.');
 
-                database_connect($usersdatabase_path, 'users');
+                database_connect(IL_USER_DATABASE_PATH, 'users');
                 save_setting($dbHandle, 'backup_dir', $directory);
                 $dbHandle = null;
 
                 if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-                    exec("del /q \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . "\"");
-                    exec("rmdir \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . "\" /s/q");
-                    exec("rmdir \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'supplement' . "\" /s/q");
-                    exec("rmdir \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'pngs' . "\" /s/q");
-                    exec("xcopy \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . "\" /c /v /q /s /e /h /y");
+                    exec("del /q \"" . IL_LIBRARY_PATH . "\"");
+                    exec("rmdir \"" . IL_DATABASE_PATH . "\" /s/q");
+                    exec("rmdir \"" . IL_SUPPLEMENT_PATH . "\" /s/q");
+                    exec("rmdir \"" . IL_IMAGE_PATH . "\" /s/q");
+                    exec("xcopy \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y");
                 } else {
-                    exec("rm -f \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . "*.*\"");
-                    exec("rm -rf \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . "\"");
-                    exec("rm -rf \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'supplement' . "\"");
-                    exec("rm -rf \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'pngs' . "\"");
-                    exec(escapeshellcmd("cp -r \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . "\""));
+                    exec("rm -f \"" . IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . "*.*\"");
+                    exec("rm -rf \"" . IL_DATABASE_PATH . "\"");
+                    exec("rm -rf \"" . IL_SUPPLEMENT_PATH . "\"");
+                    exec("rm -rf \"" . IL_IMAGE_PATH . "\"");
+                    exec(escapeshellcmd("cp -r \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . __DIR__ . DIRECTORY_SEPARATOR . "\""));
                 }
                 die('Done');
             } else {
@@ -183,9 +180,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
             }
         }
 
-        database_connect($usersdatabase_path, 'users');
-        $backup_dir = get_setting($dbHandle, 'backup_dir');
-        $dbHandle = null;
+        $backup_dir = get_setting('backup_dir');
         ?>
 
         <table style="width: 100%"><tr><td class="details alternating_row"><b>Restore</b></td></tr></table>

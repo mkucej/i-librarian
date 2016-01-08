@@ -20,7 +20,7 @@ if (isset($_SESSION['connection']) && ($_SESSION['connection'] == "autodetect" |
             }
         }
     }
-} else {
+} elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
     if (isset($_SESSION['proxy_name']))
         $proxy_name = $_SESSION['proxy_name'];
     if (isset($_SESSION['proxy_port']))
@@ -85,7 +85,8 @@ if (isset($_GET['doi'])) {
     ?>
     <input type="hidden" name="doi" value="<?php if (!empty($_GET['doi'])) print htmlspecialchars($_GET['doi']); ?>">
     <input type="hidden" name="reference_type" value="<?php if (!empty($reference_type)) print htmlspecialchars($reference_type); ?>">
-    <input type="hidden" name="authors" value="<?php if (!empty($authors)) print htmlspecialchars($authors); ?>">
+    <input type="hidden" name="last_name" value="<?php if (!empty($last_name)) print htmlspecialchars(json_encode($last_name)); ?>">
+    <input type="hidden" name="first_name" value="<?php if (!empty($first_name)) print htmlspecialchars(json_encode($first_name)); ?>">
     <input type="hidden" name="title" value="<?php if (!empty($title)) print htmlspecialchars($title); ?>">
     <input type="hidden" name="secondary_title" value="<?php if (!empty($secondary_title)) print htmlspecialchars($secondary_title); ?>">
     <input type="hidden" name="year" value="<?php if (!empty($year)) print htmlspecialchars($year); ?>">

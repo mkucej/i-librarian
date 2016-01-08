@@ -1,13 +1,8 @@
 <?php
 $microtime1 = microtime(true);
 
-include_once 'data.php';
+include_once '../data.php';
 include_once '../functions.php';
-
-function save_search($filename, $searches) {
-    $searches_content = gzcompress(serialize($searches), 1);
-    file_put_contents($filename, $searches_content, LOCK_EX);
-}
 
 if (isset($_GET['newsearch'])) {
     unset($_SESSION['session_anywhere']);
@@ -43,31 +38,31 @@ if (isset($_GET['newsearch'])) {
     die();
 }
 
-if (!isset($_GET['project'])) {
-    $project = '';
-} else {
-    $project = $_GET['project'];
-}
-
-$limit = 10;
-
-if (!isset($_SESSION['orderby'])) {
-    $orderby = 'id';
-} else {
-    $orderby = $_SESSION['orderby'];
-}
-
-if (!isset($_SESSION['display'])) {
-    $display = 'summary';
-} else {
-    $display = $_SESSION['display'];
-}
+$limit = $_SESSION['limit'] = 10;
 
 if (!isset($_GET['from'])) {
     $from = '0';
 } else {
     settype($_GET['from'], "integer");
     $from = $_GET['from'];
+}
+
+if (!isset($_GET['project'])) {
+    $project = '';
+} else {
+    $project = $_GET['project'];
+}
+
+if (!isset($_SESSION['orderby'])) {
+    $orderby = $_SESSION['orderby'] = 'id';
+} else {
+    $orderby = $_SESSION['orderby'];
+}
+
+if (!isset($_SESSION['display'])) {
+    $display = $_SESSION['display'] = 'title';
+} else {
+    $display = $_SESSION['display'];
 }
 
 if (empty($_GET['select']) ||
@@ -126,34 +121,16 @@ if (!empty($_GET['searchmode'])) {
         'notes'
     ), array(
         'full_text'
-    ));
+    ), array('clipboard'));
     
-    if (isset($_GET['from']) && $_GET['from'] > 0) {
+    if (isset($_GET['from'])) {
         $cache_name = cache_name();
         cache_start($db_change);
     }
     
-    //READ CACHED SEARCHES
-    
-    $searches = array();
-    $searches_file = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'searches';
-    if (is_readable($searches_file)) {
-        $searches_content = file_get_contents($searches_file);
-        $searches = unserialize(gzuncompress($searches_content));
-    }
-    if (count($searches) > 0) {
-        foreach ($searches as $md5 => $search) {
-            if ($search['query_time'] < $db_change)
-                unset($searches[$md5]);
-        }
-    }
-    
     //READ SHELF AND PROJECTS
 
-    database_connect($database_path, 'library');
-
-    $shelf_files = array();
-    $shelf_files = read_shelf($dbHandle);
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $desktop_projects = array();
     $desktop_projects = read_desktop($dbHandle);

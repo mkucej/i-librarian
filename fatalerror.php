@@ -7,7 +7,7 @@
     <body style="margin:0;border:0;padding:0 40px">
         <h3>
         <?php
-        print 'Fatal Error! Directory: "' . $library_path . '" must be writable by the web server user.';
+        print 'Fatal Error! Directory: "' . $bad_path . '" must be writable by the web server user.';
         ?>
         </h3>
         <script type="text/javascript">

@@ -13,7 +13,7 @@ $db_change = database_change(array(
     'filescategories',
     'searches',
     'categories'
-));
+        ), array(), array('clipboard'));
 cache_start($db_change);
 
 if (!isset($_GET['select']))
@@ -27,24 +27,20 @@ if ($_GET['select'] != 'library' &&
     $_GET['select'] = 'library';
 }
 
+database_connect(IL_DATABASE_PATH, 'library');
+
 $in = '';
 
 if ($_GET['select'] == 'shelf') {
     $in = "INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']);
 }
 
-if ($_GET['select'] == 'clipboard' && !empty($_SESSION['session_clipboard'])) {
-    $in = join(",", $_SESSION['session_clipboard']);
-    $in = "WHERE id IN ($in)";
-}
-
-if ($_GET['select'] == 'clipboard' && empty($_SESSION['session_clipboard'])) {
-    $in = "WHERE id IN ()";
+if ($_GET['select'] == 'clipboard') {
+    attach_clipboard($dbHandle);
+    $in = "WHERE id IN (SELECT id FROM clipboard.files)";
 }
 
 empty($in) ? $where = 'WHERE' : $where = 'AND';
-
-database_connect($database_path, 'library');
 
 ### CATEGORY ###################################################################
 
@@ -55,21 +51,19 @@ if (isset($_GET['open']) && in_array("category", $_GET['open'])) {
     if ($_GET['select'] == 'shelf' || $_GET['select'] == 'clipboard') {
         $dbHandle->exec("PRAGMA temp_store = MEMORY");
         $dbHandle->exec("PRAGMA synchronous = OFF");
-        $dbHandle->query("CREATE TEMPORARY TABLE subfiles (fileID INTEGER PRIMARY KEY)");
+        $dbHandle->exec("CREATE TEMPORARY TABLE subfiles (fileID INTEGER PRIMARY KEY)");
         $subfiles = "filescategories.fileID IN (SELECT fileID FROM subfiles)";
     }
 
     if ($_GET['select'] == 'shelf') {
-        $dbHandle->query("INSERT INTO subfiles SELECT fileID FROM shelves WHERE userID=" . intval($_SESSION['user_id']) . "");
+        $dbHandle->exec("INSERT INTO subfiles SELECT fileID FROM shelves WHERE userID=" . intval($_SESSION['user_id']) . "");
     }
 
-    if ($_GET['select'] == 'clipboard' && !empty($_SESSION['session_clipboard'])) {
-        $dbHandle->beginTransaction();
-        foreach ($_SESSION['session_clipboard'] as $clipboard_file) {
-            $dbHandle->query("INSERT INTO subfiles VALUES (" . intval($clipboard_file) . ")");
+    if ($_GET['select'] == 'clipboard') {
+
+        attach_clipboard($dbHandle);
+        $dbHandle->exec("INSERT INTO subfiles (fileID) SELECT id FROM clipboard.files");
         }
-        $dbHandle->commit();
-    }
 
     $categories_to_search = array_keys($_GET['open'], 'category');
 

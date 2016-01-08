@@ -1,5 +1,173 @@
 <?php
 
+// Send error message to client via AJAX.
+function sendError($errorMessage, $statusCode = 500) {
+
+    $errorMessage = preg_replace('/[\"\(\)\<\>\@\,\;\:\/\[\]\?\=\{\}\\\]*/', '', $errorMessage);
+    header('Error-Message: ' . $errorMessage, true, $statusCode);
+    die();
+
+}
+
+// Send error message to client via AJAX.
+function displayError($errorMessage) {
+
+    die("<h3 style=\"text-align:center\">Error! $errorMessage</h3>");
+
+}
+
+// get numbered subfolder where file resides
+function get_subfolder($file) {
+
+    $file = substr($file, 0, 5);
+    return sprintf("%02d", floor(intval($file) / 100000) + 1);
+
+}
+
+// Search database and write to history cache tables.
+function perform_search($sql) {
+
+    global $dbHandle;
+    global $limit;
+    global $from;
+    global $orderby;
+    global $ordering;
+    global $result;
+    global $rows;
+
+    // Generate table name hash.
+
+    $table_name_hash = '';
+    $table_name_array = $_GET;
+    $table_name_array['orderby'] = $orderby;
+    unset($table_name_array['_']);
+    unset($table_name_array['from']);
+    unset($table_name_array['limit']);
+    unset($table_name_array['display']);
+    $table_name_array['user_id'] = $_SESSION['user_id'];
+    $table_name_array = array_filter($table_name_array);
+    ksort($table_name_array);
+    $table_name_hash = 'search_' . hash('crc32', json_encode($table_name_array));
+    $_SESSION['display_files'] = $table_name_hash;
+
+    // Read db change times.
+    $db_change = database_change(array(
+        'library',
+        'shelves',
+        'projects',
+        'projectsusers',
+        'projectsfiles',
+        'filescategories',
+        'notes',
+        'annotations'
+            ), array('full_text'), array('clipboard'));
+
+    $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'history.sq3');
+    $dbHandle->exec("ATTACH DATABASE $quoted_path as history");
+
+    if (isset($_GET['select']) && $_GET['select'] == 'clipboard') {
+        attach_clipboard($dbHandle);
+    }
+    
+    $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'fulltext.sq3');
+
+    if ((isset($_GET['browse']) && array_key_exists('Not Indexed', $_GET['browse'])) || (isset($_GET['searchtype']) && $_GET['searchtype'] == 'pdf') || (isset($_GET['searchtype']) && $_GET['searchtype'] == 'global')) {
+        $dbHandle->exec("ATTACH DATABASE $quoted_path AS fulltextdatabase");
+    }
+    
+    $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'discussions.sq3');
+
+    if (isset($_GET['browse']) && array_key_exists('Discussed Items', $_GET['browse'])) {
+        $dbHandle->exec("ATTACH DATABASE $quoted_path AS discussionsdatabase");
+    }
+
+    $dbHandle->exec("CREATE TABLE IF NOT EXISTS history.search_tables ("
+            . "id INTEGER PRIMARY KEY,"
+            . "table_name TEXT NOT NULL DEFAULT '',"
+            . "created TEXT NOT NULL DEFAULT '',"
+            . "total_rows TEXT NOT NULL DEFAULT '')");
+
+    // Delete stale tables.
+    $dbHandle->beginTransaction();
+
+    $result = $dbHandle->query("SELECT id, table_name, created FROM history.search_tables");
+    $rows = $result->fetchAll(PDO::FETCH_ASSOC);
+    $result = null;
+
+    foreach ($rows as $row) {
+
+        if ($row['created'] < $db_change || isset($_GET['browse']['Discussed Items']) || isset($_GET['browse']['Viewed in the last 8 hours'])) {
+
+            $dbHandle->exec("DROP TABLE history.`" . $row['table_name'] . "`");
+            $dbHandle->exec("DELETE FROM history.search_tables WHERE id=" . $row['id']);
+        }
+    }
+
+    $dbHandle->commit();
+
+    $rows = null;
+
+    // Check if cache table exists.
+    $result = $dbHandle->query("SELECT count(*) FROM history.sqlite_master WHERE type='table' AND name='$table_name_hash'");
+    $table = $result->fetchColumn();
+    $result = null;
+
+    // No. Get all ids ordered + total count and save to history.
+    // Yes. Do id-based paging.
+    if ($table == 0) {
+
+        $dbHandle->exec("CREATE TABLE IF NOT EXISTS history.`" . $table_name_hash . "` "
+                . "(id INTEGER PRIMARY KEY, itemID INTEGER NOT NULL DEFAULT '')");
+
+        $dbHandle->beginTransaction();
+
+        $dbHandle->exec("INSERT INTO history.`$table_name_hash` (itemID) " . $sql);
+
+        $dbHandle->exec("INSERT INTO history.search_tables(table_name,created,total_rows)"
+                . " VALUES('$table_name_hash', '" . time() . "', (SELECT count(*) FROM history.`$table_name_hash`))");
+
+        $dbHandle->commit();
+    }
+
+    if ($orderby == 'id') {
+        $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
+            FROM library WHERE id IN (SELECT itemID FROM history.`$table_name_hash` ORDER BY id DESC LIMIT $limit OFFSET $from) ORDER BY id DESC");
+    } else {
+
+        $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
+            FROM library WHERE id IN (SELECT itemID FROM history.`$table_name_hash` LIMIT $limit OFFSET $from) $ordering");
+    }
+
+    $result2 = $dbHandle->query("SELECT total_rows FROM history.search_tables WHERE table_name='$table_name_hash'");
+    $rows = $result2->fetchColumn();
+    $result2 = null;
+
+    $dbHandle->exec("DETACH history");
+    $dbHandle->exec("DETACH clipboard");
+    $dbHandle->exec("DETACH fulltextdatabase");
+    $dbHandle->exec("PRAGMA shrink_memory");
+
+}
+
+// Attach clipboard database.
+function attach_clipboard($dbHandle) {
+
+    $clipboard_db = $dbHandle->quote(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'clipboard.sq3');
+    $dbHandle->exec("ATTACH DATABASE $clipboard_db AS clipboard");
+    $dbHandle->exec("CREATE TABLE IF NOT EXISTS clipboard.files (id INTEGER PRIMARY KEY)");
+    $dbHandle->exec("CREATE TABLE IF NOT EXISTS clipboard.clipboard_log (ch_time TEXT NOT NULL DEFAULT '')");
+    $dbHandle->exec("INSERT OR IGNORE INTO clipboard.clipboard_log (rowid, ch_time) VALUES(1, strftime('%s','now'))");
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS clipboard.trigger_clipboard_delete AFTER DELETE ON files 
+                        BEGIN
+                            UPDATE clipboard_log SET ch_time=strftime('%s','now') WHERE rowid=1;
+                        END;");
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS clipboard.trigger_clipboard_insert AFTER INSERT ON files 
+                        BEGIN
+                            UPDATE clipboard_log SET ch_time=strftime('%s','now') WHERE rowid=1;
+                        END;");
+
+}
+
 // ALLOW SUB, SUP, AND MATHML
 function lib_htmlspecialchars($input) {
     $input = htmlspecialchars($input);
@@ -15,6 +183,7 @@ function lib_htmlspecialchars($input) {
         $input = str_replace('&lt;' . $tag . '/&gt;', '<' . $tag . '/>', $input);
     }
     return $input;
+
 }
 
 // CUSTOM SQLITE ERROR REPORTING
@@ -25,6 +194,7 @@ function get_db_error($dbHandle, $f, $l) {
                 . '<br><b>File:</b> ' . $f
                 . '<br><b>Line:</b> ' . $l . '</div>');
     }
+
 }
 
 // NEW PASSWORD FORMAT, SHA512 GRACEFULLY DEGRADES TO CRYPTOGRAPHIC MD5 TO MD5 HASH
@@ -69,6 +239,7 @@ function generate_encrypted_password($password) {
     }
 
     return $hash;
+
 }
 
 // CHECK PASSWORD (NEW FORMAT)
@@ -116,6 +287,7 @@ function check_encrypted_password($dbHandle, $username, $password) {
     }
 
     return $verdict;
+
 }
 
 function convert_type($input, $from, $to) {
@@ -152,6 +324,13 @@ function convert_type($input, $from, $to) {
             'csl' => 'paper-conference'
         ),
         array(
+            'ilib' => 'conference',
+            'bibtex' => 'conference',
+            'ris' => 'CONF',
+            'endnote' => 'Conference Paper',
+            'csl' => 'paper-conference'
+        ),
+        array(
             'ilib' => 'manual',
             'bibtex' => 'manual',
             'ris' => 'STAND',
@@ -161,6 +340,13 @@ function convert_type($input, $from, $to) {
         array(
             'ilib' => 'thesis',
             'bibtex' => 'phdthesis',
+            'ris' => 'THES',
+            'endnote' => 'Thesis',
+            'csl' => 'thesis'
+        ),
+        array(
+            'ilib' => 'thesis',
+            'bibtex' => 'mastersthesis',
             'ris' => 'THES',
             'endnote' => 'Thesis',
             'csl' => 'thesis'
@@ -185,6 +371,13 @@ function convert_type($input, $from, $to) {
             'ris' => 'UNPB',
             'endnote' => 'Unpublished Work',
             'csl' => 'manuscript'
+        ),
+        array(
+            'ilib' => 'report',
+            'bibtex' => 'techreport',
+            'ris' => 'RPRT',
+            'endnote' => 'Report',
+            'csl' => 'report'
         )
     );
     foreach ($types as $type) {
@@ -192,13 +385,11 @@ function convert_type($input, $from, $to) {
             $output = $type[$to];
     }
     return $output;
+
 }
 
 function cache_name() {
-    global $temp_dir;
-    $clipboard = array();
-    if (isset($_SESSION['session_clipboard']))
-        $clipboard = $_SESSION['session_clipboard'];
+
     if (isset($_SESSION['limit']))
         $clipboard[] = $_SESSION['limit'];
     if (isset($_SESSION['orderby']))
@@ -212,22 +403,26 @@ function cache_name() {
     $md5_cache_string = serialize($md5_cache_array);
     $md5_cache = md5(__FILE__ . $md5_cache_string);
     $cache_name = 'page_' . $md5_cache;
-    $cache_name = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $cache_name;
+    $cache_name = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $cache_name;
     return $cache_name;
+
 }
 
 function database_change() {
 
-    global $database_path;
     $ch_time = 0;
     $ch_time2 = 0;
+    $ch_time3 = 0;
     $tables = array();
     $tables2 = array();
+    $tables3 = array();
     $tables_arr = func_get_args();
     if (isset($tables_arr[0]))
         $tables = (array) $tables_arr[0];
     if (isset($tables_arr[1]))
         $tables2 = (array) $tables_arr[1];
+    if (isset($tables_arr[2]))
+        $tables3 = (array) $tables_arr[2];
 
     // READ DATABASE MTIME
 
@@ -237,12 +432,12 @@ function database_change() {
         }
         $query_str = join(' OR ', $query_arr);
 
-        $dbHandle = database_connect($database_path, 'library');
-        $result = $dbHandle->query("SELECT max(ch_time) FROM library_log
+        $dbHandle_t = database_connect(IL_DATABASE_PATH, 'library');
+        $result_t = $dbHandle_t->query("SELECT max(ch_time) FROM library_log
             WHERE " . $query_str);
-        $ch_time = $result->fetchColumn();
-        $result = null;
-        $dbHandle = null;
+        $ch_time = $result_t->fetchColumn();
+        $result_t = null;
+        $dbHandle_t = null;
     }
 
     if (count($tables2) > 0) {
@@ -251,15 +446,25 @@ function database_change() {
         }
         $query_str = join(' OR ', $query_arr);
 
-        $dbHandle = database_connect($database_path, 'fulltext');
-        $result = $dbHandle->query("SELECT max(ch_time) FROM fulltext_log
+        $dbHandle_t = database_connect(IL_DATABASE_PATH, 'fulltext');
+        $result_t = $dbHandle_t->query("SELECT max(ch_time) FROM fulltext_log
             WHERE " . $query_str);
-        $ch_time2 = $result->fetchColumn();
-        $result = null;
-        $dbHandle = null;
+        $ch_time2 = $result_t->fetchColumn();
+        $result_t = null;
+        $dbHandle_t = null;
     }
 
-    return max($ch_time, $ch_time2);
+    if (count($tables3) > 0) {
+        $dbHandle_t = database_connect(IL_DATABASE_PATH, 'library');
+        attach_clipboard($dbHandle_t);
+        $result_t = $dbHandle_t->query("SELECT ch_time FROM clipboard.clipboard_log");
+        $ch_time3 = $result_t->fetchColumn();
+        $result_t = null;
+        $dbHandle_t = null;
+    }
+
+    return max($ch_time, $ch_time2, $ch_time3);
+
 }
 
 function cache_start($ch_time) {
@@ -282,6 +487,7 @@ function cache_start($ch_time) {
         }
     }
     ob_start();
+
 }
 
 function cache_store() {
@@ -296,58 +502,26 @@ function cache_store() {
     // STORE BUFFER INTO CACHE
 
     file_put_contents($cache_name, $bufferContent);
-}
 
-function cache_clear() {
-    global $temp_dir;
-    //DELETE CACHED SHELF AND PROJECTS
-    @unlink($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'shelf_files');
-    $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_*' . DIRECTORY_SEPARATOR . 'desk_files', GLOB_NOSORT);
-    if (is_array($clean_files)) {
-        foreach ($clean_files as $clean_file) {
-            if (is_file($clean_file) && is_writable($clean_file))
-                @unlink($clean_file);
-        }
-    }
-}
-
-function save_export_files($files) {
-    global $temp_dir;
-    $filename = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'export_files';
-    $export_files = array();
-    $export_files['timestamp'] = time();
-    $export_files['files'] = $files;
-    $export_files_content = serialize($export_files);
-    file_put_contents($filename, $export_files_content, LOCK_EX);
-}
-
-function read_export_files($ch_time) {
-
-    global $temp_dir;
-    $export_files_array['timestamp'] = 0;
-    $export_files_array['files'] = null;
-    $filename = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'export_files';
-
-    if (is_readable($filename))
-        $export_files_array = unserialize(file_get_contents($filename));
-    if ($ch_time < $export_files_array['timestamp'])
-        return $export_files_array['files'];
 }
 
 function graphical_abstract($file) {
     $filename = sprintf("%05d", intval($file));
-    $filename_array = glob('library/supplement/' . $filename . 'graphical_abstract.*');
+    $filename_array = glob(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($filename) . DIRECTORY_SEPARATOR . $filename . 'graphical_abstract.*');
     if (!empty($filename_array[0]))
         return $filename_array[0];
+
 }
 
-function get_username($dbHandle, $database_path, $userID) {
-    $dbHandle->exec("ATTACH DATABASE '" . $database_path . "users.sq3' AS usersdatabase");
+function get_username($dbHandle, $userID) {
+    $path_q = $dbHandle->quote(IL_USER_DATABASE_PATH . DIRECTORY_SEPARATOR . 'users.sq3');
+    $dbHandle->exec("ATTACH DATABASE " . $path_q . " AS usersdatabase");
     $query = $dbHandle->quote($userID);
-    $result = $dbHandle->query("SELECT usersdatabase.users.username AS username FROM usersdatabase.users WHERE userID=$query LIMIT 1");
+    $result = $dbHandle->query("SELECT usersdatabase.users.username AS username FROM usersdatabase.users WHERE userID = $query LIMIT 1");
     $username = $result->fetchColumn();
     $dbHandle->exec("DETACH DATABASE usersdatabase");
     return $username;
+
 }
 
 /////////////create, upgrade, or connect to database//////////////////////
@@ -355,9 +529,9 @@ function get_username($dbHandle, $database_path, $userID) {
 function database_connect($database_path, $database_name) {
     global $dbHandle;
     /////////////create databases//////////////////////
-    if (!is_file($database_path . 'library.sq3')) {
+    if (!is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
         try {
-            $dbHandle = new PDO('sqlite:' . $database_path . 'library.sq3');
+            $dbHandle = new PDO('sqlite:' . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3');
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage() . "<br/>";
             print "PHP extensions PDO and PDO_SQLite must be installed.";
@@ -399,12 +573,13 @@ function database_connect($database_path, $database_name) {
                 custom4 text NOT NULL DEFAULT '',
                 bibtex text NOT NULL DEFAULT '',
                 tertiary_title text NOT NULL DEFAULT '',
-                filehash text NOT NULL DEFAULT ''
+                filehash text NOT NULL DEFAULT '',
+                bibtex_type text NOT NULL DEFAULT ''
                 )");
         $dbHandle->exec("CREATE TABLE shelves (
                 fileID integer NOT NULL DEFAULT '',
                 userID integer NOT NULL DEFAULT '',
-                UNIQUE (fileID,userID)
+                UNIQUE (fileID, userID)
                 )");
         $dbHandle->exec("CREATE TABLE categories (
                 categoryID integer PRIMARY KEY,
@@ -413,7 +588,7 @@ function database_connect($database_path, $database_name) {
         $dbHandle->exec("CREATE TABLE filescategories (
                 fileID integer NOT NULL,
                 categoryID integer NOT NULL,
-                UNIQUE(fileID,categoryID)
+                UNIQUE(fileID, categoryID)
 		  )");
         $dbHandle->exec("CREATE TABLE projects (
                 projectID integer PRIMARY KEY,
@@ -424,12 +599,12 @@ function database_connect($database_path, $database_name) {
         $dbHandle->exec("CREATE TABLE projectsfiles (
                 projectID integer NOT NULL,
                 fileID integer NOT NULL,
-                UNIQUE (projectID,fileID)
+                UNIQUE (projectID, fileID)
                 )");
         $dbHandle->exec("CREATE TABLE projectsusers (
                 projectID integer NOT NULL,
                 userID integer NOT NULL,
-                UNIQUE (projectID,userID)
+                UNIQUE (projectID, userID)
                 )");
         $dbHandle->exec("CREATE TABLE notes (
                 notesID integer PRIMARY KEY,
@@ -452,7 +627,7 @@ function database_connect($database_path, $database_name) {
                 top TEXT NOT NULL,
                 left TEXT NOT NULL,
                 width TEXT NOT NULL,
-                UNIQUE (userID,filename,page,top,left)
+                UNIQUE (userID, filename, page, top, left)
                 )");
         $dbHandle->exec("CREATE TABLE annotations (
                 id INTEGER PRIMARY KEY,
@@ -462,7 +637,7 @@ function database_connect($database_path, $database_name) {
                 top TEXT NOT NULL,
                 left TEXT NOT NULL,
                 annotation TEXT NOT NULL,
-                UNIQUE (userID,filename,page,top,left)
+                UNIQUE (userID, filename, page, top, left)
                 )");
         $dbHandle->exec("CREATE INDEX journal_ind ON library (journal)");
         $dbHandle->exec("CREATE INDEX secondary_title_ind ON library (secondary_title)");
@@ -475,25 +650,25 @@ function database_connect($database_path, $database_name) {
         $tables = array('annotations', 'categories', 'filescategories', 'flagged', 'library', 'notes',
             'projects', 'projectsfiles', 'projectsusers', 'searches', 'shelves', 'yellowmarkers');
         foreach ($tables as $table) {
-            $dbHandle->exec("INSERT INTO library_log (ch_table,ch_time)
-                            VALUES('" . $table . "',strftime('%s','now'))");
+            $dbHandle->exec("INSERT INTO library_log (ch_table, ch_time)
+                            VALUES('" . $table . "', strftime('%s', 'now'))");
             $dbHandle->exec("CREATE TRIGGER trigger_" . $table . "_delete AFTER DELETE ON " . $table . " 
                             BEGIN
-                                UPDATE library_log SET ch_time=strftime('%s','now') WHERE ch_table='" . $table . "';
+                                UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
             $dbHandle->exec("CREATE TRIGGER trigger_" . $table . "_insert AFTER INSERT ON " . $table . " 
                             BEGIN
-                                UPDATE library_log SET ch_time=strftime('%s','now') WHERE ch_table='" . $table . "';
+                                UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
             $dbHandle->exec("CREATE TRIGGER trigger_" . $table . "_update AFTER UPDATE ON " . $table . " 
                             BEGIN
-                                UPDATE library_log SET ch_time=strftime('%s','now') WHERE ch_table='" . $table . "';
+                                UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
         }
         $dbHandle->commit();
         $dbHandle = null;
         try {
-            $dbHandle = new PDO('sqlite:' . $database_path . 'fulltext.sq3');
+            $dbHandle = new PDO('sqlite:' . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'fulltext.sq3');
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage() . "<br/>";
             print "PHP extensions PDO and PDO_SQLite must be installed.";
@@ -501,8 +676,7 @@ function database_connect($database_path, $database_name) {
         }
         $dbHandle->beginTransaction();
         $dbHandle->exec("CREATE TABLE full_text (
-                    id integer PRIMARY KEY,
-                    fileID text NOT NULL DEFAULT '',
+                    fileID integer PRIMARY KEY,
                     full_text text NOT NULL DEFAULT ''
                     )");
         $dbHandle->exec("CREATE TABLE fulltext_log (
@@ -510,24 +684,24 @@ function database_connect($database_path, $database_name) {
                 ch_table text NOT NULL DEFAULT '',
                 ch_time text NOT NULL DEFAULT ''
                 )");
-        $dbHandle->exec("INSERT INTO fulltext_log (ch_table,ch_time)
-                        VALUES('full_text',strftime('%s','now'))");
+        $dbHandle->exec("INSERT INTO fulltext_log (ch_table, ch_time)
+                        VALUES('full_text', strftime('%s', 'now'))");
         $dbHandle->exec("CREATE TRIGGER trigger_fulltext_delete AFTER DELETE ON full_text
                         BEGIN
-                            UPDATE fulltext_log SET ch_time=strftime('%s','now') WHERE ch_table='full_text';
+                            UPDATE fulltext_log SET ch_time = strftime('%s', 'now') WHERE ch_table = 'full_text';
                         END;");
         $dbHandle->exec("CREATE TRIGGER trigger_fulltext_insert AFTER INSERT ON full_text
                         BEGIN
-                            UPDATE fulltext_log SET ch_time=strftime('%s','now') WHERE ch_table='full_text';
+                            UPDATE fulltext_log SET ch_time = strftime('%s', 'now') WHERE ch_table = 'full_text';
                         END;");
         $dbHandle->exec("CREATE TRIGGER trigger_fulltext_update AFTER UPDATE ON full_text
                         BEGIN
-                            UPDATE fulltext_log SET ch_time=strftime('%s','now') WHERE ch_table='full_text';
+                            UPDATE fulltext_log SET ch_time = strftime('%s', 'now') WHERE ch_table = 'full_text';
                         END;");
         $dbHandle->commit();
         $dbHandle = null;
         try {
-            $dbHandle = new PDO('sqlite:' . $database_path . 'users.sq3');
+            $dbHandle = new PDO('sqlite:' . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'users.sq3');
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage() . "<br/>";
             print "PHP extensions PDO and PDO_SQLite must be installed.";
@@ -549,7 +723,7 @@ function database_connect($database_path, $database_name) {
     }
     /////////////connect to database//////////////////////
     try {
-        $dbHandle = new PDO('sqlite:' . $database_path . $database_name . '.sq3');
+        $dbHandle = new PDO('sqlite:' . $database_path . DIRECTORY_SEPARATOR . $database_name . '.sq3');
     } catch (PDOException $e) {
         print "Error: " . $e->getMessage() . "<br/>";
         print "PHP extensions PDO and PDO_SQLite must be installed.";
@@ -565,7 +739,10 @@ function database_connect($database_path, $database_name) {
             $journal_mode = 'WAL';
         $dbHandle->query('PRAGMA journal_mode=' . $journal_mode);
     }
+    $dbHandle->exec("PRAGMA cache_size = 1000000");
+    $dbHandle->sqliteCreateFunction('search_strip_tags', 'sqlite_strip_tags', 1);
     return $dbHandle;
+
 }
 
 /////////////sqlite_regexp//////////////////////
@@ -583,6 +760,7 @@ function sqlite_regexp($string1, $string2, $case) {
     } else {
         return false;
     }
+
 }
 
 /////////////sqlite_strip_tags//////////////////////
@@ -590,6 +768,7 @@ function sqlite_regexp($string1, $string2, $case) {
 function sqlite_strip_tags($string) {
 
     return html_entity_decode(strip_tags($string), ENT_QUOTES, 'UTF-8');
+
 }
 
 /////////////sqlite_levenshtein//////////////////////
@@ -604,132 +783,131 @@ function sqlite_levenshtein($string1, $string2) {
     if (stripos($string2, 'the ') === 0)
         $string2 = substr($string2, 4);
     return levenshtein($string1, $string2);
+
 }
 
 /////////////select pdftotext//////////////////////
 
 function select_pdftotext() {
 
-    global $pdftotext;
+    $path = __DIR__ . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'poppler';
+    $output = 'pdftotext';
 
-    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable('bin' . DIRECTORY_SEPARATOR . 'pdftotext.exe')) {
-        $pdftotext = 'bin' . DIRECTORY_SEPARATOR . 'pdftotext.exe -enc UTF-8 ';
-    } elseif (PHP_OS == 'Linux') {
-        $pdftotext = "pdftotext -enc UTF-8 ";
-    } elseif (PHP_OS == 'Darwin' && is_executable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'pdftotext.osx')) {
-        $pdftotext = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'pdftotext.osx -enc UTF-8 ';
+    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable($path . DIRECTORY_SEPARATOR . $output . '.exe')) {
+        $output = $path . DIRECTORY_SEPARATOR . $output . '.exe';
+    } elseif (is_executable($path . DIRECTORY_SEPARATOR . $output)) {
+        $output = $path . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $pdftotext;
+    return $output;
+
 }
 
 /////////////select pdfinfo//////////////////////
 
 function select_pdfinfo() {
 
-    global $pdfinfo;
+    $path = __DIR__ . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'poppler';
+    $output = 'pdfinfo';
 
-    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable('bin' . DIRECTORY_SEPARATOR . 'pdfinfo.exe')) {
-        $pdfinfo = 'bin' . DIRECTORY_SEPARATOR . 'pdfinfo.exe ';
-    } elseif (PHP_OS == 'Linux') {
-        $pdfinfo = "pdfinfo ";
-    } elseif (PHP_OS == 'Darwin' && is_executable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'pdfinfo.osx')) {
-        $pdfinfo = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'pdfinfo.osx ';
+    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable($path . DIRECTORY_SEPARATOR . $output . '.exe')) {
+        $output = $path . DIRECTORY_SEPARATOR . $output . '.exe';
+    } elseif (PHP_OS == 'Darwin' && is_executable($path . DIRECTORY_SEPARATOR . 'Frameworks' . DIRECTORY_SEPARATOR . $output)) {
+        $output = $path . DIRECTORY_SEPARATOR . 'Frameworks' . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $pdfinfo;
+    return $output;
+
 }
 
 /////////////select pdftohtml//////////////////////
 
 function select_pdftohtml() {
 
-    global $selected_pdftohtml;
+    $path = __DIR__ . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'poppler';
+    $output = 'pdftohtml';
 
-    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable('bin' . DIRECTORY_SEPARATOR . 'pdftohtml.exe')) {
-        $selected_pdftohtml = 'bin' . DIRECTORY_SEPARATOR . 'pdftohtml.exe';
-    } elseif (PHP_OS == 'Linux') {
-        $selected_pdftohtml = "pdftohtml";
-    } elseif (PHP_OS == 'Darwin' && is_executable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin/poppler/Frameworks' . DIRECTORY_SEPARATOR . 'pdftohtml')) {
-        $selected_pdftohtml = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin/poppler/Frameworks' . DIRECTORY_SEPARATOR . 'pdftohtml';
+    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable($path . DIRECTORY_SEPARATOR . $output . '.exe')) {
+        $output = $path . DIRECTORY_SEPARATOR . $output . '.exe';
+    } elseif (PHP_OS == 'Darwin' && is_executable($path . DIRECTORY_SEPARATOR . 'Frameworks' . DIRECTORY_SEPARATOR . $output)) {
+        $output = $path . DIRECTORY_SEPARATOR . 'Frameworks' . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $selected_pdftohtml;
+    return $output;
+
+}
+
+/////////////select pdfdetach//////////////////////
+
+function select_pdfdetach() {
+
+    $path = __DIR__ . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'poppler';
+    $output = 'pdfdetach';
+
+    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable($path . DIRECTORY_SEPARATOR . $output . '.exe')) {
+        $output = $path . DIRECTORY_SEPARATOR . $output . '.exe';
+    } elseif (is_executable($path . DIRECTORY_SEPARATOR . $output)) {
+        $output = $path . DIRECTORY_SEPARATOR . $output;
+    }
+
+    return $output;
+
 }
 
 /////////////select ghostscript//////////////////////
 
 function select_ghostscript() {
 
-    global $selected_ghostscript;
+    $path = __DIR__ . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'gs';
+    $output = 'gs';
 
-    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable('bin' . DIRECTORY_SEPARATOR . 'gs' . DIRECTORY_SEPARATOR . 'gswin32c.exe')) {
-        $selected_ghostscript = 'bin' . DIRECTORY_SEPARATOR . 'gs' . DIRECTORY_SEPARATOR . 'gswin32c.exe';
-    } elseif (PHP_OS == 'Linux') {
-        $selected_ghostscript = 'gs';
-    } elseif (PHP_OS == 'Darwin' && is_executable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'gs' . DIRECTORY_SEPARATOR . 'gs.osx')) {
-        $selected_ghostscript = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'gs' . DIRECTORY_SEPARATOR . 'gs.osx';
+    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable($path . DIRECTORY_SEPARATOR . $output . 'win32c.exe')) {
+        $output = $path . DIRECTORY_SEPARATOR . $output . 'win32c.exe';
+    } elseif (is_executable($path . DIRECTORY_SEPARATOR . $output)) {
+        $output = $path . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $selected_ghostscript;
-}
+    return $output;
 
-/////////////select pdftk//////////////////////
-
-function select_pdftk() {
-
-    global $pdftk;
-
-    if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' && is_executable('bin' . DIRECTORY_SEPARATOR . 'pdftk' . DIRECTORY_SEPARATOR . 'pdftk.exe')) {
-        $pdftk = 'bin' . DIRECTORY_SEPARATOR . 'pdftk' . DIRECTORY_SEPARATOR . 'pdftk.exe ';
-    } elseif (PHP_OS == 'Linux') {
-        $pdftk = "pdftk ";
-    } elseif (PHP_OS == 'Darwin') {
-        $pdftk = '/usr/local/bin/pdftk ';
-    }
-
-    return $pdftk;
 }
 
 /////////////select tesseract//////////////////////
 
 function select_tesseract() {
 
-    global $selected_tesseract;
+    $output = 'tesseract';
 
     if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-        $selected_tesseract = '"%PROGRAMFILES%\\Tesseract-OCR\\tesseract.exe"';
-    } elseif (PHP_OS == 'Linux') {
-        $selected_tesseract = 'tesseract';
-    } elseif (PHP_OS == 'Darwin') {
-        $selected_tesseract = 'tesseract';
+        $output = '"%PROGRAMFILES%\\Tesseract-OCR\\tesseract.exe"';
     }
 
-    return $selected_tesseract;
+    return $output;
+
 }
 
 /////////////select soffice//////////////////////
 
 function select_soffice() {
 
-    global $selected_soffice;
+    $output = 'soffice';
+    $path = '"%PROGRAMFILES%\\LibreOffice 4\\program\\soffice.exe"';
 
     if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-        $selected_soffice = '"%PROGRAMFILES%\\LibreOffice 4\\program\\soffice.exe"';
-    } elseif (PHP_OS == 'Linux') {
-        $selected_soffice = 'soffice';
-    } elseif (PHP_OS == 'Darwin') {
-        $selected_soffice = 'soffice';
+        if (!empty($_SESSION['soffice_path'])) {
+            $output = '"' . $_SESSION['soffice_path'] . DIRECTORY_SEPARATOR . 'soffice.exe"';
+        } else {
+            $output = '"%PROGRAMFILES%\\LibreOffice 4\\program\\soffice.exe"';
+        }
     }
 
-    return $selected_soffice;
+    return $output;
+
 }
 
 /////////////proxy_file_get_contents//////////////////////
 
 function proxy_file_get_contents($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
 
-    global $pdf, $csv, $ris;
     $pdf_string = '';
 
     if (!parse_url($url, PHP_URL_SCHEME))
@@ -969,19 +1147,20 @@ function proxy_file_get_contents($url, $proxy_name, $proxy_port, $proxy_username
             }
         }
     }
-    if (!empty($pdf))
+    if (!empty($pdf)) {
         return $pdf;
-    if (!empty($csv))
+    } elseif (!empty($csv)) {
         return $csv;
-    if (!empty($ris))
+    } elseif (!empty($ris)) {
         return $ris;
+    }
+
 }
 
 /////////////proxy_simplexml_load_file//////////////////////
 
 function proxy_simplexml_load_file($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
 
-    global $xml;
     $xml = false;
     $xml_string = '';
     $xml_string2 = '';
@@ -1107,11 +1286,11 @@ function proxy_simplexml_load_file($url, $proxy_name, $proxy_port, $proxy_userna
     }
 //    $xml = false;
     return $xml;
+
 }
 
 function proxy_dom_load_file($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
 
-    global $dom;
     $dom = false;
     $context = null;
 
@@ -1133,6 +1312,7 @@ function proxy_dom_load_file($url, $proxy_name, $proxy_port, $proxy_username, $p
     if ($dom === false)
         $dom = '';
     return $dom;
+
 }
 
 //FETCH METADATA FROM NASA ADS
@@ -1220,6 +1400,8 @@ function fetch_from_nasaads($doi, $nasa_id) {
             foreach ($authors as $author) {
                 $author_array = explode(",", $author);
                 $name_array[] = 'L:"' . trim($author_array[0]) . '",F:"' . trim($author_array[1]) . '"';
+                $response['last_name'][] = trim($author_array[0]);
+                $response['first_name'][] = trim($author_array[1]);
             }
         }
 
@@ -1239,15 +1421,18 @@ function fetch_from_nasaads($doi, $nasa_id) {
         if (isset($keywords_array))
             $response['keywords'] = join(" / ", $keywords_array);
 
+        $response['uid'] = array();
         if (!empty($bibcode))
             $response['uid'][] = "NASAADS:$bibcode";
         if (!empty($eprintid))
             $response['uid'][] = "ARXIV:$eprintid";
 
+        $response['url'] = array();
         $response['url'][] = $nasa_url;
         if (!empty($eprintid))
             $response['url'][] = "http://arxiv.org/abs/$eprintid";
     }
+
 }
 
 //FETCH METADATA FROM CROSSREF
@@ -1330,26 +1515,41 @@ function fetch_from_crossref($doi) {
             $response['pages'] = $response['pages'] . "-" . $last_page;
 
         $authors = array();
+        $editors = array();
         $contributors = $record->contributors->contributor;
         if (count($contributors) > 0) {
             foreach ($contributors as $contributor) {
 
+                foreach ($contributor->attributes() as $a => $b) {
+
+                    if ($a == 'contributor_role' && $b == 'author') {
                 $authors1 = html_entity_decode($contributor->surname);
                 $authors2 = html_entity_decode($contributor->given_name);
                 $authors[] = 'L:"' . $authors1 . '",F:"' . $authors2 . '"';
+                        $response['last_name'][] = $authors1;
+                        $response['first_name'][] = $authors2;
+                    } elseif ($a == 'contributor_role' && $b == 'editor') {
+                        $authors1 = html_entity_decode($contributor->surname);
+                        $authors2 = html_entity_decode($contributor->given_name);
+                        $editors[] = 'L:"' . $authors1 . '",F:"' . $authors2 . '"';
+                    }
+                }
             }
         }
         if (count($authors) > 0)
             $response['authors'] = join(";", $authors);
+        if (count($editors) > 0)
+            $response['editor'] = join(";", $editors);
     }
+
 }
 
 //FETCH METADATA FROM GOOGLE PATENTS
 function fetch_from_googlepatents($patent_id) {
 
-    global $proxy_name, $proxy_port, $proxy_username, $proxy_password, $response, $temp_dir;
+    global $proxy_name, $proxy_port, $proxy_username, $proxy_password, $response;
 
-    $request_url = "https://www.google.com/patents/" . urlencode($patent_id);
+    $request_url = "http://www.google.com/patents/" . urlencode($patent_id);
 
     $dom = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -1371,23 +1571,27 @@ function fetch_from_googlepatents($patent_id) {
             $last = array_pop($author_array);
             $first = join(' ', $author_array);
             $name_array[] = 'L:"' . $last . '",F:"' . $first . '"';
+            $response['last_name'][] = $last;
+            $response['first_name'][] = $first;
         }
     }
 
-    if (isset($name_array))
+    if (isset($name_array)) {
         $response['authors'] = join(";", $name_array);
+    }
 
     //GET PDF LINK
     preg_match('/(\<a id=\"appbar\-download\-pdf\-link\" href=\")(.+)(\">\<\/a\>)/Ui', $dom, $pdf_link);
     $response['form_new_file_link'] = 'http:' . $pdf_link[2];
 
     //GET OTHER META TAGS
-    file_put_contents($temp_dir . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id), $dom);
-    $tags = get_meta_tags($temp_dir . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
+    file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id), $dom);
+    $tags = get_meta_tags(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
     $response['title'] = $tags['dc_title'];
     $response['abstract'] = $tags['dc_description'];
     $response['year'] = $tags['dc_date'];
-    unlink($temp_dir . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
+    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
+
 }
 
 //FETCH METADATA FROM OPEN LIBRARY
@@ -1430,6 +1634,8 @@ function fetch_from_ol($ol_id, $isbn) {
             $last = array_pop($author_array);
             $first = join(' ', $author_array);
             $name_array[] = 'L:"' . $last . '",F:"' . $first . '"';
+            $response['last_name'][] = $last;
+            $response['first_name'][] = $first;
         }
     }
     if (isset($name_array))
@@ -1453,6 +1659,7 @@ function fetch_from_ol($ol_id, $isbn) {
     }
 
     $response['url'][] = 'http://openlibrary.org/book/' . $ol_id;
+
 }
 
 //FETCH METADATA FROM IEEE XPLORE
@@ -1460,175 +1667,116 @@ function fetch_from_ieee($ieee_id) {
 
     global $proxy_name, $proxy_port, $proxy_username, $proxy_password, $response;
 
-    $request_url = 'http://ieeexplore.ieee.org/xpl/downloadCitations?reload=true&citations-format=citation-abstract&download-format=download-ris&recordIds=' . urlencode($ieee_id);
+    $request_url = "http://ieeexplore.ieee.org/gateway/ipsSearch.jsp?an=" . $ieee_id;
 
-    $ris = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+    $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
-    if (empty($ris))
+    if ($xml === FALSE) {
         die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
             Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
-
-    function trim_arr(&$v, $k) {
-        $v = trim($v);
     }
-    $file_records = explode('ER  -', $ris);
-    array_walk($file_records, 'trim_arr');
-    $file_records = array_filter($file_records);
-    if (isset($file_records[0]))
-        $record = $file_records[0];
-    $record = html_entity_decode($record);
 
-    $title = preg_match("/(?<=T1  - |TI  - ).+/u", $record, $title_match);
+    $count = 0;
+    $count = (string) $xml->totalfound;
+    
+    if ($count == 0) {
+        die("Error! No record found.");
+    }
 
-    if ($title == 1) {
+    $item = $xml->document;
 
-        $record_array = explode("\n", $record);
+    // TITLE
+    $response['title'] = (string) $item->title;
 
-        $type_match = array();
-        $secondary_title_match = array();
-        $volume_match = array();
-        $issue_match = array();
-        $year_match = array();
-        $start_page_match = array();
-        $end_page_match = array();
-        $keywords_match = array();
-        $editors_match = array();
-        $authors_match = array();
-        $doi_match = array();
+    // IEEE ID
+    $id = (string) $item->arnumber;
+    $response['uid'][] = 'IEEE:' . $id;
 
-        foreach ($record_array as $line) {
+    // AUTHORS
+    $authors = (string) $item->authors;
+    $author_array = explode(";", $authors);
+    foreach ($author_array as $author) {
 
-            if (strpos($line, "TY") === 0)
-                $type_match[0] = trim(substr($line, 6));
-            if (strpos($line, "JF") === 0 || strpos($line, "JO") === 0 || strpos($line, "BT") === 0 || strpos($line, "T2") === 0)
-                $secondary_title_match[0] = trim(substr($line, 6));
-            if (strpos($line, "VL") === 0)
-                $volume_match[0] = trim(substr($line, 6));
-            if (strpos($line, "IS") === 0)
-                $issue_match[0] = trim(substr($line, 6));
-            if (strpos($line, "PY") === 0)
-                $year_match[0] = trim(substr($line, 6));
-            if (strpos($line, "SP") === 0)
-                $start_page_match[0] = trim(substr($line, 6));
-            if (strpos($line, "EP") === 0)
-                $end_page_match[0] = trim(substr($line, 6));
-            if (strpos($line, "KW") === 0)
-                $keywords_match[0][] = trim(substr($line, 6));
-            if (strpos($line, "ED") === 0 || strpos($line, "A2") === 0)
-                $editors_match[0][] = trim(substr($line, 6));
-            if (strpos($line, "AU") === 0 || strpos($line, "A1") === 0)
-                $authors_match[0][] = trim(substr($line, 6));
-            if (strpos($line, "DO") === 0)
-                $doi_match[0] = trim(substr($line, 6));
-            if (strpos($line, "AB") === 0)
-                $abstract_match[0] = trim(substr($line, 6));
+        $author = trim($author);
+        $comma = strpos($author, ",");
+        $space = strpos($author, " ");
+
+        if ($comma === FALSE) {
+
+            $response['first_name'][] = trim(substr($author, 0, $space));
+            $response['last_name'][] = trim(substr($author, $space + 1));
+        } else {
+
+            $response['last_name'][] = trim(substr($author, 0, $comma));
+            $response['first_name'][] = trim(substr($author, $comma + 1));
+        }
+    }
+
+    // Affiliation.
+    $response['affiliation'] = (string) $item->affiliations;
+
+    // DOI
+    $response['doi'] = (string) $item->doi;
+
+    // YEAR
+    $response['year'] = (string) $item->py;
+
+    // Secondary title.
+    $response['secondary_title'] = (string) $item->pubtitle;
+
+    // Volume.
+    $response['volume'] = (string) $item->volume;
+
+    // Issue.
+    $response['issue'] = (string) $item->issue;
+
+    // Pages.
+    $response['pages'] = (string) $item->spage;
+    $epage = (string) $item->epage;
+    if (!empty($epage) && $epage != $response['pages']) {
+        $response['pages'] .= '-' . $epage;
+    }
+
+    // Keywords.
+    $keywords_array = array();
+    if (count($item->controlledterms->term) > 0) {
+
+        foreach ($item->controlledterms->term as $keyword) {
+
+            $keywords_array[] = (string) $keyword;
         }
 
-        $response['authors'] = '';
-        $author_array = array();
-        $name_array = array();
-
-        if (!empty($authors_match[0])) {
-            foreach ($authors_match[0] as $author) {
-                $author_array = explode(",", $author);
-                $first_name = '';
-                if (isset($author_array[1]))
-                    $first_name = $author_array[1];
-                $name_array[] = 'L:"' . trim($author_array[0]) . '",F:"' . trim($first_name) . '"';
-            }
-            $response['authors'] = join(";", $name_array);
+        if (!empty($keywords_array)) {
+            $response['keywords'] = join(" / ", $keywords_array);
         }
+    }
 
+    // Publisher.
+    $response['publisher'] = (string) $item->publisher;
 
-        $response['title'] = '';
+    // Abstract.
+    $response['abstract'] = (string) $item->abstract;
 
-        if (!empty($title_match[0]))
-            $response['title'] = strip_tags(trim($title_match[0]));
+    // Reference type.
+    $reference_type = (string) $item->pubtype;
 
-        $response['year'] = '';
+    if ($reference_type == 'Conference Publications') {
 
-        if (!empty($year_match[0])) {
-
-            $date_array = array();
-            $month = '01';
-            $day = '01';
-            $date_array = explode('/', $year_match[0]);
-            if (!empty($date_array[0]))
-                $year = $date_array[0];
-            if (!empty($date_array[1]))
-                $month = $date_array[1];
-            if (!empty($date_array[2]))
-                $day = $date_array[2];
-            if (!empty($year))
-                $response['year'] = $year . '-' . $month . '-' . $day;
-            if (empty($year)) {
-                preg_match('/\d{4}/u', $year_match[0], $year_match2);
-                if (!empty($year_match2[0]))
-                    $response['year'] = $year_match2[0] . '-01-01';
-            }
-        }
-
-        $response['abstract'] = '';
-
-        if (!empty($abstract_match[0]))
-            $response['abstract'] = strip_tags(trim($abstract_match[0]));
-
-        $response['volume'] = '';
-
-        if (!empty($volume_match[0]))
-            $response['volume'] = trim($volume_match[0]);
-
-        $response['issue'] = '';
-
-        if (!empty($issue_match[0]))
-            $response['issue'] = trim($issue_match[0]);
-
-        $response['pages'] = '';
-
-        if (!empty($start_page_match[0]))
-            $response['pages'] = trim($start_page_match[0]);
-
-        if (!empty($end_page_match[0]))
-            $response['pages'] .= '-' . trim($end_page_match[0]);
-
-        $response['secondary_title'] = '';
-
-        if (!empty($secondary_title_match[0]))
-            $response['secondary_title'] = trim($secondary_title_match[0]);
-
-        $response['editor'] = '';
-
-        if (!empty($editors_match[0])) {
-            $order = array("\r\n", "\n", "\r");
-            $editors_match[0] = str_replace($order, ' ', $editors_match[0]);
-            $editors_match[0] = join("#", $editors_match[0]);
-            $patterns = array(',', '.', '#', '  ');
-            $replacements = array(' ', '', ', ', ' ');
-            $response['editor'] = str_replace($patterns, $replacements, $editors_match[0]);
-        }
+        $response['reference_type'] = 'conference';
+    } elseif ($reference_type == 'Journals & Magazines') {
 
         $response['reference_type'] = 'article';
+    } elseif ($reference_type == 'Books & eBooks') {
 
-        if (!empty($type_match[0]))
-            $response['reference_type'] = convert_type(trim($type_match[0]), 'ris', 'ilib');
+        $response['reference_type'] = 'chapter';
+    } elseif ($reference_type == 'Early Access Articles') {
 
-        $response['keywords'] = '';
+        $response['reference_type'] = 'article';
+    } elseif ($reference_type == 'Standards') {
 
-        if (!empty($keywords_match[0])) {
-            $order = array("\r\n", "\n", "\r");
-            $keywords_match[0] = str_replace($order, ' ', $keywords_match[0]);
-            $patterns = array('[', ']', '|', '"', '/', '*');
-            $keywords_match[0] = str_replace($patterns, ' ', $keywords_match[0]);
-            array_walk($keywords_match[0], 'trim');
-            $keywords_match[0] = join("#", $keywords_match[0]);
-            $response['keywords'] = str_replace("#", " / ", $keywords_match[0]);
-        }
-
-        $response['doi'] = '';
-
-        if (!empty($doi_match[0]))
-            $response['doi'] = trim($doi_match[0]);
+        $response['reference_type'] = 'manual';
     }
+
 }
 
 //FETCH METADATA FROM ARXIV
@@ -1670,6 +1818,8 @@ function fetch_from_arxiv($arxiv_id) {
                 $author_array = explode(' ', $author);
                 $last = array_pop($author_array);
                 $first = join(' ', $author_array);
+                $response['last_name'][] = $last;
+                $response['first_name'][] = $first;
                 $name_array[] = 'L:"' . $last . '",F:"' . $first . '"';
             }
         }
@@ -1684,6 +1834,7 @@ function fetch_from_arxiv($arxiv_id) {
 
         $response['url'][] = "http://arxiv.org/abs/$arxiv_id";
     }
+
 }
 
 //FETCH METADATA FROM PUBMED
@@ -1799,6 +1950,8 @@ function fetch_from_pubmed($doi, $pmid) {
             if (!empty($authors)) {
                 foreach ($authors as $author) {
                     $name_array[] = 'L:"' . $author->LastName . '",F:"' . $author->ForeName . '"';
+                    $response['last_name'][] = (string) $author->LastName;
+                    $response['first_name'][] = (string) $author->ForeName;
                     if (empty($response['affiliation']))
                         $response['affiliation'] = $author->AffiliationInfo->Affiliation;
                 }
@@ -1889,13 +2042,15 @@ function fetch_from_pubmed($doi, $pmid) {
                 $response['editors'] = join(";", $name_array);
         }
     }
+
 }
 
 function record_unknown($dbHandle, $title, $string, $file, $userID) {
 
-    global $temp_dir, $database_path, $library_path;
-    $query = "INSERT INTO library (file, title, title_ascii, addition_date, rating, added_by)
-             VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(file)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')), :title, :title_ascii, :addition_date, :rating, :added_by)";
+    $query = "INSERT INTO library (file, title, title_ascii, addition_date, rating, added_by, bibtex)
+             VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(id)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')),
+             :title, :title_ascii, :addition_date, :rating, :added_by,
+             'unknown-0000-ID' || (SELECT IFNULL((SELECT MAX(id)+1 FROM library), 1)))";
 
     $stmt = $dbHandle->prepare($query);
 
@@ -1905,8 +2060,9 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     $stmt->bindParam(':rating', $rating, PDO::PARAM_INT);
     $stmt->bindParam(':added_by', $added_by, PDO::PARAM_INT);
 
-    if (empty($title))
+    if (empty($title)) {
         $title = basename($file);
+    }
     $file_extension = pathinfo($title, PATHINFO_EXTENSION);
     $title_ascii = utf8_deaccent($title);
     $addition_date = date('Y-m-d');
@@ -1918,34 +2074,24 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     $stmt->execute();
     $stmt = null;
 
-    $last_insert = $dbHandle->query("SELECT last_insert_rowid(),max(file) FROM library");
-    $last_row = $last_insert->fetch(PDO::FETCH_ASSOC);
-    $last_insert = null;
-    $id = $last_row['last_insert_rowid()'];
-    $new_file = $last_row['max(file)'];
+    $id = $dbHandle->lastInsertId();
+    $new_file = str_pad($id, 5, "0", STR_PAD_LEFT) . '.pdf';
 
     if (isset($_GET['shelf']) && !empty($userID)) {
         $user_query = $dbHandle->quote($userID);
         $file_query = $dbHandle->quote($id);
         $dbHandle->exec("INSERT OR IGNORE INTO shelves (userID,fileID) VALUES ($user_query,$file_query)");
-        @unlink($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'shelf_files');
     }
 
     if (isset($_GET['project']) && !empty($_GET['projectID'])) {
         $dbHandle->exec("INSERT OR IGNORE INTO projectsfiles (projectID,fileID) VALUES (" . intval($_GET['projectID']) . "," . intval($id) . ")");
-        $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_*' . DIRECTORY_SEPARATOR . 'desk_files', GLOB_NOSORT);
-        if (is_array($clean_files)) {
-            foreach ($clean_files as $clean_file) {
-                if (is_file($clean_file) && is_writable($clean_file))
-                    @unlink($clean_file);
-            }
-        }
     }
 
     ####### record new category into categories, if not exists #########
 
-    if (isset($_GET['category2']))
+    if (isset($_GET['category2'])) {
         $category2 = $_GET['category2'];
+    }
     $category2[] = '!unknown';
     $category_ids = array();
 
@@ -1965,9 +2111,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
         $result = null;
         if (empty($exists)) {
             $stmt->execute();
-            $last_id = $dbHandle->query("SELECT last_insert_rowid() FROM categories");
-            $category_ids[] = $last_id->fetchColumn();
-            $last_id = null;
+            $category_ids[] = $dbHandle->lastInsertId();
         }
     }
     $stmt = null;
@@ -1991,23 +2135,24 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     $stmt->bindParam(':categoryid', $category_id);
 
     while (list($key, $category_id) = each($categories)) {
-        if (!empty($id))
+        if (!empty($id)) {
             $stmt->execute();
+        }
     }
     $stmt = null;
 
     $dbHandle->exec("COMMIT");
 
-    copy($file, dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . $new_file);
+    copy($file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
 
-    $hash = md5_file(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . $new_file);
+    $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
 
     //record office file into supplement
     if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
         //record original file into supplement
-        $supplement_filename = sprintf("%05d", intval($new_file)) . $title;
-        copy($temp_dir . DIRECTORY_SEPARATOR . $title, $library_path . DIRECTORY_SEPARATOR . 'supplement' . DIRECTORY_SEPARATOR . $supplement_filename);
-        unlink($temp_dir . DIRECTORY_SEPARATOR . $title);
+        $supplement_filename = sprintf("%06d", intval($new_file)) . $title;
+        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
+        unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title);
     }
 
     //RECORD FILE HASH FOR DUPLICATE DETECTION
@@ -2020,7 +2165,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
 
     if (!empty($string)) {
 
-        $dbHandle2 = database_connect($database_path, 'fulltext');
+        $dbHandle2 = database_connect(IL_DATABASE_PATH, 'fulltext');
 
         $file_query = $dbHandle2->quote($id);
         $fulltext_query = $dbHandle2->quote($string);
@@ -2031,26 +2176,28 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
         $dbHandle2 = null;
     }
 
-    $pdftk = select_pdftk();
-    $unpack_dir = $temp_dir . DIRECTORY_SEPARATOR . $new_file;
-    @mkdir($unpack_dir);
-    exec($pdftk . '"' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $new_file . '" unpack_files output "' . $unpack_dir . '"');
+    $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
+    mkdir($unpack_dir);
+    exec(select_pdfdetach() . ' -saveall -o "' . $unpack_dir . '" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file . '"');
     $unpacked_files = array();
     $unpacked_files = scandir($unpack_dir);
     foreach ($unpacked_files as $unpacked_file) {
-        if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file))
-            @rename($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file, dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'supplement' . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
+        if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file)) {
+            rename($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
+        }
     }
-    @rmdir($unpack_dir);
+    rmdir($unpack_dir);
+
 }
 
 /////////////show results//////////////////////
 
-function show_search_results($result, $select, $display, $shelf_files, $desktop_projects, $tempdbHandle) {
+function show_search_results($result, $select, $shelf_files, $desktop_projects, $clip_files, $tempdbHandle) {
 
     $project = '';
     if (!empty($_GET['project']))
         $project = $_GET['project'];
+    $display = $_SESSION['display'];
 
     $i = 0;
 
@@ -2205,13 +2352,13 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             if (date('Y-m-d') == $paper['addition_date'])
                 print '<div class="new-item ui-state-error-text">New!</div>';
 
-            if (is_readable('library/' . $paper['file'])) {
+            if (is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file'])) {
 
                 if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
-                    print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
+                    print '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                    print '<a href="' . htmlspecialchars('viewpdf.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="width:360px;height:240px;display:block">';
+                    print '<a href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="width:360px;height:240px;display:block">';
 
                 print '<img src="icon.php?file=' . $paper['file'] . '" style="width:360px;height:240px;border:0" alt="Loading PDF..."></a>';
             } else {
@@ -2222,11 +2369,12 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
 
             print PHP_EOL . '<table class="item-sticker" style="width:100%;border:1px solid #c5c6c8"><tr><td class="noprint ui-corner-all" style="padding:0.5em 0.75em">';
 
-            print '<div style="float:left"><i class="fa fa-info-circle quick-view"></i>&nbsp;&nbsp;';
+            print '<i class="fa fa-info-circle quick-view" style="font-size:1.25em"></i>&nbsp;&nbsp;&nbsp;';
+            print '<i class="fa fa-external-link-square quick-view-external" style="font-size:1.25em"></i>&nbsp;&nbsp;&nbsp;';
 
-            print '<span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
-            print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i>';
-            print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;&nbsp;&nbsp;';
+            print '<span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star" style="font-size:1.25em"></i>';
+            print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star" style="font-size:1.25em"></i>';
+            print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star" style="font-size:1.25em"></i></span>&nbsp;&nbsp;&nbsp;';
 
             if (empty($paper['bibtex'])) {
                 $bibtex_author = strip_tags($paper['authors']);
@@ -2243,7 +2391,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
             }
 
-            echo '</div><div style="width:260px;white-space:nowrap;overflow:hidden;margin-bottom:0.25em">'
+            echo '<div style="width:260px;white-space:nowrap;overflow:hidden;margin:0.5em 0">'
             . '<input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly></div>';
 
             if (isset($shelf_files) && in_array($paper['id'], $shelf_files)) {
@@ -2252,7 +2400,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 print ' <span class="update_shelf"><i class="update_shelf fa fa-square-o"></i>&nbsp;Shelf&nbsp;</span>';
             }
 
-            if (isset($_SESSION['session_clipboard']) && in_array($paper['id'], $_SESSION['session_clipboard'])) {
+            if (in_array($paper['id'], $clip_files)) {
                 print ' &nbsp;<span class="update_clipboard clicked"><i class="update_clipboard fa fa-check-square ui-state-error-text"></i>&nbsp;Clipboard&nbsp;</span>';
             } else {
                 print ' &nbsp;<span class="update_clipboard"><i class="update_clipboard fa fa-square-o"></i>&nbsp;Clipboard&nbsp;</span>';
@@ -2282,24 +2430,25 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
             print PHP_EOL . '<div id="display-item-' . $paper['id'] . '" class="item-container items" data-file="' . $paper['file'] . '" style="padding:0 0 0.75em 0">';
 
             print '<div class="ui-widget-header" style="overflow:hidden;border-left:0;border-right:0;padding:2px 6px">'
-                    . '<div class="noprint titles-pdf quick-view" style="float:left"><i class="fa fa-info-circle" style="font-size:1em"></i></div>';
+                    . '<div class="noprint titles-pdf" style="float:left"><i class="fa fa-info-circle quick-view" style="font-size:1em"></i>';
+            echo '&nbsp;&nbsp;&nbsp;<i class="fa fa-external-link-square quick-view-external" style="font-size:1em"></i>&nbsp;</div>';
 
-            if (is_file('library/' . $paper['file']) && isset($_SESSION['auth'])) {
+            if (is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file']) && isset($_SESSION['auth'])) {
 
                 if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
                     print '<div class="noprint titles-pdf" style="float:left">
-                        <a class="ui-state-error-text" href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">
+                        <a class="ui-state-error-text" href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">
                                 PDF</a></div>';
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
                     print '<div class="noprint titles-pdf" style="float:left">
-                        <a class="ui-state-error-text" href="' . htmlspecialchars('viewpdf.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="display:block">
+                        <a class="ui-state-error-text" href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="display:block">
                                 PDF</a></div>';
             } else {
                 print PHP_EOL . '<div class="ui-state-error-text noprint titles-pdf" style="float:left;color:rgba(0,0,0,0.3);cursor:auto">PDF</div>';
             }
 
-            print PHP_EOL . '<div class="titles brief">' . $paper['title'] . '</div>';
+            print PHP_EOL . '<div class="titles brief">&nbsp;' . $paper['title'] . '</div>';
 
             print '</div>';
 
@@ -2313,7 +2462,7 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
                 print '<span class="update_shelf"><i class="update_shelf fa fa-square-o"></i>&nbsp;Shelf&nbsp;</span>';
             }
 
-            if (isset($_SESSION['session_clipboard']) && in_array($paper['id'], $_SESSION['session_clipboard'])) {
+            if (in_array($paper['id'], $clip_files)) {
                 print ' &nbsp;<span class="update_clipboard clicked"><i class="update_clipboard fa fa-check-square ui-state-error-text"></i>&nbsp;Clipboard&nbsp;</span>';
             } else {
                 print ' &nbsp;<span class="update_clipboard"><i class="update_clipboard fa fa-square-o"></i>&nbsp;Clipboard&nbsp;</span>';
@@ -2475,28 +2624,36 @@ function show_search_results($result, $select, $display, $shelf_files, $desktop_
     }
     if ($display == 'icons')
         print '</td></tr></table>';
+
 }
 
-/////////////read shelf/////////////////////////
+// Read shelf function serves to output those files from the tested array
+// that are in Shelf. This function does not serve to dump the whole Shelf
+// into an array. It would not scale up.
 
-function read_shelf($dbHandle) {
+function read_shelf($dbHandle, $id_array) {
 
     if (isset($_SESSION['auth'])) {
-        global $temp_dir;
-        $cache_name = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'shelf_files';
-        $files_array = array();
-        if (is_readable($cache_name)) {
-            $content = file_get_contents($cache_name);
-            $files_array = unserialize($content);
-        } else {
-            $user_query = $dbHandle->quote($_SESSION['user_id']);
-            $result = $dbHandle->query("SELECT fileID FROM shelves WHERE userID=$user_query");
-            $files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            file_put_contents($cache_name, serialize($files_array));
+
+        // Convert all types to array.
+        $id_array = (array) $id_array;
+
+        // Prepare query.
+        $id_array2 = array();
+        foreach ($id_array as $id) {
+            $id_array2[] = $dbHandle->quote($id);
         }
-        return $files_array;
+        $id_string = join(",", $id_array2);
+            $user_query = $dbHandle->quote($_SESSION['user_id']);
+
+        // Query database.
+        $shelf_result = $dbHandle->query("SELECT fileID FROM shelves WHERE fileID IN ($id_string) AND userID=$user_query LIMIT 1000");
+        $shelf_files = $shelf_result->fetchAll(PDO::FETCH_COLUMN);
+        $shelf_result = null;
+
+        return $shelf_files;
     }
+
 }
 
 /////////////read desktop/////////////////////////
@@ -2504,23 +2661,16 @@ function read_shelf($dbHandle) {
 function read_desktop($dbHandle) {
 
     if (isset($_SESSION['auth'])) {
-        global $temp_dir;
-        $cache_name = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'desk_files';
         $files_array = array();
-        if (is_readable($cache_name)) {
-            $content = file_get_contents($cache_name);
-            $files_array = unserialize($content);
-        } else {
             $id_query = $dbHandle->quote($_SESSION['user_id']);
             $query = $dbHandle->query("SELECT DISTINCT projects.projectID AS projectID,project FROM projects
                         LEFT OUTER JOIN projectsusers ON projects.projectID=projectsusers.projectID
                         WHERE (projects.userID=$id_query OR projectsusers.userID=$id_query) AND projects.active='1' ORDER BY project COLLATE NOCASE ASC");
             $files_array = $query->fetchAll(PDO::FETCH_ASSOC);
             $query = null;
-            file_put_contents($cache_name, serialize($files_array));
-        }
         return $files_array;
     }
+
 }
 
 /////////////update notes/////////////////////////
@@ -2548,14 +2698,15 @@ function update_notes($fileID, $new_notes, $dbHandle) {
         }
     }
     $dbHandle->commit();
+
 }
+
 #check nobody uses the record no shelfs no projects
 #if no, delete record from table library, notes, attachments
 #delete full text file and attachments
 
 function delete_record($dbHandle, $files) {
 
-    global $database_path;
     settype($files, "array");
 
     // get PDF filenames of deleted items
@@ -2563,21 +2714,23 @@ function delete_record($dbHandle, $files) {
     $filenames = $result->fetchAll(PDO::FETCH_COLUMN);
     $result = null;
 
-    // delete PDFs, supplementary files and PNGs
+    // delete PDFs, supplementary files and images
     while (list(, $filename) = each($filenames)) {
 
-        if (is_file('library' . DIRECTORY_SEPARATOR . $filename))
-            unlink('library' . DIRECTORY_SEPARATOR . $filename);
+        $pdf_path = IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($filename) . DIRECTORY_SEPARATOR;
+
+        if (is_file($pdf_path . $filename))
+            unlink($pdf_path . $filename);
 
         $integer1 = sprintf("%05d", intval($filename));
 
-        $supplementary_files = glob('library/supplement/' . $integer1 . '*', GLOB_NOSORT);
+        $supplementary_files = glob(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($filename) . DIRECTORY_SEPARATOR . $integer1 . '*', GLOB_NOSORT);
         if (is_array($supplementary_files)) {
             foreach ($supplementary_files as $supplementary_file) {
                 @unlink($supplementary_file);
             }
         }
-        $png_files = glob('library/pngs/' . $integer1 . '*.png', GLOB_NOSORT);
+        $png_files = glob(IL_IMAGE_PATH . DIRECTORY_SEPARATOR . $integer1 . '*.jpg', GLOB_NOSORT);
         if (is_array($png_files)) {
             foreach ($png_files as $png_file) {
                 @unlink($png_file);
@@ -2586,9 +2739,9 @@ function delete_record($dbHandle, $files) {
     }
 
     // delete from clipboard, make sure session_write_close was not called before this
-    if (!empty($_SESSION['session_clipboard'])) {
-        $_SESSION['session_clipboard'] = array_diff($_SESSION['session_clipboard'], $files);
-    }
+    attach_clipboard($dbHandle);
+    $dbHandle->exec("DELETE FROM clipboard.files WHERE id IN (" . join(',', $files) . ")");
+    $dbHandle->exec("DETACH DATABASE clipboard");
 
     // delete from main database
     $dbHandle->beginTransaction();
@@ -2603,12 +2756,12 @@ function delete_record($dbHandle, $files) {
     $dbHandle = null;
 
     // delete full texts
-    $fdbHandle = database_connect($database_path, 'fulltext');
+    $fdbHandle = database_connect(IL_DATABASE_PATH, 'fulltext');
     $fdbHandle->exec("DELETE FROM full_text WHERE fileID IN (" . join(',', $files) . ")");
     $fdbHandle = null;
 
     // delete discussions
-    if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'discussions.sq3')) {
+    if (file_exists(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'discussions.sq3')) {
 
         $fdbHandle = database_connect($database_path, 'discussions');
         $fdbHandle->exec("DELETE FROM filediscussion WHERE fileID IN (" . join(',', $files) . ")");
@@ -2616,9 +2769,9 @@ function delete_record($dbHandle, $files) {
     }
 
     // delete PDF bookmarks and history
-    if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'history.sq3')) {
+    if (file_exists(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'history.sq3')) {
 
-        $fdbHandle = database_connect($database_path, 'history');
+        $fdbHandle = database_connect(IL_DATABASE_PATH, 'history');
         $fdbHandle->beginTransaction();
         $fdbHandle->exec("DELETE FROM usersfiles WHERE fileID IN (" . join(',', $files) . ")");
         $fdbHandle->exec("DELETE FROM bookmarks WHERE file IN ('" . join("','", $filenames) . "')");
@@ -2626,54 +2779,117 @@ function delete_record($dbHandle, $files) {
         $fdbHandle = null;
     }
 
-    // update export files cache
-    $export_files = read_export_files(0);
-    $export_files = array_diff($export_files, $files);
-    $export_files = array_values($export_files);
-
-    cache_clear();
-
-    save_export_files($export_files);
-
     if (!empty($error))
         return $error;
+
 }
 
 function save_setting($dbHandle, $setting_name, $setting_value) {
+
+    if (!empty($_SESSION['user_id'])) {
+        $userID = intval($_SESSION['user_id']);
+    }
+
+    if (!empty($_REQUEST['userID'])) {
+        $userID = intval($_REQUEST['userID']);
+    }
+
+    if (strpos($setting_name, 'global_') === 0) {
+        $userID = '';
+        // Remove global_ prefix.
+        $setting_name = substr($setting_name, 7);
+    }
+
     $dbHandle->beginTransaction();
-    $stmt = $dbHandle->prepare("DELETE FROM settings WHERE userID=:userID AND setting_name=:setting_name");
+
+    $stmt = $dbHandle->prepare("DELETE FROM settings"
+            . " WHERE userID=:userID AND setting_name=:setting_name");
+
     $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
     $stmt->bindParam(':setting_name', $setting_name, PDO::PARAM_STR);
-    if (isset($_SESSION['user_id']))
-        $userID = $_SESSION['user_id'];
-    if (isset($_GET['userID']))
-        $userID = $_GET['userID'];
+
+    // Delete old setting value.
     $stmt->execute();
-    $stmt = null;
+
+    if (isset($_SESSION[$setting_name])) {
+        unset($_SESSION[$setting_name]);
+    }
+
     if (!empty($setting_value)) {
-        $stmt2 = $dbHandle->prepare("INSERT INTO settings (userID,setting_name,setting_value) VALUES (:userID,:setting_name,:setting_value)");
+
+        $stmt2 = $dbHandle->prepare("INSERT INTO settings (userID,setting_name,setting_value)"
+                . " VALUES (:userID,:setting_name,:setting_value)");
+
         $stmt2->bindParam(':userID', $userID, PDO::PARAM_STR);
         $stmt2->bindParam(':setting_name', $setting_name, PDO::PARAM_STR);
         $stmt2->bindParam(':setting_value', $setting_value, PDO::PARAM_STR);
-        if (isset($_SESSION['user_id']))
-            $userID = $_SESSION['user_id'];
-        if (isset($_GET['userID']))
-            $userID = $_GET['userID'];
+
         $stmt2->execute();
-        $stmt2 = null;
+        $_SESSION[$setting_name] = $setting_value;
     }
+
     $dbHandle->commit();
+
 }
 
-function get_setting($dbHandle, $setting_name) {
-    $stmt = $dbHandle->prepare("SELECT setting_value FROM settings WHERE userID=:userID AND setting_name=:setting_name LIMIT 1");
+function save_settings($dbHandle, array $settings) {
+
+    if (!empty($_SESSION['user_id'])) {
+        $userID = intval($_SESSION['user_id']);
+    }
+
+    if (!empty($_GET['userID'])) {
+        $userID = intval($_REQUEST['userID']);
+    }
+
+    $dbHandle->beginTransaction();
+
+    $stmt = $dbHandle->prepare("DELETE FROM settings"
+            . " WHERE userID=:userID AND setting_name=:setting_name");
+
     $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
-    $stmt->bindParam(':setting_name', $setting_name, PDO::PARAM_STR);
-    $userID = $_SESSION['user_id'];
-    $stmt->execute();
-    $setting_value = $stmt->fetchColumn();
-    $stmt = null;
-    return $setting_value;
+    $stmt->bindParam(':setting_name', $name, PDO::PARAM_STR);
+
+    $stmt2 = $dbHandle->prepare("INSERT INTO settings (userID,setting_name,setting_value)"
+            . " VALUES (:userID,:setting_name,:setting_value)");
+
+    $stmt2->bindParam(':userID', $userID, PDO::PARAM_STR);
+    $stmt2->bindParam(':setting_name', $name, PDO::PARAM_STR);
+    $stmt2->bindParam(':setting_value', $value, PDO::PARAM_STR);
+
+    foreach ($settings as $name => $value) {
+
+        if (strpos($name, 'global_') === 0) {
+            $userID = '';
+            // Remove global_ prefix.
+            $name = substr($name, 7);
+        }
+
+        // Delete old setting value.
+        $stmt->execute();
+        if (isset($_SESSION[$name])) {
+            unset($_SESSION[$name]);
+        }
+
+        // Save new setting value, if not empty.
+        if (!empty($value)) {
+            $stmt2->execute();
+            $_SESSION[$name] = $value;
+        }
+    }
+
+    $dbHandle->commit();
+
+}
+
+function get_setting($setting_name) {
+
+    if (isset($_SESSION[$setting_name])) {
+        return $_SESSION[$setting_name];
+    } else {
+        return '';
+    }
+
 }
 
 function utf8_deaccent($string) {
@@ -2933,19 +3149,21 @@ function utf8_deaccent($string) {
     $string = preg_replace($UTF8_Z, 'Z', $string);
 
     return $string;
+
 }
 
 /////////////mobile show results//////////////////////
 
-function mobile_show_search_results($result, $display) {
+function mobile_show_search_results($result, $clip_files) {
 
     $i = 0;
+    $display = $_SESSION['display'];
 
     if ($display == 'icons') {
         print '<table id="icon-container">
         <tr><td>';
     } else {
-        print '<div data-role="collapsible-set" data-inset="false">';
+        print '<div data-role="collapsible-set" data-inset="false" data-theme="a" data-content-theme="a">';
     }
 
     while (list($key, $paper) = each($result)) {
@@ -3008,18 +3226,18 @@ function mobile_show_search_results($result, $display) {
 
             print '<div class="thumb-items">';
 
-            if (is_readable('../library/' . $paper['file']))
-                print '<a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block;text-decoration:none">';
+            if (is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file']))
+                print '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block;text-decoration:none">';
 
-            print '<div class="thumb-items-top"><div class="thumb-titles"><div>' . $paper['title'] . '<br>' . $first_author . $etal;
+            print '<div class="thumb-items-top"><div class="thumb-titles"><div>' . $paper['title'] . '<br>';
             if (!empty($paper['year']))
-                print ' (' . substr($paper['year'], 0, 4) . ')';
+                print '(' . substr($paper['year'], 0, 4) . ')';
             print '</div></div>';
 
-            if (is_readable('../library/' . $paper['file'])) {
+            if (is_readable(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file'])) {
 
-                print '</a><a href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
-                print '<img src="icon.php?file=' . $paper['file'] . '" style="width:306px;border:0" alt="Loading PDF..."></a>';
+                print '</a><a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
+                print '<img src="icon.php?file=' . $paper['file'] . '" style="width:100%;border:0" alt="Loading PDF..."></a>';
             } else {
                 print '<div style="text-align:center;margin-top:90px;font-size:18px;color:#b5b6b8">No PDF</div>';
             }
@@ -3028,7 +3246,7 @@ function mobile_show_search_results($result, $display) {
 
             print '<form><input class="update_clipboard" name="checkbox-clipboard" id="checkbox-clipboard-' . $paper['id'] . '" type="checkbox" data-mini="false"';
 
-            if (isset($_SESSION['session_clipboard']) && in_array($paper['id'], $_SESSION['session_clipboard']))
+            if (in_array($paper['id'], $clip_files))
                 print ' checked="checked"';
 
             print '><label for="checkbox-clipboard-' . $paper['id'] . '"><span style="font-size:0.8em">Clipboard</span></label></form>';
@@ -3038,9 +3256,9 @@ function mobile_show_search_results($result, $display) {
 
             print PHP_EOL . '<div data-role="collapsible">';
 
-            print PHP_EOL . '<h4 class="accordeon" data-fileid="' . $paper['id'] . '" style="margin:0">' . $paper['title'] . '</h4>';
+            print PHP_EOL . '<h4 class="accordeon" data-fileid="' . $paper['id'] . '">' . $paper['title'] . '</h4>';
 
-            print '<div style="padding:0 20px"></div></div>';
+            print '<div style="padding:0 0px"></div></div>';
         }
     }
     if ($display == 'icons') {
@@ -3048,5 +3266,5 @@ function mobile_show_search_results($result, $display) {
     } else {
         print '</div>';
     }
+
 }
-?>

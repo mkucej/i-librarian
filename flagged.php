@@ -19,7 +19,7 @@ if (!empty($_SESSION['user_id'])) {
 }
 
 // CLEAN DOWNLOAD CACHE
-$clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
+$clean_files = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
 if (is_array($clean_files)) {
     foreach ($clean_files as $clean_file) {
         if (is_file($clean_file) && is_writable($clean_file))
@@ -27,7 +27,7 @@ if (is_array($clean_files)) {
     }
 }
 
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS flagged (id INTEGER PRIMARY KEY, userID INTEGER NOT NULL, database TEXT NOT NULL, uid TEXT NOT NULL, UNIQUE (userID,database,uid))");
 
 if (!empty($_GET['empty'])) {

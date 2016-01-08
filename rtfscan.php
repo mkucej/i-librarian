@@ -9,7 +9,7 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
     $errors = array();
 
     //MOVE UPLOADED FILE TO TEMP FOLDER
-    $temp_file = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', urldecode($_FILES['manuscript']['name'])));
+    $temp_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', urldecode($_FILES['manuscript']['name'])));
     $move = move_uploaded_file($_FILES['manuscript']['tmp_name'], $temp_file);
     if (!$move) {
         $errors[] = 'Error! Manuscript upload failed.';
@@ -24,12 +24,12 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
         $file_extension = pathinfo($_FILES['manuscript']['name'], PATHINFO_EXTENSION);
     if (in_array($file_extension, array('doc', 'docx', 'odt'))) {
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
-            putenv('HOME=' . $temp_dir);
-        exec(select_soffice() . ' --headless --convert-to rtf --outdir "' . $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . '" "' . $temp_file . '"');
+            putenv('HOME=' . IL_TEMP_PATH);
+        exec(select_soffice() . ' --headless --convert-to rtf --outdir "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . '" "' . $temp_file . '"');
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=""');
         unlink($temp_file);
-        $converted_file = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename($_FILES['manuscript']['name'], '.' . $file_extension) . '.rtf';
+        $converted_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename($_FILES['manuscript']['name'], '.' . $file_extension) . '.rtf';
         if (!is_file($converted_file)) {
             $error[] = "Error! Conversion to RTF failed.";
             $response['errors'] = $errors;
@@ -68,7 +68,7 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
     }
     $orderby .= ' END';
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
     $result = $dbHandle->query("SELECT * FROM library WHERE id IN (" . $id_query . ")" . $orderby);
     $dbHandle = null;
 
@@ -177,14 +177,7 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
         if (!empty($_POST['last-style']))
             $_POST['citation-style'] = $_POST['last-style'];
 
-        try {
-            $dbHandle = new PDO('sqlite:' . __DIR__ . DIRECTORY_SEPARATOR . 'styles.sq3');
-        } catch (PDOException $e) {
-            $errors[] = "Error: " . $e->getMessage();
-            $response['errors'] = $errors;
-            $content = json_encode($response, JSON_HEX_APOS);
-            die($content);
-        }
+        $dbHandle = database_connect(__DIR__, 'styles');
         $title_q = $dbHandle->quote(strtolower($_POST['citation-style']));
         $result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);
         $style = $result->fetchColumn();
@@ -214,9 +207,9 @@ if (!empty($_POST['bibliography']) && count($_POST['cites']) > 0 && !empty($_POS
     $file_extension = '';
     if (isset($_POST['rtfname']))
         $file_extension = pathinfo($_POST['rtfname'], PATHINFO_EXTENSION);
-    $temp_file = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
+    $temp_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
             . basename(str_replace('\\', '/', urldecode($_POST['rtfname'])), '.' . $file_extension) . '.rtf';
-    $output_file = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
+    $output_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
             . 'formatted-' . basename(str_replace('\\', '/', urldecode($_POST['rtfname'])));
     
     //READ RTF TO VARIABLE
@@ -243,11 +236,11 @@ if (!empty($_POST['bibliography']) && count($_POST['cites']) > 0 && !empty($_POS
     //CONVERT RTF TO DOC, DOCX, ODT TO RTF
     if (in_array($file_extension, array('doc', 'docx', 'odt'))) {
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
-            putenv('HOME=' . $temp_dir);
-        exec(select_soffice() . ' --headless --convert-to ' . $file_extension . ' --outdir "' . $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . '" "' . $temp_file . '"');
+            putenv('HOME=' . IL_TEMP_PATH);
+        exec(select_soffice() . ' --headless --convert-to ' . $file_extension . ' --outdir "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . '" "' . $temp_file . '"');
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=""');
-        rename($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', urldecode($_POST['rtfname']))), $output_file);
+        rename(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', urldecode($_POST['rtfname']))), $output_file);
         if (!is_file($output_file)) {
             $errors[] = "Error! RTF conversion failed.";
             $response['errors'] = $errors;
@@ -273,7 +266,7 @@ if (!empty($_POST['bibliography']) && count($_POST['cites']) > 0 && !empty($_POS
 }
 ?>
 <div class="item-sticker ui-widget-content ui-corner-all" style="margin: auto;width:50%;margin-top:4em">
-    <div class="ui-widget-header ui-dialog-titlebar items ui-corner-top" style="text-align:center;font-size:13px;border:0">Manuscript citation scan</div>
+    <div class="ui-widget-header ui-dialog-titlebar ui-corner-top" style="text-align:center;font-size:13px;border:0">Manuscript citation scan</div>
     <form id="rtfscanform" enctype="multipart/form-data" action="rtfscan.php" method="POST">
         <table cellspacing="0" class="alternating_row ui-corner-bottom" style="width:100%;border-spacing:6px;margin:auto">
             <tr>

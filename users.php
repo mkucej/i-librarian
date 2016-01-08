@@ -15,7 +15,7 @@ if (isset($_SESSION['auth'])) {
 
         $password_changed = NULL;
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
 
         if (check_encrypted_password($dbHandle, $_SESSION['user'], $_GET['old_password'])) {
 
@@ -35,16 +35,16 @@ if (isset($_SESSION['auth'])) {
     // DELETE A USER
     if (!empty($_GET['delete']) && !empty($_GET['id'])) {
 
-        database_connect($database_path, 'library');
-        $dbHandle->exec("ATTACH DATABASE '" . $database_path . "users.sq3' AS userdatabase");
+        database_connect(IL_DATABASE_PATH, 'library');
+        $dbHandle->exec("ATTACH DATABASE '" . IL_USER_DATABASE_PATH . DIRECTORY_SEPARATOR . "users.sq3' AS userdatabase");
 
         $id_query = $dbHandle->quote($_GET['id']);
 
         $result = $dbHandle->query("SELECT projectID FROM projects WHERE userID=$id_query");
 
         while ($project = $result->fetch(PDO::FETCH_ASSOC)) {
-            if (is_writable($database_path . 'project' . $project['projectID'] . '.sq3'))
-                unlink($database_path . 'project' . $project['projectID'] . '.sq3');
+            if (is_writable(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'project' . $project['projectID'] . '.sq3'))
+                unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'project' . $project['projectID'] . '.sq3');
         }
 
         $result = null;
@@ -86,7 +86,7 @@ if (isset($_SESSION['auth'])) {
 
         $create = NULL;
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
         $username_query = $dbHandle->quote($_GET['username']);
         $password_query = $dbHandle->quote(generate_encrypted_password($_GET['password']));
         $permissions_query = $dbHandle->quote($_GET['permissions']);
@@ -109,7 +109,7 @@ if (isset($_SESSION['auth'])) {
             $new_permissions = 'G';
         }
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
         $permissions_query = $dbHandle->quote($new_permissions);
         $id_query = $dbHandle->quote($_GET['id']);
         $dbHandle->exec("UPDATE users SET permissions=$permissions_query WHERE userID=$id_query");
@@ -123,7 +123,7 @@ if (isset($_SESSION['auth'])) {
         $slashes = array("/","\\");
         $_GET['username'] = str_replace($slashes, "", $_GET['username']);
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
         $username_query = $dbHandle->quote($_GET['username']);
         $id_query = $dbHandle->quote($_GET['id']);
         $rename = $dbHandle->exec("UPDATE users SET username=$username_query WHERE userID=$id_query");
@@ -137,7 +137,7 @@ if (isset($_SESSION['auth'])) {
     // FORCE NEW PASSWORD FOR EXISTING USER
     if (!empty($_GET['force_password']) && !empty($_GET['id']) && !empty($_GET['new_password'])) {
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
         $id_query = $dbHandle->quote($_GET['id']);
         $password_query = $dbHandle->quote(generate_encrypted_password($_GET['new_password']));
         $update = $dbHandle->exec("UPDATE users SET password=$password_query WHERE userID=$id_query");
@@ -224,7 +224,7 @@ if (isset($_SESSION['auth'])) {
 
         print '</form>';
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
 
         $users = $dbHandle->query("SELECT userID,username,permissions FROM users");
 

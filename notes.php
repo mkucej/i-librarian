@@ -7,7 +7,7 @@ if (!empty($_GET['file']))
 if (!empty($_POST['file']))
     $_POST['file'] = intval($_POST['file']);
 
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 
 if (!empty($_POST['file'])) {
     update_notes($_POST['file'], $_POST['notes'], $dbHandle);

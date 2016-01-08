@@ -24,7 +24,7 @@ if (isset($_SESSION['auth'])) {
                 }
             }
         }
-    } else {
+    } elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
         if (isset($_SESSION['proxy_name']))
             $proxy_name = $_SESSION['proxy_name'];
         if (isset($_SESSION['proxy_port']))
@@ -50,7 +50,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['save']) && $_GET['save'] == '1' && !empty($_GET['highwire_searchname'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
         $stmt->bindParam(':user', $user, PDO::PARAM_STR);
@@ -95,7 +95,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['load']) && $_GET['load'] == '1' && !empty($_GET['saved_search'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("SELECT searchfield,searchvalue FROM searches WHERE userID=:user AND searchname=:searchname");
         $stmt->bindParam(':user', $user, PDO::PARAM_STR);
@@ -128,7 +128,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['delete']) && $_GET['delete'] == '1' && !empty($_GET['saved_search'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
         $stmt->bindParam(':user', $user, PDO::PARAM_STR);
@@ -344,7 +344,7 @@ if (isset($_SESSION['auth'])) {
                 }
             }
 
-            database_connect($database_path, 'library');
+            database_connect(IL_DATABASE_PATH, 'library');
 
             foreach ($add as $record) {
 
@@ -375,6 +375,8 @@ if (isset($_SESSION['auth'])) {
                 if (!empty($record['epage']))
                     $pages = $record['spage'] . '-' . $record['epage'];
 
+                $last_name = array();
+                $first_name = array();
                 if (!empty($record['authors'])) {
                     $name_array = array();
                     foreach ($record['authors'] as $author) {
@@ -382,6 +384,8 @@ if (isset($_SESSION['auth'])) {
                         $last = array_pop($author_array);
                         $first = join(' ', $author_array);
                         $name_array[] = $last . ', ' . $first;
+                        $last_name[] = $last;
+                        $first_name[] = $first;
                     }
                     if (count($name_array) > 0)
                         $names = join("; ", $name_array);
@@ -469,8 +473,9 @@ if (isset($_SESSION['auth'])) {
                     <input type="hidden" name="uid[]" value="">
                     <input type="hidden" name="url[]" value="">
                     <input type="hidden" name="doi" value="<?php if (!empty($doi)) print htmlspecialchars($doi); ?>">
-                    <input type="hidden" name="authors" value="<?php if (!empty($names)) print htmlspecialchars($names); ?>">
                     <input type="hidden" name="title" value="<?php if (!empty($title)) print htmlspecialchars($title); ?>">
+                    <input type="hidden" name="last_name" value="<?php if (!empty($last_name)) print htmlspecialchars(json_encode($last_name)); ?>">
+                    <input type="hidden" name="first_name" value="<?php if (!empty($first_name)) print htmlspecialchars(json_encode($first_name)); ?>">
                     <input type="hidden" name="secondary_title" value="<?php if (!empty($secondary_title)) print htmlspecialchars($secondary_title); ?>">
                     <input type="hidden" name="year" value="<?php if (!empty($date)) print htmlspecialchars($date); ?>">
                     <input type="hidden" name="volume" value="<?php if (!empty($volume)) print htmlspecialchars($volume); ?>">
@@ -588,7 +593,7 @@ if (isset($_SESSION['auth'])) {
         </div>
         <?php
         // CLEAN DOWNLOAD CACHE
-        $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
+        $clean_files = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
         if (is_array($clean_files)) {
             foreach ($clean_files as $clean_file) {
                 if (is_file($clean_file) && is_writable($clean_file))

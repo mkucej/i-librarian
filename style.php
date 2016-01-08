@@ -9,7 +9,7 @@ if (isset($_SESSION['auth'])) {
 
     ########## read users settings ##########
 
-    database_connect($usersdatabase_path, 'users');
+    database_connect(IL_USER_DATABASE_PATH, 'users');
     $style_user_query = $dbHandle->quote($_SESSION['user_id']);
     $style_result = $dbHandle->query("SELECT setting_name,setting_value FROM settings WHERE userID=$style_user_query");
     $dbHandle = null;
@@ -172,6 +172,7 @@ a.topindex_clicked {
 #items-menu > div:hover,
 #items-menu > div:focus,
 #items-menu > div.tabclicked,
+#items-item-menu,
 #items-notes-menu,
 #items-pdf-menu-a,
 #items-pdf-menu-b {
@@ -266,6 +267,21 @@ background: rgba(0,0,0,0.85);
 max-width: 220px
 }
 
+/* jQuery UI Tooltip */
+
+.ui-tooltip {
+background: rgba(60,60,70,1);
+border: none;
+max-width: 250px;
+}
+
+.ui-tooltip {
+padding: 0.75em 1.25em;
+color: white;
+border-radius: 0px;
+box-shadow: 0 0 6px 0px rgba(0,0,0,0.75);
+}
+
 /*tiny mce*/
 .mce-tinymce {
 border: 0 !important
@@ -318,13 +334,26 @@ width: 98%
 .ui-autocomplete {
 max-height: 200px;
 overflow: auto;
-/* add padding to account for vertical scrollbar */
-padding-right: 10px;
+}
+
+.ui-autocomplete .ui-state-focus {
+border:0;
+margin:0
 }
 
 .ui-selectmenu-button span.ui-selectmenu-text {
 padding: 0.25em 2.1em 0.25em 1.6em;
 line-height:1.3
+}
+
+#overlay {
+z-index:10000;
+cursor:wait;
+width:100%;
+}
+
+#overlay > img {
+margin-left: calc(50% - 32px);
 }
 
 #dialog-confirm {
@@ -412,11 +441,11 @@ padding: 2px 4px 2px 4px;
 }
 
 .fa {
-font-size:14px
+font-size: 1.1em
 }
 
 .fa-circle, .fa-circle-o {
-font-size: 10px;
+font-size: 11px;
 position: relative;
 bottom:0.1em
 }
@@ -485,7 +514,7 @@ padding: 1px
 .listleft, .flag, .update_clipboard,
 .update_shelf, .update_project, .star,
 .author_expander,.quick-view,
-.select_span, .flipnames
+.quick-view-external,.select_span, .flipnames
 {
 cursor:pointer
 }
@@ -517,7 +546,7 @@ font-size: 16px
 }
 
 #search-menu > div {
-    width: 25%;
+    width: 20%;
     float:left;
     text-align:center;
     padding: 5px 0;
@@ -551,6 +580,10 @@ width:calc(33.33% - 1px);
 border:1px solid rgba(0,0,0,0.2);
 border-left:none
 }
+
+.file-grid > div:first-child {
+padding-left: 0.75em
+} 
 
 .lib-shadow-top {
 box-shadow: 0 -1px 2px rgba(0,0,0,0.3);
@@ -723,14 +756,27 @@ cursor:pointer
 
 #pdf-viewer-controls	{
 width:100%;
-height:72px;
+}
+
+#pdf-viewer-controls .ui-button {
+border:0 !important;
+background: none;
+}
+
+#pdf-viewer-controls .ui-button:hover {
+background: rgba(0,0,0,0.1);
+}
+
+#pdf-viewer-controls .ui-button-text {
+text-shadow: none
 }
 
 .pdf-viewer-control-row {
 overflow:hidden;
 height:35px;
 visibility:hidden;
-padding-left:0.25em
+padding-left:0.25em;
+display: inline-block;
 }
 
 .pdf-viewer-img	{
@@ -743,6 +789,14 @@ box-shadow: 0px 0px 4px rgba(0,0,0,0.33);
 width:calc(100%-30px);
 height:1500px;
 margin:4px 2px 0 2px;
+}
+
+.pdf-viewer-img > i {
+font-size:96px;
+position: absolute;
+top:calc(50% - 0.5em);
+left:calc(50% - 0.5em);
+color:rgba(0,0,0,0.75)
 }
 
 #pdf-viewer-div	{
@@ -772,6 +826,8 @@ padding-bottom: 100px
 .pdf-viewer-thumbs	{
 box-shadow: 0 0 4px rgba(0,0,0,0.33);
 cursor: pointer;
+background-color: white;
+margin:auto;
 }
 
 .pdfviewer-highlight       {
@@ -801,6 +857,10 @@ top: 0;
 width:100%;
 height:100%;
 display:none
+}
+
+.text-container > div {
+border-bottom: 1px dotted rgba(0,0,0,0.25)
 }
 
 #annotation-container       {
@@ -905,14 +965,13 @@ overflow-y:scroll
 }
 
 #cursor {
-box-shadow: #666 1px 1px 2px;
--moz-box-shadow: #666 1px 1px 2px;
--webkit-box-shadow: #666 1px 1px 2px;
 display:none;
 position:fixed;
-background-color:rgb(153,159,255);
+background-color:rgba(255,255,255,0.66);
 z-index:5000;
-padding:0.5em 1em
+width:1.6em;
+height:1.6em;
+border-radius:0.8em
 }
 
 #pdf-viewer-delete-menu  {
@@ -921,7 +980,7 @@ top:75px;
 left:335px;
 z-index:100;
 width:160px;
-padding:2px;
+padding:0;
 border:1px solid #b6b8bc;
 box-shadow: #aaa 0 0 6px;
 -moz-box-shadow: #aaa 0 0 6px;
@@ -934,13 +993,21 @@ cursor: pointer
 }
 
 #pdf-viewer-delete-menu > div:hover  {
-background-color:#fff;
+background-color:rgba(0,0,0,0.1);
 }
 
 .bookmark, .annotation {
 padding:4px 6px;
 margin-top:2px;
 cursor:pointer;
+}
+
+.bookmark-level-1 {
+    font-weight: bold;
+}
+
+.bookmark-level-2 {
+    font-style: italic;
 }
 
 @media print

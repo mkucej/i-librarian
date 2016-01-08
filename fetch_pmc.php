@@ -20,7 +20,7 @@ if (isset($_SESSION['connection']) && ($_SESSION['connection'] == "autodetect" |
             }
         }
     }
-} else {
+} elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
     if (isset($_SESSION['proxy_name']))
         $proxy_name = $_SESSION['proxy_name'];
     if (isset($_SESSION['proxy_port']))
@@ -116,6 +116,8 @@ if (isset($_GET['id'])) {
         if (!empty($authors)) {
             foreach ($authors as $author) {
                 $name_array[] = $author->LastName . ', ' . $author->ForeName;
+                $last_name[] = (string) $author->LastName;
+                $first_name[] = (string) $author->ForeName;
                 if (empty($affiliation))
                     $affiliation = $author->AffiliationInfo->Affiliation;
             }
@@ -234,8 +236,11 @@ if (isset($_GET['id'])) {
 
                 foreach ($author->attributes() as $a => $b) {
 
-                    if ($a == 'contrib-type' && $b == 'author')
+                    if ($a == 'contrib-type' && $b == 'author') {
                         $name_array[] = $author->name->surname . ", " . $author->name->{'given-names'};
+                        $last_name[] = (string) $author->name->surname;
+                        $first_name[] = (string)$author->name->{'given-names'};
+                    }
                 }
             }
         }
@@ -315,7 +320,8 @@ if (isset($_GET['id'])) {
     ?>
     <input type="hidden" name="doi" value="<?php if (!empty($doi)) print htmlspecialchars($doi); ?>">
     <input type="hidden" name="reference_type" value="<?php if (!empty($reference_type)) print htmlspecialchars($reference_type); ?>">
-    <input type="hidden" name="authors" value="<?php if (!empty($names)) print htmlspecialchars($names); ?>">
+    <input type="hidden" name="last_name" value="<?php if (!empty($last_name)) print htmlspecialchars(json_encode($last_name)); ?>">
+    <input type="hidden" name="first_name" value="<?php if (!empty($first_name)) print htmlspecialchars(json_encode($first_name)); ?>">
     <input type="hidden" name="affiliation" value="<?php if (!empty($affiliation)) print htmlspecialchars($affiliation); ?>">
     <input type="hidden" name="title" value="<?php if (!empty($title)) print htmlspecialchars($title); ?>">
     <input type="hidden" name="secondary_title" value="<?php if (!empty($secondary_title)) print htmlspecialchars($secondary_title); ?>">

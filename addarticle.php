@@ -5,9 +5,9 @@ if (isset($_SESSION['permissions']) && ($_SESSION['permissions'] == 'A' || $_SES
 
     include_once 'functions.php';
 
-    database_connect($usersdatabase_path, 'users');
+    database_connect(IL_USER_DATABASE_PATH, 'users');
     $user_query = $dbHandle->quote($_SESSION['user_id']);
-    $result = $dbHandle->query("SELECT setting_name FROM settings WHERE userID=$user_query AND setting_name LIKE 'settings_remove_%'");
+    $result = $dbHandle->query("SELECT setting_name FROM settings WHERE userID=$user_query AND setting_name LIKE 'remove_%'");
     $settings = $result->fetchAll(PDO::FETCH_ASSOC);
     $result = null;
     $dbHandle = null;
@@ -51,7 +51,7 @@ if (isset($_SESSION['permissions']) && ($_SESSION['permissions'] == 'A' || $_SES
             <?php
         }
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
         $user_query = $dbHandle->quote($_SESSION['user_id']);
         $result = $dbHandle->query("SELECT DISTINCT searchname FROM searches WHERE userID=$user_query ORDER BY searchname ASC");
         $searchnames = $result->fetchAll(PDO::FETCH_COLUMN);

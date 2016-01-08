@@ -24,7 +24,7 @@ if (isset($_SESSION['auth'])) {
                 }
             }
         }
-    } else {
+    } elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
         if (isset($_SESSION['proxy_name']))
             $proxy_name = $_SESSION['proxy_name'];
         if (isset($_SESSION['proxy_port']))
@@ -50,7 +50,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['save']) && $_GET['save'] == '1' && !empty($_GET['ieee_searchname'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -91,7 +91,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['load']) && $_GET['load'] == '1' && !empty($_GET['saved_search'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("SELECT searchvalue FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -125,7 +125,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['delete']) && $_GET['delete'] == '1' && !empty($_GET['saved_search'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $dbHandle->beginTransaction();
 
@@ -155,11 +155,11 @@ if (isset($_SESSION['auth'])) {
         $microtime1 = microtime(true);
 
         reset($_GET);
-        unset($_SESSION['session_download_ieee_refinements']);
         unset($_SESSION['session_download_ieee_openaccess']);
         while (list($key, $value) = each($_GET)) {
-            if (!empty($_GET[$key]))
+            if (!empty($_GET[$key])) {
                 $_SESSION['session_download_' . $key] = $value;
+            }
         }
 
         if (!isset($_GET['from'])) {
@@ -171,70 +171,71 @@ if (isset($_SESSION['auth'])) {
 
         // PREPARE QUERY
 
-        $url_string = 'action=search';
+        $url_string = 'action=search&';
 
-        // SEARCH TYPE
+        // Open Access
+        $openaccess_string = '';
+        if (isset($_GET['ieee_openaccess'])) {
+            $openaccess_string = 'oa=1';
+            $url_string .= '&ieee_openaccess=1';
+        }
 
-        $type_string = '&searchField=Search_All';
-        if ($_GET['ieee_type'] == 'fulltext')
-            $type_string = '&searchField=Search_All_Text';
-        $url_string .= '&ieee_type=' . urlencode($_GET['ieee_type']);
+        // Publisher
+        $publisher_string = '';
+        if (isset($_GET['ieee_publisher'])) {
+            $publisher_string = 'ctype=' . urlencode($_GET['ieee_publisher']);
+            $url_string .= '&ieee_content_type=' . urlencode($_GET['ieee_publisher']);
+        }
 
-        //ADD RANGE
+        // Content type
+        $content_type_string = '';
+        if (isset($_GET['ieee_content_type'])) {
+            $content_type_string = 'ctype=' . urlencode($_GET['ieee_content_type']);
+            $url_string .= '&ieee_content_type=' . urlencode($_GET['ieee_content_type']);
+        }
 
-        $year_string = 'addRange=1872_' . date('Y') . '_Publication_Year';
-
+        // Year range.
+        $year_string = '';
         if (isset($_GET['ieee_range']) && $_GET['ieee_range'] == 'range') {
+
             $year_from = '1872';
             $year_to = date('Y');
-            if (!empty($_GET['ieee_year_from']))
-                $year_from = $_GET['ieee_year_from'];
-            if (!empty($_GET['ieee_year_to']))
-                $year_to = $_GET['ieee_year_to'];
-            $year_string = 'addRange=' . $year_from . '_' . $year_to . '_Publication_Year';
 
-            $url_string .= '&ieee_range=' . urlencode($_GET['ieee_range']) . '&'
+            if (!empty($_GET['ieee_year_from'])) {
+                $year_from = $_GET['ieee_year_from'];
+            }
+
+            if (!empty($_GET['ieee_year_to'])) {
+                $year_to = $_GET['ieee_year_to'];
+            }
+        
+            $year_string = 'pys=' . $year_from . '&pye=' . $year_to;
+        
+            $url_string .= '&ieee_range=range&'
                     . 'ieee_year_from=' . urlencode($_GET['ieee_year_from']) . '&'
                     . 'ieee_year_to=' . urlencode($_GET['ieee_year_to']);
         }
 
-        //REFINEMENTS
-
-        $refinement_string = '';
-        $refinement_array = array();
-
-        if (isset($_GET['ieee_refinements'])) {
-            while (list($key, $value) = each($_GET['ieee_refinements'])) {
-                $refinement_array[] = 'refinements=' . urlencode($value);
-                $refinement_string = join('&', $refinement_array);
-                $url_string .= '&ieee_refinements[]=' . urlencode($value);
-            }
-        }
-        
-        //OPEN ACCESS
-        
-        $openaccess_string = '';
-
-        if (isset($_GET['ieee_openaccess'])) {
-            $openaccess_string = 'openAccess=true' ;
-            $url_string .= '&openAccess=true';
-        }
-
-        //SORTING
-
+        // Sorting
         $sortby_string = '';
-
-        if (isset($_GET['ieee_sort'])) {
-            $sortby_string = 'sortType=' . urlencode($_GET['ieee_sort']);
-            $url_string .= '&ieee_sort=' . urlencode($_GET['ieee_sort']);
+        if ($_GET['ieee_sort'] === 'year') {
+            $sortby_string = 'sortorder=desc&sortfield=py';
+            $url_string .= '&ieee_sort=year';
+        } elseif ($_GET['ieee_sort'] === 'author') {
+            $sortby_string = 'sortorder=asc&sortfield=au';
+            $url_string .= '&ieee_sort=author';
+        } elseif ($_GET['ieee_sort'] === 'title') {
+            $sortby_string = 'sortorder=asc&sortfield=ti';
+            $url_string .= '&ieee_sort=title';
+        } elseif ($_GET['ieee_sort'] === 'publication') {
+            $sortby_string = 'sortorder=asc&sortfield=jn';
+            $url_string .= '&ieee_sort=publication';
         }
 
-        //PAGINATION
-
-        $pagination_string = 'pageNumber=' . $from;
+        // Pagination
+        $pagination_string = 'rs=' . $from;
 
         //MAIN QUERY
-
         $query_string = '';
         $k = 1;
 
@@ -251,7 +252,15 @@ if (isset($_SESSION['auth'])) {
             }
         }
 
-        $query = urlencode('queryText=(' . $query_string . ')');
+        // Search type.
+        $query = '';
+        if ($_GET['ieee_type'] === 'fulltext') {
+            $query = urlencode('queryText=(' . $query_string . ')');
+            $url_string .= '&ieee_type=fulltext';
+        } elseif ($_GET['ieee_type'] === 'metadata') {
+            $query = urlencode('md=(' . $query_string . ')');
+            $url_string .= '&ieee_type=metadata';
+        }
 
         // SEARCH
 
@@ -270,7 +279,7 @@ if (isset($_SESSION['auth'])) {
 
             if (!empty($_SESSION['session_download_ieee_searchname']) && $from == 1) {
 
-                database_connect($database_path, 'library');
+                database_connect(IL_DATABASE_PATH, 'library');
 
                 $stmt = $dbHandle->prepare("UPDATE searches SET searchvalue=:searchvalue WHERE userID=:user AND searchname=:searchname AND searchfield='ieee_last_search'");
 
@@ -287,25 +296,26 @@ if (isset($_SESSION['auth'])) {
 
             ########## search ieee ##############
 
-            $request_url = "http://ieeexplore.ieee.org/search/searchresult.jsp?action=search&rowsPerPage=25&matchBoolean=true&"
+            $request_url = "http://ieeexplore.ieee.org/gateway/ipsSearch.jsp?"
                     . $query . "&"
-                    . $refinement_string . "&"
+                    . $content_type_string . "&"
                     . $sortby_string . "&"
                     . $pagination_string . "&"
                     . $year_string . "&"
                     . $openaccess_string . "&"
-                    . $type_string;
+                    . $publisher_string;
 
-            $dom = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+            $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
-            if (empty($dom))
+            if ($xml === FALSE) {
                 die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
             Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+            }
         }
 
         // DISPLAY RESULTS
 
-        if (!empty($dom)) {
+        if (is_object($xml)) {
 
             print '<div style="padding:2px;font-weight:bold">IEEE Xplore&reg; search';
 
@@ -314,24 +324,17 @@ if (isset($_SESSION['auth'])) {
 
             print '</div>';
 
-            //SCRAPE, BABY, SCRAPE!
-
             libxml_use_internal_errors(true);
-            $doc = new DOMDocument();
-            $doc->loadHTML($dom);
-            $xpath = new DOMXPath($doc);
-            $div = $doc->getElementById('content');
-            $count_string = '';
-            $count_obj = $xpath->query("span", $div)->item(0);
-            if (is_object($count_obj))
-                $count_string = $count_obj->nodeValue;
-            $count = preg_replace('/\D/ui', '', $count_string);
+
+            $count = 0;
+            $count = (string) $xml->totalfound;
 
             if (!empty($count) && $count > 0) {
 
-                $maxfrom = $from * 25;
-                if ($maxfrom > $count)
+                $maxfrom = $from + 24;
+                if ($maxfrom > $count) {
                     $maxfrom = $count;
+                }
 
                 $microtime2 = microtime(true);
                 $microtime = $microtime2 - $microtime1;
@@ -346,29 +349,29 @@ if (isset($_SESSION['auth'])) {
                         '</div>';
 
                 print '<div class="ui-state-highlight ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
-                        . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . ($from - 1)) . '" style="color:black;display:block;width:100%">') .
+                        . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . ($from - 25)) . '" style="color:black;display:block;width:100%">') .
                         '<i class="fa fa-caret-left"></i>&nbsp;Back'
                         . ($from == 1 ? '' : '</a>') .
                         '</div>';
 
                 print '</td><td class="top" style="text-align: center">';
 
-                print "Items " . (($from - 1) * 25 + 1) . " - $maxfrom of $count in $microtime.";
+                print "Items " . $from . " - $maxfrom of $count in $microtime.";
 
                 print '</td><td class="top" style="width: 14em">';
 
-                $lastpage = ceil($count / 25);
+                $lastpage = 25 * floor($count / 25);
 
-                print '<div class="ui-state-highlight ui-corner-top' . ($count > $from * 25 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
-                        . ($count > $from * 25 ? '<a class="navigation" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
+                print '<div class="ui-state-highlight ui-corner-top' . ($count > $maxfrom ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+                        . ($count > $maxfrom ? '<a class="navigation" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
                         '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
-                        . ($count > $from * 25 ? '</a>' : '') .
+                        . ($count > $maxfrom ? '</a>' : '') .
                         '</div>';
 
-                print '<div class="ui-state-highlight ui-corner-top' . ($count > $from * 25 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
-                        . ($count > $from * 25 ? '<a class="navigation" href="' . htmlspecialchars("download_ieee.php?$url_string&from=" . ($from + 1)) . '" style="color:black;display:block;width:100%">' : '') .
+                print '<div class="ui-state-highlight ui-corner-top' . ($count > $maxfrom ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+                        . ($count > $maxfrom ? '<a class="navigation" href="' . htmlspecialchars("download_ieee.php?$url_string&from=" . ($from + 25)) . '" style="color:black;display:block;width:100%">' : '') .
                         '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
-                        . ($count > $from * 25 ? '</a>' : '') .
+                        . ($count > $maxfrom ? '</a>' : '') .
                         '</div>';
 
                 print '<div class="ui-state-highlight ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px">PgDn</div>';
@@ -377,66 +380,128 @@ if (isset($_SESSION['auth'])) {
 
                 print '<div class="alternating_row">';
 
-                database_connect($database_path, 'library');
+                database_connect(IL_DATABASE_PATH, 'library');
 
-                function DOMinnerHTML($element) {
-                    $innerHTML = "";
-                    $children = $element->childNodes;
-                    foreach ($children as $child) {
-                        $tmp_dom = new DOMDocument();
-                        $tmp_dom->appendChild($tmp_dom->importNode($child, true));
-                        $innerHTML.=trim($tmp_dom->saveHTML());
-                    }
-                    return $innerHTML;
-                }
+                foreach ($xml->document as $item) {
 
-                $form = $doc->getElementById('search_results_form');
-                $entries = $xpath->query("ul[1]", $form);
-                $items = $xpath->query("li/div/div[3]", $entries->item(0));
-
-                foreach ($items as $item) {
                     $id = '';
                     $title = '';
                     $secondary_title = '';
                     $abstract = '';
                     $authors = '';
+                    $last_name = array();
+                    $first_name = array();
+                    $affiliation = '';
                     $doi = '';
                     $year = '';
                     $volume = '';
                     $issue = '';
                     $pages = '';
-                    $new_authors = array();
-                    $array = array();
-                    // TITLE
-                    $title_obj = $xpath->query("h3/a", $item)->item(0);
-                    if (is_object($title_obj))
-                        $title = trim($title_obj->nodeValue);
+                    $keywords = '';
+                    $publisher = '';
+                    $abstract = '';
+                    $uid = array();
+                    $reference_type = 'article';
+                    $pdflink = '';
 
-                    $item_html = DOMinnerHTML($item);
-                    $item_html = str_replace("\r\n", " ", $item_html);
-                    $item_html = str_replace("\n", " ", $item_html);
-                    $item_html = str_replace("\r", " ", $item_html);
+                    // TITLE
+                    $title = (string) $item->title;
+
                     // IEEE ID
-                    preg_match('/(?<=arnumber\=)\d+?(?=\&)/ui', $item_html, $id_match);
-                    if (isset($id_match[0])) {
-                        $id = trim(strip_tags($id_match[0]));
-                        $uid = 'IEEE:' . $id;
-                    }
+                    $id = (string) $item->arnumber;
+                    $uid[] = 'IEEE:' . $id;
+
                     // AUTHORS
-                    $authors_arr = array();
-                    preg_match_all('/\<a href\=\"\#\" class\=\"(authorPreferredName)? prefNameLink\".*?\<\/a\>/ui', $item_html, $authors_match);
-                    foreach ($authors_match[0] as $author_raw) {
-                        $authors_arr[] = trim(strip_tags($author_raw));
+                    $authors = (string) $item->authors;
+                    $author_array = explode(";", $authors);
+                    foreach ($author_array as $author) {
+
+                        $author = trim($author);
+                        $comma = strpos($author, ",");
+                        $space = strpos($author, " ");
+
+                        if ($comma === FALSE) {
+
+                            $first_name[] = trim(substr($author, 0, $space));
+                            $last_name[] = trim(substr($author, $space + 1));
+                        } else {
+
+                            $last_name[] = trim(substr($author, 0, $comma));
+                            $first_name[] = trim(substr($author, $comma + 1));
                     }
-                    $authors = join('; ', $authors_arr);
+                    }
+
+                    // Affiliation.
+                    $affiliation = (string) $item->affiliations;
+
                     // DOI
-                    preg_match('/10\.\d{4}\/.*?(?=\s)/ui', strip_tags($item_html), $doi_match);
-                    if (isset($doi_match[0]))
-                        $doi = trim($doi_match[0]);
+                    $doi = (string) $item->doi;
+
                     // YEAR
-                    preg_match('/(?<=Publication\syear\:\s)\d{4}/ui', strip_tags($item_html), $year_match);
-                    if (isset($year_match[0]))
-                        $year = trim($year_match[0]);
+                    $year = (string) $item->py;
+
+                    // Secondary title.
+                    $secondary_title = (string) $item->pubtitle;
+
+                    // Volume.
+                    $volume = (string) $item->volume;
+
+                    // Issue.
+                    $issue = (string) $item->issue;
+
+                    // Pages.
+                    $pages = (string) $item->spage;
+                    $epage = (string) $item->epage;
+                    if (!empty($epage) && $epage != $pages) {
+                        $pages .= '-' . $epage;
+                    }
+
+                    // Keywords.
+                    $keywords_array = array();
+                    if (count($item->controlledterms->term) > 0) {
+
+                        foreach ($item->controlledterms->term as $keyword) {
+
+                            $keywords_array[] = (string) $keyword;
+                        }
+
+                        if (!empty($keywords_array)) {
+                            $keywords = join(" / ", $keywords_array);
+                        }
+                    }
+
+                    // Publisher.
+                    $publisher = (string) $item->publisher;
+
+                    // Abstract.
+                    $abstract = (string) $item->abstract;
+                    
+                    // Reference type.
+                    $reference_type = (string) $item->pubtype;
+
+                    if ($reference_type == 'Conference Publications') {
+                        
+                        $reference_type = 'conference';
+                        
+                    } elseif ($reference_type == 'Journals & Magazines') {
+                        
+                        $reference_type = 'article';
+                        
+                    } elseif ($reference_type == 'Books & eBooks') {
+                        
+                        $reference_type = 'chapter';
+                        
+                    } elseif ($reference_type == 'Early Access Articles') {
+                        
+                        $reference_type = 'article';
+                        
+                    } elseif ($reference_type == 'Standards') {
+                        
+                        $reference_type = 'manual';
+                    }
+                    
+                    // PDF link.
+                    $pdflink = (string) $item->pdf;
 
                     if (!empty($id) && !empty($title)) {
 
@@ -464,8 +529,9 @@ if (isset($_SESSION['auth'])) {
 
                         print htmlspecialchars($secondary_title);
                         
-                        if (!empty($authors))
+                        if (!empty($authors)) {
                             print '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . htmlspecialchars($authors) . '</div>';
+                        }
 
                         if ($year != '')
                             print " ($year)";
@@ -474,12 +540,84 @@ if (isset($_SESSION['auth'])) {
 
                         print '<a href="' . htmlspecialchars('http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=' . $id) . '" target="_blank">IEEE</a>';
                         
-                        if (!empty($doi))
+                        if (!empty($doi)) {
                             print ' <b>&middot;</b> <a href="' . htmlspecialchars("http://dx.doi.org/" . urlencode($doi)) . '" target="_blank">Publisher Website</a>';
+                        }
+
+                        if (!empty($pdflink)) {
+                            print ' <b>&middot;</b> <a href="' . htmlspecialchars($pdflink) . '" target="_blank">PDF</a>';
+                        }
 
                         print '</div>';
                         
-                        print '<div class="abstract_container" style="display:none"></div>';
+                        print '<div class="abstract_container" style="display:none">';
+
+                        ##########	print results into table	##########
+
+                        print '<form enctype="application/x-www-form-urlencoded" action="upload.php" method="POST" class="fetch-form">';
+
+                        print '<div class="items">';
+
+                        print '<div>';
+                        if (!empty($secondary_title))
+                            print htmlspecialchars($secondary_title);
+                        if (!empty($authors)) {
+                            print '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . htmlspecialchars($authors) . '</div>';
+                        }
+                        if (!empty($year))
+                            print " (" . htmlspecialchars($year) . ")";
+                        if (!empty($volume))
+                            print " <b>" . htmlspecialchars($volume) . "</b>";
+                        if (!empty($issue))
+                            print " <i>(" . htmlspecialchars($issue) . ")</i>";
+                        if (!empty($pages))
+                            print ": " . htmlspecialchars($pages);
+                        print '</div>';
+
+                        if (!empty($names_str))
+                            print '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . htmlspecialchars($names_str) . '</div>';
+
+                        print '</div>';
+
+                        print '<div class="abstract" style="padding:0 10px">';
+
+                        !empty($abstract) ? print htmlspecialchars($abstract) : print 'No abstract available.';
+
+                        print '</div><div class="items">';
+
+                        ?>
+                        <input type="hidden" name="doi" value="<?php if (!empty($doi)) print htmlspecialchars($doi); ?>">
+                        <input type="hidden" name="uid[]" value="<?php if (!empty($id)) print 'IEEE:' . htmlspecialchars($id); ?>">
+                        <input type="hidden" name="reference_type" value="<?php if (!empty($reference_type)) print htmlspecialchars($reference_type); ?>">
+                        <input type="hidden" name="last_name" value="<?php if (!empty($last_name)) print htmlspecialchars(json_encode($last_name), ENT_COMPAT,'UTF-8', FALSE); ?>">
+                        <input type="hidden" name="first_name" value="<?php if (!empty($first_name)) print htmlspecialchars(json_encode($first_name), ENT_COMPAT,'UTF-8', FALSE); ?>">
+                        <input type="hidden" name="affiliation" value="<?php if (!empty($affiliation)) print htmlspecialchars($affiliation, ENT_COMPAT,'UTF-8', FALSE); ?>">
+                        <input type="hidden" name="title" value="<?php if (!empty($title)) print htmlspecialchars($title, ENT_COMPAT,'UTF-8', FALSE); ?>">
+                        <input type="hidden" name="secondary_title" value="<?php if (!empty($secondary_title)) print htmlspecialchars($secondary_title, ENT_COMPAT,'UTF-8', FALSE); ?>">
+                        <input type="hidden" name="year" value="<?php if (!empty($year)) print htmlspecialchars($year); ?>">
+                        <input type="hidden" name="volume" value="<?php if (!empty($volume)) print htmlspecialchars($volume); ?>">
+                        <input type="hidden" name="issue" value="<?php if (!empty($issue)) print htmlspecialchars($issue); ?>">
+                        <input type="hidden" name="pages" value="<?php if (!empty($pages)) print htmlspecialchars($pages); ?>">
+                        <input type="hidden" name="keywords" value="<?php if (!empty($keywords)) print htmlspecialchars($keywords); ?>">
+                        <input type="hidden" name="publisher" value="<?php if (!empty($publisher)) print htmlspecialchars($publisher, ENT_COMPAT,'UTF-8', FALSE); ?>">
+                        <input type="hidden" name="abstract" value="<?php print !empty($abstract) ? htmlspecialchars($abstract, ENT_COMPAT,'UTF-8', FALSE) : ""; ?>">
+                        <input type="hidden" name="reference_type" value="<?php if (!empty($reference_type)) print htmlspecialchars($reference_type); ?>">
+
+                        <?php
+                        ##########	print full text links	##########
+
+                        print '<b>Full text options:</b><br>';
+
+                        print '<a href="' . htmlspecialchars('http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=' . $id) . '" target="_blank">IEEE</a>';
+
+                        if (!empty($doi))
+                            print ' <b>&middot;</b> <a href="' . htmlspecialchars('http://dx.doi.org/' . urlencode($doi)) . '" target="_blank">Publishers Website</a>';
+
+                        print '<br><button class="save-item"><i class="fa fa-save"></i> Save</button> <button class="quick-save-item"><i class="fa fa-save"></i> Quick Save</button>';
+
+                        print '</div></form>';
+
+                        echo '</div>';
 
                         print '<div class="save_container"></div>';
 
@@ -500,23 +638,23 @@ if (isset($_SESSION['auth'])) {
                         '</div>';
 
                 print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
-                        . ($from == 1 ? '' : '<a class="navigation prevpage" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . ($from - 1)) . '" style="color:black;display:block;width:100%">') .
+                        . ($from == 1 ? '' : '<a class="navigation prevpage" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . ($from - 25)) . '" style="color:black;display:block;width:100%">') .
                         '<i class="fa fa-caret-left"></i>&nbsp;Back'
                         . ($from == 1 ? '' : '</a>') .
                         '</div>';
 
                 print '</td><td class="top" style="width: 50%">';
 
-                print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $from * 25 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
-                        . ($count > $from * 25 ? '<a class="navigation" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
+                print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $maxfrom ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+                        . ($count > $maxfrom ? '<a class="navigation" href="' . htmlspecialchars('download_ieee.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
                         '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
-                        . ($count > $from * 25 ? '</a>' : '') .
+                        . ($count > $maxfrom ? '</a>' : '') .
                         '</div>';
 
-                print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $from * 25 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
-                        . ($count > $from * 25 ? '<a class="navigation nextpage" href="' . htmlspecialchars("download_ieee.php?$url_string&from=" . ($from + 1)) . '" style="color:black;display:block;width:100%">' : '') .
+                print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $maxfrom ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+                        . ($count > $maxfrom ? '<a class="navigation nextpage" href="' . htmlspecialchars("download_ieee.php?$url_string&from=" . ($from + 25)) . '" style="color:black;display:block;width:100%">' : '') .
                         '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
-                        . ($count > $from * 25 ? '</a>' : '') .
+                        . ($count > $maxfrom ? '</a>' : '') .
                         '</div>';
 
                 print '<div class="ui-state-highlight ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px">PgUp</div>';
@@ -553,7 +691,7 @@ if (isset($_SESSION['auth'])) {
                         Search :
                     </td>
                     <td class="threed" colspan="2">
-                        <input type="radio" value="" name="ieee_type"<?php print empty($_SESSION['session_download_ieee_type']) ? ' checked' : ''  ?>>Metadata
+                        <input type="radio" value="metadata" name="ieee_type"<?php print !isset($_SESSION['session_download_ieee_type']) || $_SESSION['session_download_ieee_type'] == 'metadata' ? ' checked' : ''  ?>>Metadata
                         <input type="radio" value="fulltext" name="ieee_type"<?php print (isset($_SESSION['session_download_ieee_type']) && $_SESSION['session_download_ieee_type'] == 'fulltext') ? ' checked' : ''  ?>>Full Text
                     </td>
                 </tr>
@@ -590,8 +728,7 @@ if (isset($_SESSION['auth'])) {
                     <td class="threed" style="width:25em">
                         in
                         <select class="ieee-searchin" name="ieee_searchin' . $i . '">
-                            <option value="">
-                                ' . $type_text . '
+                            <option value="">Anywhere
                             </option>
                             <option value="&quot;Document Title&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Document Title"') ? ' selected' : '') . '>
                                 Document Title
@@ -605,35 +742,17 @@ if (isset($_SESSION['auth'])) {
                             <option value="&quot;Abstract&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Abstract"') ? ' selected' : '') . '>
                                 Abstract
                             </option>
-                            <option value="&quot;Index Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Index Terms"') ? ' selected' : '') . '>
-                                Index Terms
-                            </option>
                             <option value="&quot;Author Affiliation&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Author Affiliation"') ? ' selected' : '') . '>
                                 Author Affiliation
-                            </option>
-                            <option value="&quot;Accession Number&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Accession Number"') ? ' selected' : '') . '>
-                                Accession Number
                             </option>
                             <option value="&quot;Article Number&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Article Number"') ? ' selected' : '') . '>
                                 Article Number
                             </option>
-                            <option value="&quot;Author Keywords&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Author Keywords"') ? ' selected' : '') . '>
-                                Author Keywords
-                            </option>
-                            <option value="&quot;DOE Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"DOE Terms"') ? ' selected' : '') . '>
-                                DOE Terms
-                            </option>
                             <option value="&quot;DOI&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"DOI"') ? ' selected' : '') . '>
                                 DOI
                             </option>
-                            <option value="&quot;IEEE Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"IEEE Terms"') ? ' selected' : '') . '>
-                                IEEE Terms
-                            </option>
                             <option value="&quot;INSPEC Controlled Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"INSPEC Controlled Terms"') ? ' selected' : '') . '>
                                 INSPEC Controlled Terms
-                            </option>
-                            <option value="&quot;INSPEC Non-Controlled Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"INSPEC Non-Controlled Terms"') ? ' selected' : '') . '>
-                                INSPEC Non-Controlled Terms
                             </option>
                             <option value="&quot;ISBN&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"ISBN"') ? ' selected' : '') . '>
                                 ISBN
@@ -641,29 +760,17 @@ if (isset($_SESSION['auth'])) {
                             <option value="&quot;ISSN&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"ISSN"') ? ' selected' : '') . '>
                                 ISSN
                             </option>
-                            <option value="&quot;Issue&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Issue"') ? ' selected' : '') . '>
-                                Issue
+                            <option value="&quot;Publication Year&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Publication Year"') ? ' selected' : '') . '>
+                                Publication Year
                             </option>
-                            <option value="&quot;MeSH Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"MeSH Terms"') ? ' selected' : '') . '>
-                                MeSH Terms
+                            <option value="&quot;Part Number&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Part Number"') ? ' selected' : '') . '>
+                                Part Number
                             </option>
-                            <option value="&quot;PACS Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"PACS Terms"') ? ' selected' : '') . '>
-                                PACS Terms
+                            <option value="&quot;Thesaurus Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Thesaurus Terms"') ? ' selected' : '') . '>
+                                Thesaurus Terms
                             </option>
-                            <option value="&quot;Parent Publication Number&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Parent Publication Number"') ? ' selected' : '') . '>
-                                Parent Publication Number
-                            </option>
-                            <option value="&quot;Publication Number&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Publication Number"') ? ' selected' : '') . '>
-                                Publication Number
-                            </option>
-                            <option value="&quot;Standard Number&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Standard Number"') ? ' selected' : '') . '>
-                                Standard Number
-                            </option>
-                            <option value="&quot;Standards Dictionary Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Standards Dictionary Terms"') ? ' selected' : '') . '>
-                                Standards Dictionary Terms
-                            </option>
-                            <option value="Topic"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == 'Topic') ? ' selected' : '') . '>
-                                Topic
+                            <option value="&quot;Search Index Terms&quot;"' . ((isset($_SESSION['session_download_ieee_searchin' . $i]) && $_SESSION['session_download_ieee_searchin' . $i] == '"Search Index Terms"') ? ' selected' : '') . '>
+                                Search Index Terms
                             </option>
                         </select>
                         <select name="ieee_parenthesis' . $i . '-2">
@@ -673,6 +780,7 @@ if (isset($_SESSION['auth'])) {
                     </td>
                 </tr>';
                 }
+
                 ?>
 
             </table>
@@ -691,24 +799,18 @@ if (isset($_SESSION['auth'])) {
                         Publisher:
                     </td>
                     <td class="threed">
-                        <input type="checkbox" value="4294967269" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4294967269', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                        <input type="radio" value="IEEE" name="ieee_publisher"<?php print (isset($_SESSION['session_download_ieee_publisher']) && $_SESSION['session_download_ieee_publisher'] === 'IEEE') ? ' checked' : ''  ?>>
                         IEEE
-                        <input type="checkbox" value="4293612683" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4293612683', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                        <input type="radio" value="AIP" name="ieee_publisher"<?php print (isset($_SESSION['session_download_ieee_publisher']) && $_SESSION['session_download_ieee_publisher'] === 'AIP') ? ' checked' : ''  ?>>
                         AIP
-                        <input type="checkbox" value="4294967119" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4294967119', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                        <input type="radio" value="IET" name="ieee_publisher"<?php print (isset($_SESSION['session_download_ieee_publisher']) && $_SESSION['session_download_ieee_publisher'] === 'IET') ? ' checked' : ''  ?>>
                         IET
-                        <input type="checkbox" value="4293292639" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4293292639', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                        <input type="radio" value="AVS" name="ieee_publisher"<?php print (isset($_SESSION['session_download_ieee_publisher']) && $_SESSION['session_download_ieee_publisher'] === 'AVS') ? ' checked' : ''  ?>>
                         AVS
-                        <input type="checkbox" value="4292403457" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4292403457', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                        <input type="radio" value="IBM" name="ieee_publisher"<?php print (isset($_SESSION['session_download_ieee_publisher']) && $_SESSION['session_download_ieee_publisher'] === 'IBM') ? ' checked' : ''  ?>>
                         IBM
-                        <input type="checkbox" value="4292760466" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4292760466', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                        <input type="radio" value="VDE" name="ieee_publisher"<?php print (isset($_SESSION['session_download_ieee_publisher']) && $_SESSION['session_download_ieee_publisher'] === 'VDE') ? ' checked' : ''  ?>>
                         VDE
-                        <input type="checkbox" value="4283401643" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4283401643', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
-                        BIAI
-                        <input type="checkbox" value="4283401642" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4283401642', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
-                        TUP
-                        <input type="checkbox" value="4282906416" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4282906416', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
-                        MITP
                     </td>
                 </tr>
                 <tr>
@@ -717,19 +819,19 @@ if (isset($_SESSION['auth'])) {
                     </td>
                     <td class="threed">
                         <div style="float:left;margin-right:10px">
-                            <input type="checkbox" value="4291944822" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4291944822', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                            <input type="radio" value="Conferences" name="ieee_content_type"<?php print (isset($_SESSION['session_download_ieee_content_type']) && $_SESSION['session_download_ieee_content_type'] === 'Conferences') ? ' checked' : ''  ?>>
                             Conference Publications<br>
-                            <input type="checkbox" value="4291944246" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4291944246', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                            <input type="radio" value="Journals" name="ieee_content_type"<?php print (isset($_SESSION['session_download_ieee_content_type']) && $_SESSION['session_download_ieee_content_type'] === 'Journals') ? ' checked' : ''  ?>>
                             Journals &amp; Magazines<br>
-                            <input type="checkbox" value="4291944823" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4291944823', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                            <input type="radio" value="Books" name="ieee_content_type"<?php print (isset($_SESSION['session_download_ieee_content_type']) && $_SESSION['session_download_ieee_content_type'] === 'Books') ? ' checked' : ''  ?>>
                             Books &amp; eBooks
                         </div>
                         <div>
-                            <input type="checkbox" value="4291944245" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4291944245', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                            <input type="radio" value="Early Access" name="ieee_content_type"<?php print (isset($_SESSION['session_download_ieee_content_type']) && $_SESSION['session_download_ieee_content_type'] === 'Early Access') ? ' checked' : ''  ?>>
                             Early Access Articles<br>
-                            <input type="checkbox" value="4294965216" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4294965216', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                            <input type="radio" value="Standards" name="ieee_content_type"<?php print (isset($_SESSION['session_download_ieee_content_type']) && $_SESSION['session_download_ieee_content_type'] === 'Standards') ? ' checked' : ''  ?>>
                             Standards<br>
-                            <input type="checkbox" value="4291944243" name="ieee_refinements[]"<?php print (isset($_SESSION['session_download_ieee_refinements']) && in_array('4291944243', $_SESSION['session_download_ieee_refinements'])) ? ' checked' : ''  ?>>
+                            <input type="radio" value="Educational Courses" name="ieee_content_type"<?php print (isset($_SESSION['session_download_ieee_content_type']) && $_SESSION['session_download_ieee_content_type'] === 'Educational Courses') ? ' checked' : ''  ?>>
                             Education &amp; Learning
                         </div>
                     </td>
@@ -749,15 +851,12 @@ if (isset($_SESSION['auth'])) {
                 </tr>
                 <tr>
                     <td class="threed">
-                        Sort by:
+                        Sort:
                     </td>
                     <td class="threed">
-                        <input type="radio" name="ieee_sort" value=""<?php print empty($_SESSION['session_download_ieee_sort']) ? ' checked' : ''  ?>>Relevance
-                        <input type="radio" name="ieee_sort" value="desc_p_Publication_Year"<?php print (isset($_SESSION['session_download_ieee_sort']) && $_SESSION['session_download_ieee_sort'] == 'desc_p_Publication_Year') ? ' checked' : ''  ?>>Newest First
-                        <input type="radio" name="ieee_sort" value="asc_p_Publication_Year"<?php print (isset($_SESSION['session_download_ieee_sort']) && $_SESSION['session_download_ieee_sort'] == 'asc_p_Publication_Year') ? ' checked' : ''  ?>>Oldest First
-                        <input type="radio" name="ieee_sort" value="desc_p_Citation_Count"<?php print (isset($_SESSION['session_download_ieee_sort']) && $_SESSION['session_download_ieee_sort'] == 'desc_p_Citation_Count') ? ' checked' : ''  ?>>Most Cited
-                        <input type="radio" name="ieee_sort" value="asc_p_Publication_Title"<?php print (isset($_SESSION['session_download_ieee_sort']) && $_SESSION['session_download_ieee_sort'] == 'asc_p_Publication_Title') ? ' checked' : ''  ?>>Publication Title A-Z
-                        <input type="radio" name="ieee_sort" value="desc_p_Publication_Title"<?php print (isset($_SESSION['session_download_ieee_sort']) && $_SESSION['session_download_ieee_sort'] == 'desc_p_Publication_Title') ? ' checked' : ''  ?>>Publication Title Z-A
+                        <input type="radio" value="year" name="ieee_sort"<?php print !isset($_SESSION['session_download_ieee_sort']) || $_SESSION['session_download_ieee_sort'] == 'year' ? ' checked' : ''  ?>> Newest first
+                        <input type="radio" value="title" name="ieee_sort"<?php print isset($_SESSION['session_download_ieee_sort']) && $_SESSION['session_download_ieee_sort'] == 'title' ? ' checked' : ''  ?>> Title A&#x2192;Z
+                        <input type="radio" value="publication" name="ieee_sort"<?php print isset($_SESSION['session_download_ieee_sort']) && $_SESSION['session_download_ieee_sort'] == 'publication' ? ' checked' : ''  ?>> Publication A&#x2192;Z
                     </td>
                 </tr>
                 <tr>
@@ -776,7 +875,7 @@ if (isset($_SESSION['auth'])) {
         <br>
         <?php
         // CLEAN DOWNLOAD CACHE
-        $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
+        $clean_files = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
         if (is_array($clean_files)) {
             foreach ($clean_files as $clean_file) {
                 if (is_file($clean_file) && is_writable($clean_file))
@@ -785,4 +884,5 @@ if (isset($_SESSION['auth'])) {
         }
     }
 }
+
 ?>

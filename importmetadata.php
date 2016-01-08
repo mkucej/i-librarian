@@ -1,7 +1,6 @@
 <?php
 ignore_user_abort();
 include_once 'data.php';
-ini_set('max_execution_time', 10000);
 $url = '';
 
 if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['permissions'] == 'U')) {
@@ -15,6 +14,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         function trim_value(&$value) {
             $value = trim($value);
+
         }
 
         $user_id = $_SESSION['user_id'];
@@ -30,8 +30,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $dbname = uniqid() . '-temp.sq3';
         $fdbname = uniqid() . '-ftemp.sq3';
 
-        $dbHandle = new PDO('sqlite:' . $database_path . $dbname);
-        $fdbHandle = new PDO('sqlite:' . $database_path . $fdbname);
+        $dbHandle = new PDO('sqlite:' . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+        $fdbHandle = new PDO('sqlite:' . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
 
         $dbHandle->beginTransaction();
         $create = $dbHandle->exec("CREATE TABLE library (
@@ -69,7 +69,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 custom3 text NOT NULL DEFAULT '',
                 custom4 text NOT NULL DEFAULT '',
                 bibtex text NOT NULL DEFAULT '',
-                filehash text NOT NULL DEFAULT ''
+                filehash text NOT NULL DEFAULT '',
+                bibtex_type text NOT NULL DEFAULT ''
                 )");
         $create = null;
         $create = $dbHandle->exec("CREATE TABLE notes (
@@ -89,10 +90,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $create = null;
 
         $query = "INSERT INTO library (file, authors, affiliation, title, journal, year, addition_date, abstract, rating, uid, volume, issue, pages, secondary_title, tertiary_title, editor,
-                                        url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by, bibtex)
+                                        url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by, bibtex, bibtex_type)
                  VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(file)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')), :authors, :affiliation, :title, :journal,
                  :year, :addition_date, :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
-                 :url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by, :bibtex)";
+                 :url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by, :bibtex, :bibtex_type)";
 
         $stmt = $dbHandle->prepare($query);
 
@@ -122,6 +123,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $stmt->bindParam(':abstract_ascii', $abstract_ascii, PDO::PARAM_STR);
         $stmt->bindParam(':added_by', $added_by, PDO::PARAM_INT);
         $stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
+        $stmt->bindParam(':bibtex_type', $bibtex_type, PDO::PARAM_STR);
 
         $query = "INSERT INTO notes (userID, fileID, notes) VALUES (:userID, :fileID, :notes)";
 
@@ -142,8 +144,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     print "Error! " . $e->getMessage();
                     die();
                 }
@@ -156,8 +158,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     print "Error! " . $e->getMessage();
                     die();
                 }
@@ -169,6 +171,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $dbHandle->beginTransaction();
 
             foreach ($records as $record) {
+
+                set_time_limit(60);
 
                 $authors = '';
                 $authors_ascii = '';
@@ -271,6 +275,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 }
 
                 $bibtex = '';
+                $bibtex_type = '';
 
                 $url = '';
                 $urls = '';
@@ -317,10 +322,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 if (!empty($title))
                     $insert = $stmt->execute();
 
-                $result = $dbHandle->query("SELECT last_insert_rowid() FROM library");
-                $last_id = $result->fetchColumn();
+                $last_id = $dbHandle->lastInsertId();
                 $ids[] = $last_id;
-                $result = null;
 
                 $item_count = count($ids);
 
@@ -328,8 +331,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
@@ -338,36 +341,20 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $pdf_filename = $result->fetchColumn();
                     $pdf_filename = 'temp-' . $pdf_filename;
                     $result = null;
-                    copy($file_to_copy, dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $pdf_filename);
+                    copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
-                    system(select_pdftotext() . '"' . $file_to_copy . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
+                    system(select_pdftotext() . ' -enc UTF-8 "' . $file_to_copy . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
 
-                    if (is_file($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
+                    if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
 
-                        $stopwords = "a's, able, about, above, according, accordingly, across, actually, after, afterwards, again, against, ain't, all, allow, allows, almost, alone, along, already, also, although, always, am, among, amongst, an, and, another, any, anybody, anyhow, anyone, anything, anyway, anyways, anywhere, apart, appear, appreciate, appropriate, are, aren't, around, as, aside, ask, asking, associated, at, available, away, awfully, be, became, because, become, becomes, becoming, been, before, beforehand, behind, being, believe, below, beside, besides, best, better, between, beyond, both, brief, but, by, c'mon, c's, came, can, can't, cannot, cant, cause, causes, certain, certainly, changes, clearly, co, com, come, comes, concerning, consequently, consider, considering, contain, containing, contains, corresponding, could, couldn't, currently, definitely, described, despite, did, didn't, different, do, does, doesn't, doing, don't, done, down, during, each, edu, eg, either, else, elsewhere, enough, entirely, especially, et, etc, even, ever, every, everybody, everyone, everything, everywhere, ex, exactly, example, except, far, few, followed, following, follows, for, former, formerly, from, further, furthermore, get, gets, getting, given, gives, go, goes, going, gone, got, gotten, greetings, had, hadn't, happens, hardly, has, hasn't, have, haven't, having, he, he's, hello, help, hence, her, here, here's, hereafter, hereby, herein, hereupon, hers, herself, hi, him, himself, his, hither, hopefully, how, howbeit, however, i'd, i'll, i'm, i've, ie, if, in, inasmuch, inc, indeed, indicate, indicated, indicates, inner, insofar, instead, into, inward, is, isn't, it, it'd, it'll, it's, its, itself, just, keep, keeps, kept, know, knows, known, last, lately, later, latter, latterly, least, less, lest, let, let's, like, liked, likely, little, look, looking, looks, ltd, mainly, many, may, maybe, me, mean, meanwhile, merely, might, more, moreover, most, mostly, much, must, my, myself, name, namely, nd, near, nearly, necessary, need, needs, neither, never, nevertheless, new, next, no, nobody, non, none, noone, nor, normally, not, nothing, novel, now, nowhere, obviously, of, off, often, oh, ok, okay, old, on, once, ones, only, onto, or, other, others, otherwise, ought, our, ours, ourselves, out, outside, over, overall, own, particular, particularly, per, perhaps, placed, please, possible, presumably, probably, provides, que, quite, qv, rather, rd, re, really, reasonably, regarding, regardless, regards, relatively, respectively, right, said, same, saw, say, saying, says, secondly, see, seeing, seem, seemed, seeming, seems, seen, self, selves, sensible, sent, serious, seriously, several, shall, she, should, shouldn't, since, so, some, somebody, somehow, someone, something, sometime, sometimes, somewhat, somewhere, soon, sorry, specified, specify, specifying, still, sub, such, sup, sure, t's, take, taken, tell, tends, th, than, thank, thanks, thanx, that, that's, thats, the, their, theirs, them, themselves, then, thence, there, there's, thereafter, thereby, therefore, therein, theres, thereupon, these, they, they'd, they'll, they're, they've, think, this, thorough, thoroughly, those, though, through, throughout, thru, thus, to, together, too, took, toward, towards, tried, tries, truly, try, trying, twice, un, under, unfortunately, unless, unlikely, until, unto, up, upon, us, use, used, useful, uses, using, usually, value, various, very, via, viz, vs, want, wants, was, wasn't, way, we, we'd, we'll, we're, we've, welcome, well, went, were, weren't, what, what's, whatever, when, whence, whenever, where, where's, whereafter, whereas, whereby, wherein, whereupon, wherever, whether, which, while, whither, who, who's, whoever, whole, whom, whose, why, will, willing, wish, with, within, without, won't, wonder, would, would, wouldn't, yes, yet, you, you'd, you'll, you're, you've, your, yours, yourself, yourselves";
-
-                        $stopwords = explode(', ', $stopwords);
-
-                        $string = file_get_contents($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
-                        unlink($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                        $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                        unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
 
                         if (!empty($string)) {
 
-                            $patterns = join("\b/ui /\b", $stopwords);
-                            $patterns = "/\b$patterns\b/ui";
-                            $patterns = explode(" ", $patterns);
-
                             $order = array("\r\n", "\n", "\r");
                             $string = str_replace($order, ' ', $string);
-                            $string = preg_replace($patterns, '', $string);
                             $string = preg_replace('/\s{2,}/ui', ' ', $string);
-
-                            $fulltext_array = array();
-                            $fulltext_unique = array();
-
-                            $fulltext_array = explode(" ", $string);
-                            $fulltext_unique = array_unique($fulltext_array);
-                            $string = implode(" ", $fulltext_unique);
 
                             $fulltext_query = $fdbHandle->quote($string);
 
@@ -392,8 +379,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('Error! PDF files cannot be parsed. Please upload one of the indicated file types.');
                 }
             } elseif (!empty($_POST['form_import_textarea'])) {
@@ -417,12 +404,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $rating = 2;
                 $uid = '';
                 $bibtex = '';
+                $bibtex_type = '';
                 $affiliation = '';
                 $added_by = $user_id;
 
                 $dbHandle->beginTransaction();
 
                 foreach ($file_records as $record) {
+
+                    set_time_limit(60);
 
                     $record_array = array();
                     $record_array = explode("\n", $record);
@@ -571,11 +561,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             $month = $date_array[1];
                         if (!empty($date_array[2]))
                             $day = $date_array[2];
-                        if (!empty($year))
+                        if (!is_int($year)) {
+                            $year = '';
+                        }
+                        if (!empty($year) && is_int($year)) {
                             $year = $year . '-' . $month . '-' . $day;
+                        }
                         if (empty($year)) {
                             preg_match('/\d{4}/u', $year_match[0], $year_match2);
-                            if (!empty($year_match2[0]))
+                            if (!empty($year_match2[0]) && is_int($year_match2[0]))
                                 $year = $year_match2[0] . '-01-01';
                         }
                     }
@@ -678,36 +672,20 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $pdf_filename = $result->fetchColumn();
                         $pdf_filename = 'temp-' . $pdf_filename;
                         $result = null;
-                        copy($file_to_copy, dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $pdf_filename);
+                        copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
-                        system(select_pdftotext() . '"' . $file_to_copy . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
+                        system(select_pdftotext() . ' -enc UTF-8 "' . $file_to_copy . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
 
-                        if (is_file($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
+                        if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
 
-                            $stopwords = "a's, able, about, above, according, accordingly, across, actually, after, afterwards, again, against, ain't, all, allow, allows, almost, alone, along, already, also, although, always, am, among, amongst, an, and, another, any, anybody, anyhow, anyone, anything, anyway, anyways, anywhere, apart, appear, appreciate, appropriate, are, aren't, around, as, aside, ask, asking, associated, at, available, away, awfully, be, became, because, become, becomes, becoming, been, before, beforehand, behind, being, believe, below, beside, besides, best, better, between, beyond, both, brief, but, by, c'mon, c's, came, can, can't, cannot, cant, cause, causes, certain, certainly, changes, clearly, co, com, come, comes, concerning, consequently, consider, considering, contain, containing, contains, corresponding, could, couldn't, currently, definitely, described, despite, did, didn't, different, do, does, doesn't, doing, don't, done, down, during, each, edu, eg, either, else, elsewhere, enough, entirely, especially, et, etc, even, ever, every, everybody, everyone, everything, everywhere, ex, exactly, example, except, far, few, followed, following, follows, for, former, formerly, from, further, furthermore, get, gets, getting, given, gives, go, goes, going, gone, got, gotten, greetings, had, hadn't, happens, hardly, has, hasn't, have, haven't, having, he, he's, hello, help, hence, her, here, here's, hereafter, hereby, herein, hereupon, hers, herself, hi, him, himself, his, hither, hopefully, how, howbeit, however, i'd, i'll, i'm, i've, ie, if, in, inasmuch, inc, indeed, indicate, indicated, indicates, inner, insofar, instead, into, inward, is, isn't, it, it'd, it'll, it's, its, itself, just, keep, keeps, kept, know, knows, known, last, lately, later, latter, latterly, least, less, lest, let, let's, like, liked, likely, little, look, looking, looks, ltd, mainly, many, may, maybe, me, mean, meanwhile, merely, might, more, moreover, most, mostly, much, must, my, myself, name, namely, nd, near, nearly, necessary, need, needs, neither, never, nevertheless, new, next, no, nobody, non, none, noone, nor, normally, not, nothing, novel, now, nowhere, obviously, of, off, often, oh, ok, okay, old, on, once, ones, only, onto, or, other, others, otherwise, ought, our, ours, ourselves, out, outside, over, overall, own, particular, particularly, per, perhaps, placed, please, possible, presumably, probably, provides, que, quite, qv, rather, rd, re, really, reasonably, regarding, regardless, regards, relatively, respectively, right, said, same, saw, say, saying, says, secondly, see, seeing, seem, seemed, seeming, seems, seen, self, selves, sensible, sent, serious, seriously, several, shall, she, should, shouldn't, since, so, some, somebody, somehow, someone, something, sometime, sometimes, somewhat, somewhere, soon, sorry, specified, specify, specifying, still, sub, such, sup, sure, t's, take, taken, tell, tends, th, than, thank, thanks, thanx, that, that's, thats, the, their, theirs, them, themselves, then, thence, there, there's, thereafter, thereby, therefore, therein, theres, thereupon, these, they, they'd, they'll, they're, they've, think, this, thorough, thoroughly, those, though, through, throughout, thru, thus, to, together, too, took, toward, towards, tried, tries, truly, try, trying, twice, un, under, unfortunately, unless, unlikely, until, unto, up, upon, us, use, used, useful, uses, using, usually, value, various, very, via, viz, vs, want, wants, was, wasn't, way, we, we'd, we'll, we're, we've, welcome, well, went, were, weren't, what, what's, whatever, when, whence, whenever, where, where's, whereafter, whereas, whereby, wherein, whereupon, wherever, whether, which, while, whither, who, who's, whoever, whole, whom, whose, why, will, willing, wish, with, within, without, won't, wonder, would, would, wouldn't, yes, yet, you, you'd, you'll, you're, you've, your, yours, yourself, yourselves";
-
-                            $stopwords = explode(', ', $stopwords);
-
-                            $string = file_get_contents($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
-                            unlink($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                            $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                            unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
 
                             if (!empty($string)) {
 
-                                $patterns = join("\b/ui /\b", $stopwords);
-                                $patterns = "/\b$patterns\b/ui";
-                                $patterns = explode(" ", $patterns);
-
                                 $order = array("\r\n", "\n", "\r");
                                 $string = str_replace($order, ' ', $string);
-                                $string = preg_replace($patterns, '', $string);
                                 $string = preg_replace('/\s{2,}/ui', ' ', $string);
-
-                                $fulltext_array = array();
-                                $fulltext_unique = array();
-
-                                $fulltext_array = explode(" ", $string);
-                                $fulltext_unique = array_unique($fulltext_array);
-                                $string = implode(" ", $fulltext_unique);
 
                                 $fulltext_query = $fdbHandle->quote($string);
 
@@ -725,8 +703,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
@@ -746,8 +724,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('Error! PDF files cannot be parsed. Please upload one of the indicated file types.');
                 }
             } elseif (!empty($_POST['form_import_textarea'])) {
@@ -769,6 +747,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $dbHandle->beginTransaction();
 
                 foreach ($file_records as $record) {
+
+                    set_time_limit(60);
 
                     $record = str_replace("\n   ", "{#}", $record);
 
@@ -844,6 +824,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $uid = '';
 
                         $bibtex = '';
+                        $bibtex_type = '';
 
                         $volume = '';
 
@@ -914,8 +895,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
@@ -933,8 +914,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('Error! PDF files cannot be parsed. Please upload one of the indicated file types.');
                 }
             } elseif (!empty($_POST['form_import_textarea'])) {
@@ -957,6 +938,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $dbHandle->beginTransaction();
 
                 foreach ($file_records as $record) {
+
+                    set_time_limit(60);
 
                     $record = trim($record);
                     $record = str_replace('={', ' = {', $record);
@@ -993,7 +976,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $file_to_copy_match = array();
                         $notes_match = array();
 
-                        $type_match[0] = trim(strstr($record, "{", true));
+                        $type_match[0] = strtolower(trim(strstr($record, "{", true)));
 
                         $record = trim(substr($record, strpos($record, "{") + 1, strrpos($record, "}") - strlen($record)));
 
@@ -1006,83 +989,83 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         foreach ($tags as $tag) {
                             $tag = trim($tag);
 
-                            if (strpos($tag, 'title = {') === 0) {
+                            if (stripos($tag, 'title = {') === 0) {
                                 $title_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'title = "') === 0) {
+                            } elseif (stripos($tag, 'title = "') === 0) {
                                 $title_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'journal = {') === 0) {
+                            } elseif (stripos($tag, 'journal = {') === 0) {
                                 $secondary_title_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'journal = "') === 0) {
+                            } elseif (stripos($tag, 'journal = "') === 0) {
                                 $secondary_title_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'booktitle = {') === 0) {
+                            } elseif (stripos($tag, 'booktitle = {') === 0) {
                                 $secondary_title_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'booktitle = "') === 0) {
+                            } elseif (stripos($tag, 'booktitle = "') === 0) {
                                 $secondary_title_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'school = {') === 0) {
+                            } elseif (stripos($tag, 'school = {') === 0) {
                                 $secondary_title_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'school = "') === 0) {
+                            } elseif (stripos($tag, 'school = "') === 0) {
                                 $secondary_title_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'series = {') === 0) {
+                            } elseif (stripos($tag, 'series = {') === 0) {
                                 if (empty($secondary_title_match[0])) {
                                     $secondary_title_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
                                 } else {
                                     $tertiary_title_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
                                 }
-                            } elseif (strpos($tag, 'series = "') === 0) {
+                            } elseif (stripos($tag, 'series = "') === 0) {
                                 if (empty($secondary_title_match[0])) {
                                     $secondary_title_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
                                 } else {
                                     $tertiary_title_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
                                 }
-                            } elseif (strpos($tag, 'year = {') === 0) {
+                            } elseif (stripos($tag, 'year = {') === 0) {
                                 $year_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'year = "') === 0) {
+                            } elseif (stripos($tag, 'year = "') === 0) {
                                 $year_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'year = ') === 0) {
+                            } elseif (stripos($tag, 'year = ') === 0) {
                                 $year_match[0] = trim(substr($tag, 7));
-                            } elseif (strpos($tag, 'volume = {') === 0) {
+                            } elseif (stripos($tag, 'volume = {') === 0) {
                                 $volume_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'volume = "') === 0) {
+                            } elseif (stripos($tag, 'volume = "') === 0) {
                                 $volume_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'volume = ') === 0) {
+                            } elseif (stripos($tag, 'volume = ') === 0) {
                                 $volume_match[0] = trim(substr($tag, 9));
-                            } elseif (strpos($tag, 'number = {') === 0) {
+                            } elseif (stripos($tag, 'number = {') === 0) {
                                 $issue_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'number = "') === 0) {
+                            } elseif (stripos($tag, 'number = "') === 0) {
                                 $issue_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'number = ') === 0) {
+                            } elseif (stripos($tag, 'number = ') === 0) {
                                 $issue_match[0] = trim(substr($tag, 9));
-                            } elseif (strpos($tag, 'pages = {') === 0) {
+                            } elseif (stripos($tag, 'pages = {') === 0) {
                                 $pages_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'pages = "') === 0) {
+                            } elseif (stripos($tag, 'pages = "') === 0) {
                                 $pages_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'publisher = {') === 0) {
+                            } elseif (stripos($tag, 'publisher = {') === 0) {
                                 $publisher_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'publisher = "') === 0) {
+                            } elseif (stripos($tag, 'publisher = "') === 0) {
                                 $publisher_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'address = {') === 0) {
+                            } elseif (stripos($tag, 'address = {') === 0) {
                                 $place_published_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'address = "') === 0) {
+                            } elseif (stripos($tag, 'address = "') === 0) {
                                 $place_published_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'editor = {') === 0) {
+                            } elseif (stripos($tag, 'editor = {') === 0) {
                                 $editors_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'editor = "') === 0) {
+                            } elseif (stripos($tag, 'editor = "') === 0) {
                                 $editors_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'author = {') === 0) {
+                            } elseif (stripos($tag, 'author = {') === 0) {
                                 $authors_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'author = "') === 0) {
+                            } elseif (stripos($tag, 'author = "') === 0) {
                                 $authors_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'abstract = {') === 0) {
+                            } elseif (stripos($tag, 'abstract = {') === 0) {
                                 $abstract_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'abstract = "') === 0) {
+                            } elseif (stripos($tag, 'abstract = "') === 0) {
                                 $abstract_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'doi = {') === 0) {
+                            } elseif (stripos($tag, 'doi = {') === 0) {
                                 $doi_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'doi = "') === 0) {
+                            } elseif (stripos($tag, 'doi = "') === 0) {
                                 $doi_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
-                            } elseif (strpos($tag, 'file = {') === 0) {
+                            } elseif (stripos($tag, 'file = {') === 0) {
                                 $file_to_copy_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
-                            } elseif (strpos($tag, 'file = "') === 0) {
+                            } elseif (stripos($tag, 'file = "') === 0) {
                                 $file_to_copy_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
                             }
                         }
@@ -1214,6 +1197,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         if (!empty($bibtex_match[0]))
                             $bibtex = trim($bibtex_match[0]);
 
+                        $bibtex_type = '';
+
+                        if (!empty($type_match[0])) {
+                            $bibtex_type = strtolower(trim($type_match[0]));
+                        }
+
                         if (!empty($title)) {
                             $insert = $stmt->execute();
                             $insert = null;
@@ -1236,36 +1225,20 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             $pdf_filename = $result->fetchColumn();
                             $pdf_filename = 'temp-' . $pdf_filename;
                             $result = null;
-                            copy($file_to_copy, dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $pdf_filename);
+                            copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
-                            system(select_pdftotext() . '"' . $file_to_copy . '" "' . $temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
+                            system(select_pdftotext() . ' -enc UTF-8 "' . $file_to_copy . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
 
-                            if (is_file($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
+                            if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
 
-                                $stopwords = "a's, able, about, above, according, accordingly, across, actually, after, afterwards, again, against, ain't, all, allow, allows, almost, alone, along, already, also, although, always, am, among, amongst, an, and, another, any, anybody, anyhow, anyone, anything, anyway, anyways, anywhere, apart, appear, appreciate, appropriate, are, aren't, around, as, aside, ask, asking, associated, at, available, away, awfully, be, became, because, become, becomes, becoming, been, before, beforehand, behind, being, believe, below, beside, besides, best, better, between, beyond, both, brief, but, by, c'mon, c's, came, can, can't, cannot, cant, cause, causes, certain, certainly, changes, clearly, co, com, come, comes, concerning, consequently, consider, considering, contain, containing, contains, corresponding, could, couldn't, currently, definitely, described, despite, did, didn't, different, do, does, doesn't, doing, don't, done, down, during, each, edu, eg, either, else, elsewhere, enough, entirely, especially, et, etc, even, ever, every, everybody, everyone, everything, everywhere, ex, exactly, example, except, far, few, followed, following, follows, for, former, formerly, from, further, furthermore, get, gets, getting, given, gives, go, goes, going, gone, got, gotten, greetings, had, hadn't, happens, hardly, has, hasn't, have, haven't, having, he, he's, hello, help, hence, her, here, here's, hereafter, hereby, herein, hereupon, hers, herself, hi, him, himself, his, hither, hopefully, how, howbeit, however, i'd, i'll, i'm, i've, ie, if, in, inasmuch, inc, indeed, indicate, indicated, indicates, inner, insofar, instead, into, inward, is, isn't, it, it'd, it'll, it's, its, itself, just, keep, keeps, kept, know, knows, known, last, lately, later, latter, latterly, least, less, lest, let, let's, like, liked, likely, little, look, looking, looks, ltd, mainly, many, may, maybe, me, mean, meanwhile, merely, might, more, moreover, most, mostly, much, must, my, myself, name, namely, nd, near, nearly, necessary, need, needs, neither, never, nevertheless, new, next, no, nobody, non, none, noone, nor, normally, not, nothing, novel, now, nowhere, obviously, of, off, often, oh, ok, okay, old, on, once, ones, only, onto, or, other, others, otherwise, ought, our, ours, ourselves, out, outside, over, overall, own, particular, particularly, per, perhaps, placed, please, possible, presumably, probably, provides, que, quite, qv, rather, rd, re, really, reasonably, regarding, regardless, regards, relatively, respectively, right, said, same, saw, say, saying, says, secondly, see, seeing, seem, seemed, seeming, seems, seen, self, selves, sensible, sent, serious, seriously, several, shall, she, should, shouldn't, since, so, some, somebody, somehow, someone, something, sometime, sometimes, somewhat, somewhere, soon, sorry, specified, specify, specifying, still, sub, such, sup, sure, t's, take, taken, tell, tends, th, than, thank, thanks, thanx, that, that's, thats, the, their, theirs, them, themselves, then, thence, there, there's, thereafter, thereby, therefore, therein, theres, thereupon, these, they, they'd, they'll, they're, they've, think, this, thorough, thoroughly, those, though, through, throughout, thru, thus, to, together, too, took, toward, towards, tried, tries, truly, try, trying, twice, un, under, unfortunately, unless, unlikely, until, unto, up, upon, us, use, used, useful, uses, using, usually, value, various, very, via, viz, vs, want, wants, was, wasn't, way, we, we'd, we'll, we're, we've, welcome, well, went, were, weren't, what, what's, whatever, when, whence, whenever, where, where's, whereafter, whereas, whereby, wherein, whereupon, wherever, whether, which, while, whither, who, who's, whoever, whole, whom, whose, why, will, willing, wish, with, within, without, won't, wonder, would, would, wouldn't, yes, yet, you, you'd, you'll, you're, you've, your, yours, yourself, yourselves";
-
-                                $stopwords = explode(', ', $stopwords);
-
-                                $string = file_get_contents($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
-                                unlink($temp_dir . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                                $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                                unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
 
                                 if (!empty($string)) {
 
-                                    $patterns = join("\b/ui /\b", $stopwords);
-                                    $patterns = "/\b$patterns\b/ui";
-                                    $patterns = explode(" ", $patterns);
-
                                     $order = array("\r\n", "\n", "\r");
                                     $string = str_replace($order, ' ', $string);
-                                    $string = preg_replace($patterns, '', $string);
                                     $string = preg_replace('/\s{2,}/ui', ' ', $string);
-
-                                    $fulltext_array = array();
-                                    $fulltext_unique = array();
-
-                                    $fulltext_array = explode(" ", $string);
-                                    $fulltext_unique = array_unique($fulltext_array);
-                                    $string = implode(" ", $fulltext_unique);
 
                                     $fulltext_query = $fdbHandle->quote($string);
 
@@ -1284,8 +1257,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink($database_path . $dbname);
-                    unlink($database_path . $fdbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
@@ -1300,24 +1273,24 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         
         // load data into main database
         
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $dbHandle->exec("PRAGMA journal_mode = DELETE");
 
-        $db_path_query = $dbHandle->quote($database_path . $dbname);
+        $db_path_query = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
         $dbHandle->exec("ATTACH DATABASE " . $db_path_query . " AS tempdb");
 
-        $db_path_query = $dbHandle->quote($database_path . $fdbname);
+        $db_path_query = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
         $dbHandle->exec("ATTACH DATABASE " . $db_path_query . " AS tempfdb");
 
         $dbHandle->exec("PRAGMA tempdb.journal_mode = DELETE");
         $dbHandle->exec("PRAGMA tempfdb.journal_mode = DELETE");
 
         $query1 = "INSERT INTO library (file, authors, affiliation, title, journal, year, addition_date, abstract, rating, uid, volume, issue, pages, secondary_title, tertiary_title, editor,
-					url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by, bibtex)
+					url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by, bibtex, bibtex_type)
 		 VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(file)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')), :authors, :affiliation, :title, :journal, :year,
                  :addition_date, :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
-                :url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by, :bibtex)";
+                :url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by, :bibtex, :bibtex_type)";
 
         $stmt = $dbHandle->prepare($query1);
 
@@ -1351,12 +1324,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $stmt->bindParam(':abstract_ascii', $abstract_ascii, PDO::PARAM_STR);
         $stmt->bindParam(':added_by', $added_by, PDO::PARAM_INT);
         $stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
+        $stmt->bindParam(':bibtex_type', $bibtex_type, PDO::PARAM_STR);
 
         $stmt2->bindParam(':userID', $user_id, PDO::PARAM_INT);
         $stmt2->bindParam(':fileID', $new_id, PDO::PARAM_INT);
         $stmt2->bindParam(':notes', $notes, PDO::PARAM_STR);
 
         for ($i = 1; $i <= $item_count; $i = $i + 1000) {
+
+            set_time_limit(600);
 
             $tmpresult = $dbHandle->query("SELECT * FROM tempdb.library WHERE id >= $i AND id < $i + 1000 ORDER BY id ASC");
             
@@ -1390,28 +1366,55 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $abstract_ascii = $tmprow['abstract_ascii'];
                 $added_by = $tmprow['added_by'];
                 $bibtex = $tmprow['bibtex'];
+                $bibtex_type = $tmprow['bibtex_type'];
 
-                $stmt->execute();
+                $insert = $stmt->execute();
                 $new_id = $dbHandle->lastInsertId();
-                $last_insert = $dbHandle->query("SELECT file FROM library WHERE id=$new_id");
-                $new_file = $last_insert->fetchColumn();
-                $last_insert = null;
+                $new_file = str_pad($new_id, 6, "0", STR_PAD_LEFT) . '.pdf';
                 $ids[] = $new_id;
+                $insert = null;
 
                 $noteresult = $dbHandle->query("SELECT notes FROM tempdb.notes WHERE fileID=" . intval($tmprow['id']) . " AND userID=" . intval($_SESSION['user_id']));
                 $notes = $noteresult->fetchColumn();
+                $noteresult = null;
 
                 if (!empty($notes)) {
                     $user_id = $_SESSION['user_id'];
                     $insert = $stmt2->execute();
                     $insert = null;
                 }
+                
+                // Save citation key.
+                if (empty($bibtex)) {
+
+                    $stmt6 = $dbHandle->prepare("UPDATE library SET bibtex=:bibtex WHERE id=:id");
+
+                    $stmt6->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
+                    $stmt6->bindParam(':id', $new_id, PDO::PARAM_INT);
+
+                    $bibtex_author = 'unknown';
+
+                    if (!empty($authors_ascii)) {
+                        $author_ascii_array = explode(";", $authors_ascii);
+                        $author_ascii_array2 = explode(",", $author_ascii_array[0]);
+                        if (!empty($author_ascii_array2[0])) {
+                            $bibtex_author = substr($author_ascii_array2[0], 3, -1);
+                        }
+                    }
+
+                    empty($year) ? $bibtex_year = '0000' : $bibtex_year = substr($year, 0, 4);
+
+                    $bibtex = $bibtex_author . '-' . $bibtex_year . '-ID' . $new_id;
+
+                    $insert = $stmt6->execute();
+                    $insert = null;
+                }
 
                 //RENAME TEMP PDFS
-                if (is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'temp-' . $tmprow['file'])) {
+                if (is_writable(IL_PDF_PATH . DIRECTORY_SEPARATOR . 'temp-' . $tmprow['file'])) {
                     $dbHandle->exec("UPDATE tempfdb.full_text SET fileID=" . $new_id . " WHERE fileID=" . $tmprow['id']);
-                    rename(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'temp-' . $tmprow['file'], dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $new_file);
-                    $hashes[$new_id] = md5_file(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . $new_file);
+                    rename(IL_PDF_PATH . DIRECTORY_SEPARATOR . 'temp-' . $tmprow['file'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+                    $hashes[$new_id] = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
                 }
 
                 $tmprow = null;
@@ -1423,9 +1426,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         $stmt = null;
+        $stmt2 = null;
+        $stmt3 = null;
+        $stmt4 = null;
+        $stmt5 = null;
 
         $dbHandle->exec("DETACH DATABASE tempdb");
         $dbHandle->exec("DETACH DATABASE tempfdb");
+
+        set_time_limit(600);
 
         //RECORD PDF HASHES
         $dbHandle->beginTransaction();
@@ -1437,6 +1446,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         $dbHandle->commit();
+
+        $ids_cut = array_slice($ids, 0, 100000);
 
         ####### record new category into categories, if not exists #########
 
@@ -1488,14 +1499,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $stmt->bindParam(':categoryid', $category_id);
 
         $dbHandle->beginTransaction();
-        while (list($key, $record_id) = each($ids)) {
+        while (list($key, $record_id) = each($ids_cut)) {
             while (list($key, $category_id) = each($categories)) {
                 if (!empty($record_id))
                     $stmt->execute();
             }
             reset($categories);
         }
-        reset($ids);
+        reset($ids_cut);
         $dbHandle->commit();
         $stmt = null;
 
@@ -1505,12 +1516,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
             $user_query = $dbHandle->quote($user_id);
             $dbHandle->beginTransaction();
-            while (list($key, $record_id) = each($ids)) {
+            while (list($key, $record_id) = each($ids_cut)) {
                 $dbHandle->exec("INSERT OR IGNORE INTO shelves (fileID,userID) VALUES (" . intval($record_id) . ",$user_query)");
             }
             $dbHandle->commit();
-            reset($ids);
-            @unlink($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'shelf_files');
+            reset($ids_cut);
         }
 
         ##########	record to projectsfiles	##########
@@ -1518,30 +1528,24 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         if (isset($_POST['project']) && !empty($_POST['projectID'])) {
 
             $dbHandle->beginTransaction();
-            while (list($key, $record_id) = each($ids)) {
+            while (list($key, $record_id) = each($ids_cut)) {
                 $dbHandle->exec("INSERT OR IGNORE INTO projectsfiles (projectID,fileID) VALUES (" . intval($_POST['projectID']) . "," . intval($record_id) . ")");
             }
             $dbHandle->commit();
-            reset($ids);
-            $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_*' . DIRECTORY_SEPARATOR . 'desk_files', GLOB_NOSORT);
-            if (is_array($clean_files)) {
-                foreach ($clean_files as $clean_file) {
-                    if (is_file($clean_file) && is_writable($clean_file))
-                        @unlink($clean_file);
-                }
-            }
+            reset($ids_cut);
         }
 
         ##########  ANALYZE  ##########
 
-        $dbHandle->exec("ANALYZE");
+        if (rand(1, 1000) == 500)
+            $dbHandle->exec("ANALYZE");
         $dbHandle = null;
 
         ##########  RECORD FULL TEXTS  ##########
 
-        database_connect($database_path, 'fulltext');
+        database_connect(IL_DATABASE_PATH, 'fulltext');
 
-        $db_path_query = $dbHandle->quote($database_path . $fdbname);
+        $db_path_query = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
         $dbHandle->exec("ATTACH DATABASE " . $db_path_query . " AS tempdb");
 
         $query = "INSERT INTO full_text (fileID,full_text) VALUES (:fileID,:full_text)";
@@ -1569,25 +1573,33 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $dbHandle->exec("DETACH DATABASE tempdb");
 
-        $dbHandle = null;
-
         ##########	record to clipboard	##########
-
-        session_start();
 
         if (isset($_POST['clipboard'])) {
 
-            if (!isset($_SESSION['session_clipboard']))
-                $_SESSION['session_clipboard'] = array();
-            $_SESSION['session_clipboard'] = array_merge((array) $_SESSION['session_clipboard'], (array) $ids);
-            $_SESSION['session_clipboard'] = array_unique($_SESSION['session_clipboard']);
+            attach_clipboard($dbHandle);
+
+            $query = "INSERT OR IGNORE INTO files (id) VALUES(:fileid)";
+
+            $stmt = $dbHandle->prepare($query);
+            $stmt->bindParam(':fileid', $record_id);
+
+            $dbHandle->beginTransaction();
+            while (list($key, $record_id) = each($ids_cut)) {
+                $stmt->execute();
+            }
+            $dbHandle->commit();
+            $stmt = null;
         }
 
-        unlink($database_path . $dbname);
-        unlink($database_path . $fdbname);
+        $dbHandle = null;
+
+        unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+        unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
 
         die('Done. Total items recorded: ' . $record_count);
     } else {
+
         ?>
         <div class="ui-state-highlight ui-corner-all" style="float:left;margin:4px;padding:1px 4px;cursor:auto">
             <i class="fa fa-signin"></i>
@@ -1622,7 +1634,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 <td style="line-height:22px;width: 18em">
                                     <select name="projectID" style="width:200px">
                                         <?php
-                                        database_connect($database_path, 'library');
+                                        database_connect(IL_DATABASE_PATH, 'library');
 
                                         $desktop_projects = array();
                                         $desktop_projects = read_desktop($dbHandle);
@@ -1632,6 +1644,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                         }
 
                                         $dbHandle = null;
+
                                         ?>
                                     </select>
                                 </td>
@@ -1682,11 +1695,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         Choose&nbsp;category:<br>
                     </td>
                     <td class="threedright">
+                        <input type="text" id="filtercategories" value="" placeholder="Filter categories" style="width:300px;margin:0.75em 0">
                         <div class="categorydiv" style="width: 99%;overflow:scroll; height: 200px;background-color: white;color: black;border: 1px solid #C5C6C9">
                             <table cellspacing=0 style="float:left;width: 49%">
                                 <?php
                                 $category_string = null;
-                                database_connect($database_path, 'library');
+                                database_connect(IL_DATABASE_PATH, 'library');
                                 $result = $dbHandle->query("SELECT count(*) FROM categories");
                                 $totalcount = $result->fetchColumn();
                                 $result = null;
@@ -1706,6 +1720,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 }
                                 $result = null;
                                 $dbHandle = null;
+
                                 ?>
                             </table>
                         </div>
@@ -1716,6 +1731,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         Add to new categories:
                     </td>
                     <td class="threedright">
+                        <input type="text" size="30" name="category2[]" value=""><br>
+                        <input type="text" size="30" name="category2[]" value=""><br>
                         <input type="text" size="30" name="category2[]" value=""><br>
                         <input type="text" size="30" name="category2[]" value=""><br>
                         <input type="text" size="30" name="category2[]" value="">
@@ -1752,4 +1769,5 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 } else {
     print 'Super User or User permissions required.';
 }
+
 ?>

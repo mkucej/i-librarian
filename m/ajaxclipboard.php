@@ -1,46 +1,57 @@
 <?php
 
-include_once 'data.php';
+include_once '../data.php';
 include_once '../functions.php';
 
 if (isset($_GET['file'])) {
-    if (!isset($_SESSION['session_clipboard'])) {
-        database_connect($database_path, 'library');
+
+    database_connect(IL_DATABASE_PATH, 'library');
+
+    attach_clipboard($dbHandle);
+    
         $file_query = $dbHandle->quote($_GET['file']);
+
+    $dbHandle->beginTransaction();
+
+    // Does item exist in clipboard?
+    $result = $dbHandle->query("SELECT COUNT(*) FROM clipboard.files WHERE id=$file_query");
+    $exists = $result->fetchColumn();
+    $result = null;
+
+    if ($exists !== '1') {
+
+        // Does item still exist in library?
         $result = $dbHandle->query("SELECT COUNT(*) FROM library WHERE id=$file_query");
         $exists = $result->fetchColumn();
         $result = null;
-        $dbHandle = null;
-        if ($exists == 1) {
-            $_SESSION['session_clipboard'][] = $_GET['file'];
+
+        if ($exists !== '1')
+            die('Error! This item does not exist anymore.');
+
+        // Can't add over 100,000
+        $result = $dbHandle->query("SELECT count(*) FROM clipboard.files");
+        $count = $result->fetchColumn();
+        $result = null;
+        if ($count >= 100000) {
+            $dbHandle->rollBack();
+            echo 'Error! Clipboard can hold up to 100,000 items.';
+            die();
+        }
+
+        // Add item to clipboard.
+        $dbHandle->exec("INSERT OR IGNORE INTO clipboard.files (id) VALUES($file_query)");
             echo "added";
         } else {
-            echo 'Error! This item does not exist anymore.';
-        }
-    } else {
-        if (!in_array($_GET['file'], $_SESSION['session_clipboard'])) {
-            $_SESSION['session_clipboard'][] = $_GET['file'];
-            $_SESSION['session_clipboard'] = array_unique($_SESSION['session_clipboard']);
-            echo "added";
-        } else {
 
-            $key = array_search($_GET['file'], $_SESSION['session_clipboard']);
-            unset($_SESSION['session_clipboard'][$key]);
-
-            if (isset($_GET['selection']) && $_GET['selection'] == 'clipboard') {
-
-                $export_files = read_export_files(0);
-
-                $id = array_search($_GET['file'], $export_files);
-
-                if ($id !== false) {
-                    unset($export_files[$id]);
-                    $export_files = array_values($export_files);
-                    save_export_files($export_files);
-                }
-            }
-            echo "removed";
-        }
+        // Remove from clipboard.
+        $dbHandle->exec("DELETE FROM clipboard.files WHERE id=$file_query");
+        echo "removed";
     }
+
+    $dbHandle->commit();
+
+    $dbHandle->exec("DETACH DATABASE clipboard");
+    $dbHandle = null;
 }
+
 ?>

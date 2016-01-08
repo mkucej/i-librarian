@@ -3,7 +3,7 @@ include_once 'data.php';
 include_once 'functions.php';
 session_write_close();
 
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 
 $id_query = $dbHandle->quote($_SESSION['user_id']);
 
@@ -15,7 +15,7 @@ $firstproject = '';
 if (!empty($projects))
     $firstproject = $projects[0]['projectID'];
 
-$dbHandle->exec("ATTACH DATABASE '" . $database_path . "users.sq3' AS usersdatabase");
+$dbHandle->exec("ATTACH DATABASE '" . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . "users.sq3' AS usersdatabase");
 $result2 = $dbHandle->query("SELECT userID,username FROM users ORDER BY username COLLATE NOCASE ASC");
 $users = $result2->fetchAll(PDO::FETCH_ASSOC);
 $dbHandle->exec("DETACH DATABASE usersdatabase");
@@ -160,7 +160,7 @@ $number_of_users = count($users);
                     </td>
                 </tr>
             </table>
-            <b>Creator</b> &bull; <?php print htmlspecialchars(get_username($dbHandle, $database_path, $project['creator'])) ?>
+            <b>Creator</b> &bull; <?php print htmlspecialchars(get_username($dbHandle, $project['creator'])) ?>
             <br>
             <?php
             if ($number_of_users > 1) {

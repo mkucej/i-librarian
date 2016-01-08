@@ -7,7 +7,7 @@ if (isset($_SESSION['auth'])) {
 $ini_settings = parse_ini_file("ilibrarian.ini", true);
 $default_settings = $ini_settings['fonts and appearance'];
 
-database_connect($usersdatabase_path, 'users');
+database_connect(IL_USER_DATABASE_PATH, 'users');
 
 $dbHandle->beginTransaction();
 
@@ -56,7 +56,9 @@ while ($custom_settings = $result->fetch(PDO::FETCH_ASSOC)) {
 	$custom_setting{$custom_settings['setting_name']} = $custom_settings['setting_value'];
 }
 
-if (!empty($custom_setting)) $default_settings = array_merge($default_settings, $custom_setting);
+if (!empty($custom_setting)) {
+    $default_settings = array_merge($default_settings, $custom_setting);
+}
 
 while (list($setting_name, $setting_value) = each($default_settings)) {
 

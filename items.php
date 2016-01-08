@@ -1,44 +1,71 @@
 <?php
 include_once 'data.php';
 include_once 'functions.php';
+session_write_close();
 
 if (isset($_GET['file']))
     $_GET['file'] = intval($_GET['file']);
 
 //DELETE BUTTON IN ITEMS VIEW
 if (isset($_GET['delete']) && isset($_GET['file']) && isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
     $error = null;
     $error = delete_record($dbHandle, $_GET['file']);
     die($error);
 }
 
+if (isset($_GET['file'])) {
+
+    // Fetch ids from cache in history.
+    database_connect(IL_DATABASE_PATH, 'history');
+
+    if ($_SESSION['orderby'] == 'id') {
+
+        $result = $dbHandle->query("SELECT itemID FROM `" . $_SESSION['display_files'] .
+                "` WHERE id<=(SELECT id FROM `" . $_SESSION['display_files'] . "` WHERE itemID=" . $_GET['file'] . ")+10 ORDER BY id DESC LIMIT 22");
+    } else {
+
+        $result = $dbHandle->query("SELECT itemID FROM `" . $_SESSION['display_files'] .
+                "` WHERE id>=(SELECT id FROM `" . $_SESSION['display_files'] . "` WHERE itemID=" . $_GET['file'] . ")-10 LIMIT 22");
+    }
+
+    $export_files = array();
+
+    if ($result)
+        $export_files = $result->fetchAll(PDO::FETCH_COLUMN);
+
+    $dbHandle = null;
+}
+
 //CHECK IF ITEM IS STILL IN LIST AFTER CHANGES AND RELOAD
 if (isset($_GET['checkitem']) && isset($_GET['files'])) {
 
-    $diff = array();
-    $export_files = read_export_files(0);
-    $diff = array_diff((array) $_GET['files'], (array) $export_files);
+    $found = array();
+
+    // Fetch ids from cache in history.
+    database_connect(IL_DATABASE_PATH, 'library');
+
+    $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'history.sq3');
+    $dbHandle->exec("ATTACH DATABASE $quoted_path as history");
+
+    foreach ($_GET['files'] as $file) {
+
+        $result = $dbHandle->query("SELECT id FROM history.`" . $_SESSION['display_files'] .
+                "` WHERE itemID=" . intval($file));
+
+        if ($result->fetchColumn())
+            $found[] = $file;
+        $result = null;
+    }
+
+    $diff = array_diff((array) $_GET['files'], (array) $found);
     echo json_encode($diff);
     die();
 }
 
-session_write_close();
-
-$export_files = read_export_files(0);
-//TODO: HACK, SOMETIMES CLIENT IS REFRESHING EXPORT FILES (BOTTOM LAYER)
-//if (empty($export_files)) {
-//    for ($i = 1; $i <= 10; $i++) {
-//        if (empty($export_files)) {
-//            sleep(1);
-//            $export_files = read_export_files(0);
-//        } else {
-//            break;
-//        }
-//    }
-//}
 if (empty($export_files))
     die('Error! No files to display.');
+
 ?>
 <div id="items-left" class="noprint alternating_row" style="position:relative;float:left;width:233px;height:100%;overflow:scroll;border:0;margin:0">
 
@@ -58,12 +85,9 @@ if (empty($export_files))
     <?php
     if (empty($_GET['file']))
         $_GET['file'] = $export_files[0];
-    $key = array_search(intval($_GET['file']), $export_files);
+    $key = array_search($_GET['file'], $export_files);
     $offset = max($key - 9, 0);
-    if ($offset > count($export_files) - 20) {
-        $offset = max(count($export_files) - 20, 0);
-    }
-    $show_items = array_slice($export_files, $offset, 20);
+    $display_files = array_slice($export_files, $offset, 20);
     if ($offset > 0) {
         print '<div class="ui-state-highlight lib-shadow-bottom" style="margin-bottom:4px;height:17px" id="nav-prev" data-id="' . $export_files[$offset - 1] . '">';
         print '<i class="fa fa-caret-up"></i>';
@@ -73,9 +97,9 @@ if (empty($export_files))
 
     $divs = array();
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
-    $query = join(",", $show_items);
+    $query = join(",", $display_files);
     $result = $dbHandle->query("SELECT id,file,title FROM library WHERE id IN (" . $query . ")");
     $dbHandle = null;
     $result = $result->fetchAll(PDO::FETCH_ASSOC);
@@ -83,7 +107,7 @@ if (empty($export_files))
     //SORT QUERY RESULTS
     $tempresult = array();
     foreach ($result as $row) {
-        $key = array_search($row['id'], $show_items);
+        $key = array_search($row['id'], $export_files);
         $tempresult[$key] = $row;
     }
     ksort($tempresult);
@@ -101,11 +125,14 @@ if (empty($export_files))
 
     print join($hr, $divs);
 
+    echo '<div style="margin-top:24px" ></div>';
+
     if ($offset < count($export_files) - 20) {
-        print '<div class="ui-state-highlight lib-shadow-top" id="nav-next" style="margin-top:24px" data-id="' . $export_files[$offset + 20] . '">';
+        print '<div class="ui-state-highlight lib-shadow-top" id="nav-next" data-id="' . $export_files[$offset + 20] . '">';
         print '<i class="fa fa-caret-down"></i>';
         print '</div>';
     }
+
     ?>
 </div>
 <div class="alternating_row middle-panel"
@@ -115,36 +142,43 @@ if (empty($export_files))
 <div style="width:auto;height:100%;overflow:hidden" id="items-right" data-file="<?php echo $_GET['file'] ?>">
     <?php
     if (!empty($_GET['file'])) {
+
         ?>
         <div class="noprint ui-state-highlight" id="items-menu">
-            <div class="tab" id="file-item">
+            <div class="tab" id="file-item" style="position:relative">
                 <i class="fa fa-home"></i><br>Item
+                <i class="fa fa-caret-right" style="position:absolute;top:0.5em;right:3px;opacity:0.5"></i>
             </div>
-            <div class="tab" id="file-pdf"
+            <div class="tab" id="file-pdf" style="position:relative"
                  <?php
             if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
                 echo 'data-mode="external"';
 
             if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
                 echo 'data-mode="internal"';
+
             ?>
                  >
                 <i class="fa fa-file-pdf-o"></i><br>PDF
+                <i class="fa fa-caret-right" style="position:absolute;top:0.5em;right:3px;opacity:0.5"></i>
             </div>
-            <div class="tab" id="file-notes">
+            <div class="tab" id="file-notes" style="position:relative">
                 <i class="fa fa-pencil"></i><br>Notes
+                <i class="fa fa-caret-right" style="position:absolute;top:0.4em;right:3px;opacity:0.5"></i>
             </div>
             <div class="tab" id="file-categories">
                 <i class="fa fa-tags"></i><br>Categ.
             </div>
             <?php
             if ($_SESSION['permissions'] != 'G') {
+
                 ?>
                 <div class="tab" id="file-edit">
                     <i class="fa fa-cog"></i><br>Edit
                 </div>
                 <?php
             }
+
             ?>
             <div class="tab" id="file-files">
                 <i class="fa fa-paperclip"></i><br>Files
@@ -166,6 +200,7 @@ if (empty($export_files))
             <?php
             if (isset($_SESSION['auth'])) {
                 if ($_SESSION['permissions'] == 'A') {
+
                     ?>
                     <div id="deletebutton" title="Permanently delete this record (Del)">
                         <i class="fa fa-trash-o"></i><br>Delete
@@ -173,19 +208,24 @@ if (empty($export_files))
                     <?php
                 }
             }
+
             ?>
+        </div>
+        <div id="items-item-menu" style="display:none;width:5.5em;position:fixed;top:0;left:0;text-align: center;padding:8px 0;z-index: 2000;cursor: pointer;line-height:1.1em">
+            <i class="fa fa-external-link" style="font-size:16px"></i><br>New Tab
         </div>
         <div id="items-notes-menu" style="display:none;width:5.5em;position:fixed;top:0;left:0;text-align: center;padding:8px 0;z-index: 2000;cursor: pointer;line-height:1.1em">
             <i class="fa fa-external-link" style="font-size:16px"></i><br>Edit
         </div>
-        <div id="items-pdf-menu" class="ui-state-highlight" style="display:none;position:fixed;top:0;left:0;width:calc(11em+1px);z-index: 2001;padding:0;border:0;margin:0;line-height:1.1em">
-            <div id="items-pdf-menu-a" style="display:inline-block;width:5.5em;text-align: center;padding:8px 0;cursor: pointer;margin-right: 1px"
+        <div id="items-pdf-menu" style="display:none;position:fixed;top:0;left:0;width:calc(11em+1px);z-index: 2001;padding:0;border:0;margin:0;line-height:1.1em">
+            <div id="items-pdf-menu-a" style="display:inline-block;width:5.5em;text-align: center;padding:8px 0;cursor: pointer"
             <?php
             if (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'external')
                 echo 'data-mode="external"';
 
             if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
                 echo 'data-mode="internal"';
+
             ?>
                  >
                 <i class="fa fa-external-link" style="font-size:16px"></i><br>
@@ -202,5 +242,6 @@ if (empty($export_files))
     } else {
         print '<h3>&nbsp;Error! This item does not exist.<br>&nbsp;Reload of the library is recommended.</h3>';
     }
+
     ?>
 </div>

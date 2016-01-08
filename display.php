@@ -1,30 +1,12 @@
 <?php
 include_once 'data.php';
 include_once 'functions.php';
-session_write_close();
 
 if (!isset($_GET['from'])) {
     $from = '0';
 } else {
     settype($_GET['from'], "integer");
     $from = $_GET['from'];
-}
-
-// CACHING
-
-if (isset($_GET['from']) && !isset($_GET['browse']['No PDF']) && !isset($_GET['browse']['Not Indexed'])) {
-    $cache_name = cache_name();
-    $db_change = database_change(array(
-        'library',
-        'shelves',
-        'projects',
-        'projectsusers',
-        'projectsfiles',
-        'filescategories',
-        'notes'
-    ));
-    cache_start($db_change);
-    $total_files_array = read_export_files($db_change);
 }
 
 if (!isset($_GET['project'])) {
@@ -34,20 +16,20 @@ if (!isset($_GET['project'])) {
 }
 
 if (!isset($_SESSION['limit'])) {
-    $limit = 10;
+    $limit = $_SESSION['limit'] = 10;
 } else {
     settype($_SESSION['limit'], "integer");
     $limit = $_SESSION['limit'];
 }
 
 if (!isset($_SESSION['orderby'])) {
-    $orderby = 'id';
+    $orderby = $_SESSION['orderby'] = 'id';
 } else {
     $orderby = $_SESSION['orderby'];
 }
 
 if (!isset($_SESSION['display'])) {
-    $display = 'summary';
+    $display = $_SESSION['display'] = 'summary';
 } else {
     $display = $_SESSION['display'];
 }
@@ -60,22 +42,53 @@ if ($_GET['select'] != 'library' &&
     $_GET['select'] = 'library';
 }
 
+// Store current table name hash in session.
+
+$table_name_hash = '';
+$table_name_array = $_GET;
+$table_name_array['orderby'] = $orderby;
+unset($table_name_array['_']);
+unset($table_name_array['from']);
+unset($table_name_array['limit']);
+unset($table_name_array['display']);
+$table_name_array['user_id'] = $_SESSION['user_id'];
+$table_name_array = array_filter($table_name_array);
+ksort($table_name_array);
+$table_name_hash = 'search_' . hash('crc32', json_encode($table_name_array));
+$_SESSION['display_files'] = $table_name_hash;
+
+// CACHING to FILE
+
+if (isset($_GET['from']) && !isset($_GET['browse']['No PDF']) && !isset($_GET['browse']['Discussed Items'])) {
+    $cache_name = cache_name();
+    $db_change = database_change(array(
+        'library',
+        'shelves',
+        'projects',
+        'projectsusers',
+        'projectsfiles',
+        'filescategories',
+        'notes'
+            ), array('full_text'), array('clipboard'));
+    cache_start($db_change);
+}
+
 if (isset($_GET['browse'])) {
 
     $in = '';
     $all_in = '';
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
-    $shelf_files = array();
-    $shelf_files = read_shelf($dbHandle);
+    // Shelf, project, clipboard constraints.
+    if ($_GET['select'] == 'shelf') {
+        $all_in = "WHERE id IN (SELECT fileID FROM shelves WHERE fileID>0 AND userID=" . intval($_SESSION['user_id']) . ")";
+//        $all_in = "INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']);
+    }
 
+    // Get user's dektop projects.
     $desktop_projects = array();
     $desktop_projects = read_desktop($dbHandle);
-
-    if ($_GET['select'] == 'shelf') {
-        $all_in = "INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']);
-    }
 
     if ($_GET['select'] == 'desk') {
         $project_id = '';
@@ -88,10 +101,8 @@ if (isset($_GET['browse'])) {
 
         if (isset($_GET['project']))
             $project_id = $_GET['project'];
-        $project_files = $dbHandle->query("SELECT fileID FROM projectsfiles WHERE projectID=" . intval($project_id));
-        $project_files = $project_files->fetchAll(PDO::FETCH_COLUMN);
-        $in = implode(',', $project_files);
-        $all_in = "WHERE id IN ($in)";
+        $all_in = "WHERE id IN (SELECT fileID FROM projectsfiles WHERE projectID=" . intval($project_id) . ")";
+//        $all_in = "INNER JOIN projectsfiles ON library.id=projectsfiles.fileID WHERE projectID=" . intval($project_id);
         $project_files = null;
 
         if (!empty($desktop_projects)) {
@@ -102,13 +113,9 @@ if (isset($_GET['browse'])) {
         }
     }
 
-    if ($_GET['select'] == 'clipboard' && !empty($_SESSION['session_clipboard'])) {
-        $in = join(",", $_SESSION['session_clipboard']);
-        $all_in = "WHERE id IN ($in)";
-    }
+    if ($_GET['select'] == 'clipboard') {
 
-    if ($_GET['select'] == 'clipboard' && empty($_SESSION['session_clipboard'])) {
-        $all_in = "WHERE id IN ()";
+        $all_in = "WHERE id IN (SELECT id FROM clipboard.files)";
     }
 
     empty($all_in) ? $where = 'WHERE' : $where = 'AND';
@@ -129,9 +136,11 @@ if (isset($_GET['browse'])) {
         if ($column == 'category') {
             $query = intval($query);
             if ($query == 0) {
-                $category_sql_array[] = "SELECT id FROM library WHERE id NOT IN (SELECT fileID FROM filescategories)";
+                $category_id = 0;
+                $category_sql_array[] = "SELECT fileID FROM filescategories";
                 $query_translation = '!unassigned';
             } else {
+                $category_id = $query;
                 $category_sql_array[] = "SELECT fileID FROM filescategories WHERE categoryID=$query";
                 $result = $dbHandle->query("SELECT category FROM categories WHERE categoryID=$query LIMIT 1");
                 $query_translation = $result->fetchColumn();
@@ -166,249 +175,130 @@ if (isset($_GET['browse'])) {
     if (isset($query_array) && is_array($query_array))
         $query_display_string = join(' AND ', $query_array);
 
-    $ordering = 'ASC';
+    $ordering = 'ORDER BY ' . $orderby . ' COLLATE NOCASE ASC';
     if ($orderby == 'year' || $orderby == 'addition_date' || $orderby == 'rating' || $orderby == 'id')
-        $ordering = 'DESC';
+        $ordering = 'ORDER BY ' . $orderby . ' DESC';
+    if ($orderby == 'id')
+        $ordering = '';
 
     $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
 
     if ($column_string == 'all') {
 
-        if (!isset($total_files_array)) {
-            $result = $dbHandle->query("SELECT id FROM library $all_in ORDER BY $orderby COLLATE NOCASE $ordering");
-            get_db_error($dbHandle, basename(__FILE__), __LINE__);
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
+        if ($orderby == 'id') {
+            if ($_GET['select'] == 'library') {
+                perform_search("SELECT id FROM library");
+            } else {
+                perform_search("SELECT id FROM library $all_in");
+            }
+        } else {
+            if ($_GET['select'] == 'library') {
+                perform_search("SELECT id FROM library $ordering");
+            } else {
+                perform_search("SELECT id FROM library $all_in $ordering");
+            }
         }
-
-        $display_files_array = array_slice($total_files_array, $from, $limit);
-        $display_files = join(",", $display_files_array);
-        $display_files = "id IN ($display_files)";
-
-        $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-					FROM library WHERE $display_files");
     } elseif ($column_string == 'miscellaneous') {
 
         if (array_key_exists('No PDF', $_GET['browse'])) {
 
-            $pdfs = array();
+            $glob = new GlobIterator(IL_PDF_PATH . DIRECTORY_SEPARATOR . '[0-9][0-9]' . DIRECTORY_SEPARATOR . '*.pdf');
+            foreach ($glob as $pdf) {
+                $pds_arr[] = intval(basename($pdf->getFilename(), '.pdf'));
+            }
+            $pds_string = join(",", (array) $pds_arr);
+            $pds_string = "id NOT IN (" . $pds_string . ")";
 
-            chdir('library');
-
-            $pdfs = glob('*.pdf', GLOB_NOSORT);
-            $pds_string = join("','", (array) $pdfs);
-            $pds_string = "file NOT IN ('" . $pds_string . "')";
-
-            chdir('..');
-
-            $result = $dbHandle->query("SELECT id FROM library WHERE $pds_string ORDER BY $orderby COLLATE NOCASE $ordering");
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-						FROM library WHERE $display_files");
+            perform_search("SELECT id FROM library WHERE $pds_string $ordering");
         }
 
         if (array_key_exists('My Items', $_GET['browse'])) {
 
-            $result = $dbHandle->query("SELECT id FROM library WHERE added_by=" . intval($_SESSION['user_id']) . " ORDER BY $orderby COLLATE NOCASE $ordering");
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-						FROM library WHERE $display_files");
+            perform_search("SELECT id FROM library WHERE added_by=" . intval($_SESSION['user_id']) . " $ordering");
         }
 
         if (array_key_exists("Others' Items", $_GET['browse'])) {
 
-            $result = $dbHandle->query("SELECT id FROM library WHERE added_by!=" . intval($_SESSION['user_id']) . " ORDER BY $orderby COLLATE NOCASE $ordering");
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-						FROM library WHERE $display_files");
+            perform_search("SELECT id FROM library WHERE id NOT IN (SELECT id FROM library WHERE added_by="
+                    . intval($_SESSION['user_id']) . ") $ordering");
         }
 
         if (array_key_exists('Not in Shelf', $_GET['browse'])) {
 
-            $not_shelf = join(",", $shelf_files);
-            $not_shelf = "id NOT IN(" . $not_shelf . ")";
-
-            $result = $dbHandle->query("SELECT id FROM library WHERE $not_shelf ORDER BY $orderby COLLATE NOCASE $ordering");
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-						FROM library WHERE $display_files");
+            perform_search("SELECT id FROM library WHERE id NOT IN (SELECT fileID from shelves WHERE userID="
+                    . intval($_SESSION['user_id']) . ") $ordering");
         }
 
         if (array_key_exists('Not Indexed', $_GET['browse'])) {
 
-            $dbHandle->exec("ATTACH DATABASE '" . $database_path . "fulltext.sq3' AS fulltextdatabase");
-
-            $result = $dbHandle->query("SELECT fileID FROM fulltextdatabase.full_text WHERE full_text!=''");
-            $indexed = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            $dbHandle->exec("DETACH DATABASE fulltextdatabase");
-
-            $not_indexed = join(",", $indexed);
-            $not_indexed = "id NOT IN(" . $not_indexed . ")";
-
-            $result = $dbHandle->query("SELECT id FROM library WHERE $not_indexed ORDER BY $orderby COLLATE NOCASE $ordering");
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-						FROM library WHERE $display_files");
+            perform_search("SELECT id FROM library WHERE id NOT IN (SELECT fileID FROM fulltextdatabase.full_text) $ordering");
         }
-        
+
         if (array_key_exists('Items with Notes', $_GET['browse'])) {
 
-            $result = $dbHandle->query("SELECT id FROM library WHERE id IN "
-                    . "(SELECT fileID FROM notes WHERE userID=" . intval($_SESSION['user_id']) . ") ORDER BY $orderby COLLATE NOCASE $ordering");
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-						FROM library WHERE $display_files");
+            perform_search("SELECT id FROM library WHERE id IN (SELECT fileID FROM notes WHERE userID="
+                    . intval($_SESSION['user_id']) . ") $ordering");
         }
-        
+
         if (array_key_exists('Discussed Items', $_GET['browse'])) {
 
-            $dbHandle->exec("ATTACH DATABASE '" . $database_path . "discussions.sq3' AS discussionsdatabase");
+            perform_search("SELECT id FROM library WHERE id IN (SELECT fileID FROM discussionsdatabase.filediscussion) $ordering");
 
-            $result = $dbHandle->query("SELECT id FROM library WHERE id IN (SELECT fileID FROM discussionsdatabase.filediscussion)"
-                    . " ORDER BY $orderby COLLATE NOCASE $ordering");
-            
-            $dbHandle->exec("DETACH DATABASE discussionsdatabase");
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-						FROM library WHERE $display_files");
         }
     } elseif ($column_string == 'history') {
 
-        $quoted_history = $dbHandle->quote($database_path . 'history.sq3');
+        $quoted_history = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'history.sq3');
         $dbHandle->exec("ATTACH DATABASE $quoted_history AS history");
-
         $dbHandle->exec("DELETE FROM history.usersfiles WHERE " . time() . "-viewed>28800");
+        $dbHandle->exec("DETACH DATABASE history");
 
-        $result = $dbHandle->query("SELECT id FROM library
-                    WHERE id IN (SELECT fileID FROM history.usersfiles WHERE userID=" . intval($_SESSION['user_id']) . ")
-                    ORDER BY $orderby COLLATE NOCASE $ordering");
+        perform_search("SELECT id FROM library WHERE id IN (SELECT fileID FROM history.usersfiles WHERE userID=" . intval($_SESSION['user_id']) . ") $ordering");
 
-        if (is_object($result)) {
-
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-
-            $dbHandle->exec("DETACH DATABASE history");
-
-            save_export_files($total_files_array);
-
-            $display_files_array = array_slice($total_files_array, $from, $limit);
-            $display_files = join(",", $display_files_array);
-            $display_files = "id IN ($display_files)";
-
-            $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-                                                FROM library WHERE $display_files");
-        }
     } else {
 
-        if (!isset($total_files_array)) {
-            if (!empty($category_sql)) {
-                $result = $dbHandle->query("SELECT id FROM library $all_in $where id IN (" . $category_sql . ") ORDER BY $orderby COLLATE NOCASE $ordering");
+        if (!empty($category_sql)) {
+
+            if ($category_id === 0) {
+                    perform_search("SELECT id FROM library $all_in $where id NOT IN (" . $category_sql . ") $ordering");
             } else {
-                $result = $dbHandle->query("SELECT id FROM library $all_in $where $browse_string ORDER BY $orderby COLLATE NOCASE $ordering");
+                    perform_search("SELECT id FROM library $all_in $where id IN (" . $category_sql . ") $ordering");
             }
+        } else {
 
-            $total_files_array = $result->fetchAll(PDO::FETCH_COLUMN);
-            $result = null;
-            save_export_files($total_files_array);
+            perform_search("SELECT id FROM library $all_in $where $browse_string $ordering");
         }
-
-        $display_files_array = array_slice($total_files_array, $from, $limit);
-        $display_files = join(",", $display_files_array);
-        $display_files = "id IN ($display_files)";
-
-        $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-                                    FROM library WHERE $display_files");
     }
 
-    $rows = count($total_files_array);
-    $total_files_array = null;
+//    $dbHandle = null;
 
     if ($rows > 0) {
 
         $result = $result->fetchAll(PDO::FETCH_ASSOC);
-        $dbHandle = null;
 
-        //SORT QUERY RESULTS
-        $tempresult = array();
-        foreach ($result as $row) {
-            $key = array_search($row['id'], $display_files_array);
-            $tempresult[$key] = $row;
+        foreach ($result as $item) {
+
+            $display_files_array[] = $item['id'];
         }
-        ksort($tempresult);
-        $result = $tempresult;
 
-        //TRUNCATE SHELF FILES ARRAY TO ONLY DISPLAYED FILES IMPROVES PERFROMANCE FOR LARGE SHELVES
-        if (count($shelf_files) > 5000)
-            $shelf_files = array_intersect((array) $display_files_array, (array) $shelf_files);
+        $display_files2 = join(",", $display_files_array);
+
+        // Read shelf files.
+        $shelf_files = read_shelf($dbHandle, $display_files_array);
+
+        // Read clipboard files.
+        attach_clipboard($dbHandle);
+        $clip_result = $dbHandle->query("SELECT id FROM clipboard.files WHERE id IN ($display_files2)");
+        $clip_files = $clip_result->fetchAll(PDO::FETCH_COLUMN);
+        $clip_result = null;
 
         //PRE-FETCH CATEGORIES, PROJECTS FOR DISPLAYED ITEMS INTO TEMP DATABASE TO OFFLOAD THE MAIN DATABASE
-        $display_files2 = join(",", $display_files_array);
         try {
             $tempdbHandle = new PDO('sqlite::memory:');
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage() . "<br/>";
             die();
         }
-        $quoted_path = $tempdbHandle->quote($database_path . 'library.sq3');
+        $quoted_path = $tempdbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3');
         $tempdbHandle->exec("ATTACH DATABASE $quoted_path AS librarydb");
 
         $tempdbHandle->beginTransaction();
@@ -430,9 +320,9 @@ if (isset($_GET['browse'])) {
 
         $tempdbHandle->commit();
         $tempdbHandle->exec("DETACH DATABASE librarydb");
+
         ?>
-        <div id="display-content" style="width:100%;height:100%"
-             data-redirection="<?php print preg_replace('/(from=\d*)(\&|$)/', '$2', basename($_SERVER['PHP_SELF']) . '?' . $_SERVER['QUERY_STRING']); ?>">
+        <div id="display-content" style="width:100%;height:100%">
             <div class="alternating_row" style="padding:0.35em;padding-bottom: 0;border-bottom:1px solid #c5c6c8">
                 <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;padding:0.2em 0.4em">
                     &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
@@ -544,7 +434,7 @@ if (isset($_GET['browse'])) {
 
             print '</td></tr></table>';
 
-            show_search_results($result, $_GET['select'], $display, $shelf_files, $desktop_projects, $tempdbHandle);
+            show_search_results($result, $_GET['select'], $shelf_files, $desktop_projects, $clip_files, $tempdbHandle);
 
             print '<table cellspacing="0" class="top" style="margin:1px 0px 2px 0px"><tr><td style="width: 50%">';
 

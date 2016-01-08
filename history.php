@@ -9,7 +9,7 @@ if (!empty($_GET['file'])) {
     $userID = intval($_SESSION['user_id']);
     $fileID = intval($_GET['file']);
 
-    database_connect($database_path, 'history');
+    database_connect(IL_DATABASE_PATH, 'history');
 
     $dbHandle->exec("CREATE TABLE IF NOT EXISTS usersfiles (
                     id INTEGER PRIMARY KEY,
@@ -30,7 +30,7 @@ if (!empty($_GET['filename']) && !empty($_GET['page'])) {
     
     if (substr($_GET['filename'], 0, 4) == 'lib_') die();
 
-    database_connect($database_path, 'history');
+    database_connect(IL_DATABASE_PATH, 'history');
 
     $dbHandle->exec("CREATE TABLE IF NOT EXISTS bookmarks (
                     id INTEGER PRIMARY KEY,

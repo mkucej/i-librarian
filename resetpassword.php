@@ -12,7 +12,7 @@ if ($_SERVER['REMOTE_ADDR'] == 'localhost' || $_SERVER['REMOTE_ADDR'] == '127.0.
     if (!empty($_GET['username']) && !empty($_GET['new_password1']) && !empty($_GET['new_password2'])
             && $_GET['new_password1'] == $_GET['new_password2']) {
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
         $new_password_query = $dbHandle->quote(generate_encrypted_password($_GET['new_password1']));
         $user_query = $dbHandle->quote($_GET['username']);
         $password_changed = $dbHandle->exec("UPDATE users SET password=$new_password_query WHERE username=$user_query");

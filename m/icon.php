@@ -1,63 +1,68 @@
 <?php
-include_once 'data.php';
+
+include_once '../data.php';
 include_once '../functions.php';
+include_once '../pdfclass.php';
 session_write_close();
 
 // Files
 $file = preg_replace('/^0-9\.pdf/', '', $_GET['file']);
-$png = '../library/pngs/' . $file . '.1.png';
-$icon = $temp_dir . DIRECTORY_SEPARATOR . $file . '.1.icon.png';
+$image = IL_IMAGE_PATH . DIRECTORY_SEPARATOR . $file . '.1.jpg';
+$icon = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.1.icon.jpg';
 
 // Paths
-chdir('..');
-$pdf_path = getcwd() . DIRECTORY_SEPARATOR . 'library';
-$png_path = getcwd() . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'pngs';
-chdir('m');
+$pdf_path = IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file);
+
+//CACHE THIS FILE
+$seconds_to_cache = 604800;
+$ts = gmdate("D, d M Y H:i:s", time() + $seconds_to_cache) . " GMT";
+header("Expires: $ts");
+header("Pragma: private");
+header("Cache-Control: max-age=$seconds_to_cache");
+header("Cache-Control: private");
+header('Last-Modified: ' . gmdate(DATE_RFC1123, filemtime($pdf_path . DIRECTORY_SEPARATOR . $file)));
 
 // Content type
-header('Content-Type: image/png');
+header('Content-Type: image/jpeg');
+header("Content-Disposition: inline");
 
 // Output from cache
-if (is_readable($icon) &&
-        filemtime($pdf_path . DIRECTORY_SEPARATOR . $file) < filemtime($icon)) {
+if (is_readable($icon) && filemtime($pdf_path . DIRECTORY_SEPARATOR . $file) < filemtime($icon)) {
     ob_clean();
     flush();
     readfile($icon);
     die();
 }
 
-// Make PNG if not found
-if (!is_readable($png) ||
-        filemtime($png_path . DIRECTORY_SEPARATOR . $file . '.1.png') < filemtime($pdf_path . DIRECTORY_SEPARATOR . $file)) {
-    exec(select_ghostscript() . " -dSAFER -sDEVICE=png16m -r150 -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE -dFirstPage=1 -dLastPage=1 -o \"" . $png_path . DIRECTORY_SEPARATOR . $file . ".1.png\" \"" . $pdf_path . DIRECTORY_SEPARATOR . $file . "\"");
+// Make big image if not found
+if (!is_readable($image) || filemtime($image) < filemtime($pdf_path . DIRECTORY_SEPARATOR . $file)) {
+    
+    $pdfHandler = new PDFViewer($file);
+    $pdfHandler->createPageImage(1);
 }
 
-if (!is_readable($png)) {
+// Icon dimensions
+$new_width = 720;
+$new_height = 480;
+
+if (!is_readable($image)) {
+
     // Error! Ghostscript DOES NOT WORK
-    $image_p = @imagecreate(360, 240);
+    $image_p = imagecreate($new_width, $new_height);
     $background_color = imagecolorallocate($image_p, 255, 255, 255);
     $text_color = imagecolorallocate($image_p, 255, 0, 0);
-    imagestring($image_p, 3, 20, 20,  "Error! Program Ghostscript not functional.", $text_color);
-    
+    imagestring($image_p, 3, 20, 20, "Error! Program Ghostscript not functional.", $text_color);
 } else {
 
-    // Icon dimensions
-    $new_width = 360;
-    $new_height = 240;
-
     // Resample
-    list($width, $height) = getimagesize($png);
+    list($width, $height) = getimagesize($image);
     $image_p = imagecreatetruecolor($new_width, $new_height);
-    $image = imagecreatefrompng($png);
+    $image = imagecreatefromjpeg($image);
     imagecopyresampled($image_p, $image, 0, 0, 0, 0, $new_width, $new_height, $width, $width / 1.5);
 }
 
-//Color index
-imagetruecolortopalette($image_p, false, 255);
-
-// Output
-imagepng($image_p, $icon, 1);
-imagepng($image_p, null, 1);
+// Output to a file than browser
+imagejpeg($image_p, $icon, 75);
+imagejpeg($image_p, null, 75);
 
 imagedestroy($image_p);
-?>

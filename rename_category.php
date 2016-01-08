@@ -5,7 +5,7 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && ($_SESSION['p
 
     include_once 'functions.php';
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     if (!empty($_GET['old_category']))
         $old_category_query = $dbHandle->quote($_GET['old_category']);

@@ -1,5 +1,5 @@
 <?php
-include_once 'data.php';
+include_once '../data.php';
 include_once '../functions.php';
 session_write_close();
 
@@ -15,14 +15,13 @@ if (!isset($_SESSION['display'])) {
     $display = $_SESSION['display'];
 }
 
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 
 $result = $dbHandle->query("SELECT id,file,authors,title,journal,year,abstract,secondary_title FROM library WHERE id=" . $id);
-$item = $result->fetchAll();
+$paper = $result->fetch(PDO::FETCH_ASSOC);
 $result = null;
-if (!isset($item[0]))
+if (!$paper)
     die('Error! Item does not exist.');
-$paper = $item[0];
 
 if (!empty($paper['authors'])) {
     $array = array();
@@ -41,6 +40,12 @@ if (!empty($paper['authors'])) {
         $paper['authors'] = join('; ', $new_authors);
     }
 }
+
+// Read clipboard files.
+attach_clipboard($dbHandle);
+$clip_result = $dbHandle->query("SELECT id FROM clipboard.files WHERE id=$id");
+$clip_files = $clip_result->fetchColumn();
+$clip_result = null;
 
 $paper['authors'] = htmlspecialchars($paper['authors']);
 $paper['journal'] = htmlspecialchars($paper['journal']);
@@ -73,7 +78,7 @@ if (!empty($paper['year'])) {
             $date_array[1] = '01';
         if (empty($date_array[2]))
             $date_array[2] = '01';
-        $date = date('Y M j', mktime(0, 0, 0, $date_array[1], $date_array[2], $date_array[0]));
+        $date = date('Y', mktime(0, 0, 0, $date_array[1], $date_array[2], $date_array[0]));
     }
 }
 
@@ -95,24 +100,12 @@ if ($display == 'icons') {
 
     // SUPPLEMENTARY FILE LIST
     $integer = sprintf("%05d", intval($paper['file']));
-    $files_to_display = glob('../library/supplement/' . $integer . '*');
+    $files_to_display = glob(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($integer) . DIRECTORY_SEPARATOR . $integer . '*');
     $url_filename = '<div style="font-size:0.8em">No supplementary files.</div>';
     $url_filenames = array();
     if (is_array($files_to_display)) {
         foreach ($files_to_display as $supplementary_file) {
-            $isimage = null;
-            $image_array = array();
-            $extension = pathinfo($supplementary_file, PATHINFO_EXTENSION);
-            if ($extension == 'jpg' || $extension == 'jpeg' || $extension == 'gif' || $extension == 'png') {
-                $image_array = @getimagesize($supplementary_file);
-                $image_mime = $image_array['mime'];
-                if ($image_mime == 'image/jpeg' || $image_mime == 'image/gif' || $image_mime == 'image/png')
-                    $isimage = true;
-            }
-            if ($isimage)
-                $url_filenames[] = '<li><a style="font-size:0.85em" href="' . htmlspecialchars($supplementary_file) . '" target="_blank">' . substr(basename($supplementary_file), 5) . '</a></li>';
-            if (!$isimage)
-                $url_filenames[] = '<li><a style="font-size:0.85em" href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '" target="_blank">' . substr(basename($supplementary_file), 5) . '</a></li>';
+            $url_filenames[] = '<li><a style="font-size:0.85em" href="' . htmlspecialchars('attachment.php?attachment=' . basename($supplementary_file)) . '" target="_blank">' . substr(basename($supplementary_file), 5) . '</a></li>';
         }
         $url_filename = join(PHP_EOL, $url_filenames);
         $url_filename = '<ul data-role="listview">' . $url_filename . '</ul>';
@@ -120,22 +113,22 @@ if ($display == 'icons') {
     
     // TOP ROW - PDF BUTTON, CLIPBOARD BUTTON
 
-    print '<table style="width:100%"><tr><td style="width:48%;padding-right:4px">';
+    print '<table style="width:100%"><tr><td style="width:50%">';
 
-    if (is_file('../library/' . $paper['file']) && isset($_SESSION['auth'])) {
+    if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($integer) . DIRECTORY_SEPARATOR . $paper['file']) && isset($_SESSION['auth'])) {
 
-        print '<a data-role="button" data-mini="true"
-                href="' . htmlspecialchars('downloadpdf.php?file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank">
+        print '<a class="ui-btn ui-mini ui-corner-all"
+                href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0') . '" target="_blank">
                 PDF</a>';
     } else {
-        print '<button data-mini="true" disabled>PDF</button>';
+        print '<button class="ui-btn ui-mini ui-corner-all" disabled>PDF</button>';
     }
 
-    print '</td><td style="padding-left:4px">';
+    print '</td><td>';
        
     print '<form><input class="update_clipboard" name="checkbox-clipboard" id="checkbox-clipboard-' . $paper['id'] . '" type="checkbox" data-mini="true"';
     
-    if (isset($_SESSION['session_clipboard']) && in_array($paper['id'], $_SESSION['session_clipboard'])) print ' checked="checked"';
+    if ($paper['id'] == $clip_files) print ' checked="checked"';
                     
     print '><label for="checkbox-clipboard-' . $paper['id'] . '">Clipboard</label></form>';
 
@@ -143,27 +136,36 @@ if ($display == 'icons') {
     
     // SECOND ROW - TITLE, JOURNAL, YEAR, AUTHOR
 
-    print PHP_EOL . '<ul data-role="listview" data-inset="true"><li style="word-wrap:break-word;font-size:0.8em">' . $paper['title'] . '<span style="font-weight:normal">';
+    print PHP_EOL . '<div class="ui-body ui-body-a" style="margin:0.75em 0;font-size:0.9em">' . $paper['title'] . '<br><span style="font-weight:normal">';
 
     if (!empty($paper['authors']))
         print PHP_EOL . $first_author . $etal . ' ';
 
-    print (!empty($paper['journal']) ? $paper['journal'] : $paper['secondary_title']);
-
     print (!empty($date)) ? ' (' . $date . ')' : '';
 
-    print '</span></li></ul>';
+    if (!empty($paper['journal'])) {
+    
+        echo '<br><i>' . $paper['journal'] . '</i>';
+        
+    } elseif (!empty($paper['secondary_title'])) {
+        
+        echo '<br><i>' . $paper['secondary_title'] . '</i>';
+    }
+
+    
+
+    print '</span></div>';
     
     // THIRD ROW, ABSTRACT, NOTES, SUPPLEMENTARY FILES
 
     print '<div data-role="collapsible-set" data-theme="a" data-content-theme="a" style="margin:8px 0" class="item-accordeon">
                 <div data-role="collapsible">
                     <h3 class="accordeon">Abstract</h3>
-                    <div style="font-size:0.8em">' . (empty($paper['abstract']) ? 'No abstract.' : $paper['abstract']) . '</div>
+                    <div style="font-size:0.9em">' . (empty($paper['abstract']) ? 'No abstract.' : $paper['abstract']) . '</div>
                 </div>
                 <div data-role="collapsible">
                     <h3 class="accordeon">Notes</h3>
-                    <div style="font-size:0.8em">' . (empty($paper['notes']) ? 'No notes.' : $paper['notes']) . '</div>
+                    <div style="font-size:0.9em">' . (empty($paper['notes']) ? 'No notes.' : $paper['notes']) . '</div>
                 </div>
                 <div data-role="collapsible">
                     <h3 class="accordeon">Supplementary files</h3>' . $url_filename . '

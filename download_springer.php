@@ -23,7 +23,7 @@ if (isset($_SESSION['connection']) && ($_SESSION['connection'] == "autodetect" |
             }
         }
     }
-} else {
+} elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
     if (isset($_SESSION['proxy_name']))
         $proxy_name = $_SESSION['proxy_name'];
     if (isset($_SESSION['proxy_port']))
@@ -49,7 +49,7 @@ if (isset($_GET['newsearch'])) {
 
 if (isset($_GET['save']) && $_GET['save'] == '1' && !empty($_GET['springer_searchname'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -90,7 +90,7 @@ if (isset($_GET['save']) && $_GET['save'] == '1' && !empty($_GET['springer_searc
 
 if (isset($_GET['load']) && $_GET['load'] == '1' && !empty($_GET['saved_search'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $stmt = $dbHandle->prepare("SELECT searchvalue FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -124,7 +124,7 @@ if (isset($_GET['load']) && $_GET['load'] == '1' && !empty($_GET['saved_search']
 
 if (isset($_GET['delete']) && $_GET['delete'] == '1' && !empty($_GET['saved_search'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $dbHandle->beginTransaction();
 
@@ -226,7 +226,7 @@ if (!empty($_GET['action'])) {
     $springer_url = 'http://link.springer.com/search/csv?sortOrder=newestFirst' . $showall . $query . $title . $author . $year_mode . $year_start . $year_end . $discipline;
 
     // IF NO STORAGE, SEARCH SPRINGER AND SAVE RESULTS
-    if (!file_exists($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
+    if (!file_exists(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
                     . 'springer_' . md5($springer_url) . '.sq3')) {
 
         $csv_string = '';
@@ -246,7 +246,7 @@ if (!empty($_GET['action'])) {
 
         // OPEN STORAGE
         try {
-            $dbHandle2 = new PDO('sqlite:' . $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
+            $dbHandle2 = new PDO('sqlite:' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
                     . 'springer_' . md5($springer_url) . '.sq3');
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage() . "<br/>";
@@ -313,7 +313,7 @@ if (!empty($_GET['action'])) {
     //LOAD RESULTS AND DISPLAY
     // OPEN STORAGE
     try {
-        $dbHandle2 = new PDO('sqlite:' . $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
+        $dbHandle2 = new PDO('sqlite:' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
                 . 'springer_' . md5($springer_url) . '.sq3');
     } catch (PDOException $e) {
         print "Error: " . $e->getMessage() . "<br/>";
@@ -374,7 +374,7 @@ if (!empty($_GET['action'])) {
         $id_range = join(',', range($from, $from + 9));
         $result = $dbHandle2->query("SELECT * FROM items WHERE id IN (" . $id_range . ")");
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 

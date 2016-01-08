@@ -6,19 +6,13 @@ include_once 'functions.php';
 session_write_close();
 
 // create and populate styles.sq3
-//try {
-//    $dbHandle = new PDO('sqlite:/var/www/html/i-librarian/library/styles.sq3');
-//} catch (PDOException $e) {
-//    print "Error: " . $e->getMessage() . "<br/>";
-//    print "PHP extensions PDO and PDO_SQLite must be installed.";
-//    die();
-//}
+//$dbHandle = database_connect(__DIR__, 'styles');
 //$dbHandle->exec('PRAGMA journal_mode = DELETE');
 //$dbHandle->exec("CREATE TABLE IF NOT EXISTS styles"
 //        . " (style_id INTEGER PRIMARY KEY,"
 //        . " title TEXT NOT NULL DEFAULT '',"
 //        . " style BLOB NOT NULL DEFAULT '')");
-//$styles = glob('/.../styles-distribution-master/*.csl');
+//$styles = glob('C:/Users/martin/Documents/i-librarian/styles-master/*.csl');
 //$stmt = $dbHandle->prepare("INSERT INTO styles (title,style) VALUES (:title,:style)");
 //$title = '';
 //$filename = '';
@@ -33,7 +27,7 @@ session_write_close();
 //    $stmt->execute();
 //}
 //$dbHandle->commit();
-//
+
 // select a style
 //$title_q = $dbHandle->quote(strtolower($_GET['title']));
 //$result = $dbHandle->query('SELECT style FROM styles WHERE title=' . $title_q);

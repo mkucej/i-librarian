@@ -4,7 +4,7 @@ include_once 'functions.php';
 
 if(isset($_GET['rating']) && isset($_GET['file'])) {
 
-	database_connect($database_path, 'library');
+	database_connect(IL_DATABASE_PATH, 'library');
 
 	$query = "UPDATE library SET rating=:rating WHERE id=:id";
 

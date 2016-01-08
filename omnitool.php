@@ -2,90 +2,62 @@
 include_once 'data.php';
 include_once 'functions.php';
 
-$export_files = read_export_files(0);
+if (!empty($_POST['omnitool'])) {
 
-if (!empty($_POST['omnitool']) && !empty($export_files)) {
-
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
     $user_query = $dbHandle->quote($_SESSION['user_id']);
+
+    $quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'history.sq3');
+    $dbHandle->exec("ATTACH DATABASE $quoted_path as history");
+    
+    if ($_POST['omnitool'] == '5' || $_POST['omnitool'] == '6') {
+        
+        attach_clipboard($dbHandle);
+    }
 
     $dbHandle->beginTransaction();
 
     // SAVE TO SHELF
     if ($_POST['omnitool'] == '1') {
-        while (list(, $value) = each($export_files)) {
-            $file_query = $dbHandle->quote($value);
-            $result = $dbHandle->query("SELECT COUNT(*) FROM library WHERE id=$file_query");
-            $exists = $result->fetchColumn();
-            $result = null;
-            if ($exists == 1)
-                $dbHandle->exec("INSERT OR IGNORE INTO shelves (userID,fileID) VALUES ($user_query,$file_query)");
-        }
-        @unlink($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'shelf_files');
+
+        $dbHandle->exec("INSERT OR IGNORE INTO shelves (userID,fileID) SELECT $user_query, itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id DESC");
+        $dbHandle->exec("DELETE FROM shelves WHERE fileID NOT IN (SELECT id from library)");
+
     }
 
     // REMOVE FROM SHELF
     if ($_POST['omnitool'] == '2') {
-        while (list(, $value) = each($export_files)) {
-            $file_query = $dbHandle->quote($value);
-            $dbHandle->exec("DELETE FROM shelves WHERE fileID=$file_query AND userID=$user_query");
-        }
-        @unlink($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'shelf_files');
+
+        $dbHandle->exec("DELETE FROM shelves WHERE fileID IN (SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id) AND userID=$user_query");
     }
 
     // SAVE TO PROJECT
     if ($_POST['omnitool'] == '3' && !empty($_POST['project3'])) {
-        while (list(, $value) = each($export_files)) {
-            $file_query = $dbHandle->quote($value);
-            $result = $dbHandle->query("SELECT COUNT(*) FROM library WHERE id=$file_query");
-            $exists = $result->fetchColumn();
-            $result = null;
-            if ($exists == 1)
-                $dbHandle->exec("INSERT OR IGNORE INTO projectsfiles (projectID,fileID) VALUES (" . intval($_POST['project3']) . ",$file_query)");
-        }
-        $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_*' . DIRECTORY_SEPARATOR . 'desk_files', GLOB_NOSORT);
-        if (is_array($clean_files)) {
-            foreach ($clean_files as $clean_file) {
-                if (is_file($clean_file) && is_writable($clean_file))
-                    @unlink($clean_file);
-            }
-        }
+
+        $dbHandle->exec("INSERT OR IGNORE INTO projectsfiles (projectID,fileID) SELECT " . intval($_POST['project3']) . ", itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id DESC");
+        $dbHandle->exec("DELETE FROM projectsfiles WHERE fileID NOT IN (SELECT id from library)");
+
     }
 
     // REMOVE FROM PROJECT
     if ($_POST['omnitool'] == '4' && !empty($_POST['project4'])) {
-        while (list(, $value) = each($export_files)) {
-            $file_query = $dbHandle->quote($value);
-            $dbHandle->exec("DELETE FROM projectsfiles WHERE projectID=" . intval($_POST['project4']) . " AND fileID=$file_query");
-        }
-        $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_*' . DIRECTORY_SEPARATOR . 'desk_files', GLOB_NOSORT);
-        if (is_array($clean_files)) {
-            foreach ($clean_files as $clean_file) {
-                if (is_file($clean_file) && is_writable($clean_file))
-                    @unlink($clean_file);
-            }
-        }
+
+        $dbHandle->exec("DELETE FROM projectsfiles WHERE projectID=" . intval($_POST['project4']) . " AND fileID IN (SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id)");
+        
     }
 
     // SAVE TO CLIPBOARD
     if ($_POST['omnitool'] == '5') {
-        while (list(, $value) = each($export_files)) {
-            $file_query = $dbHandle->quote($value);
-            $result = $dbHandle->query("SELECT COUNT(*) FROM library WHERE id=$file_query");
-            $exists = $result->fetchColumn();
-            $result = null;
-            if ($exists == 1)
-                $_SESSION['session_clipboard'][] = $value;
-        }
-        $_SESSION['session_clipboard'] = array_unique($_SESSION['session_clipboard']);
+        
+        $dbHandle->exec("INSERT OR IGNORE INTO clipboard.files (id) SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id DESC");
+        
     }
 
     // REMOVE FROM CLIPBOARD
     if ($_POST['omnitool'] == '6') {
-        while (list(, $value) = each($export_files)) {
-            $key = array_search($value, $_SESSION['session_clipboard']);
-            unset($_SESSION['session_clipboard'][$key]);
-        }
+        
+        $dbHandle->exec("DELETE FROM clipboard.files WHERE id IN (SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id)");
+        
     }
 
     // SAVE TO CATEGORIES INCLUDING NEW ONES
@@ -109,52 +81,40 @@ if (!empty($_POST['omnitool']) && !empty($export_files)) {
                 $last_id = $dbHandle->query("SELECT last_insert_rowid() FROM categories");
                 $last_insert_rowid = $last_id->fetchColumn();
                 $last_id = null;
-                while (list(, $value) = each($export_files)) {
-                    $file_query = $dbHandle->quote($value);
-                    $result = $dbHandle->query("SELECT COUNT(*) FROM library WHERE id=$file_query");
-                    $exists = $result->fetchColumn();
-                    $result = null;
-                    if ($exists == 1)
-                        $dbHandle->exec("INSERT OR IGNORE INTO filescategories (fileID,categoryID) VALUES ($file_query,$last_insert_rowid)");
-                }
-                reset($export_files);
+                $dbHandle->exec("INSERT OR IGNORE INTO filescategories (fileID,categoryID) SELECT itemID, " . intval($last_insert_rowid) . " FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id DESC");
             }
         }
+        $dbHandle->exec("DELETE FROM filescategories WHERE fileID NOT IN (SELECT id from library)");
     }
 
     // SAVE TO EXISTING CATEGORIES
     if ($_POST['omnitool'] == '7' && !empty($_POST['category'])) {
-        while (list(, $value) = each($export_files)) {
-            $file_query = $dbHandle->quote($value);
-            $result = $dbHandle->query("SELECT COUNT(*) FROM library WHERE id=$file_query");
-            $exists = $result->fetchColumn();
-            $result = null;
-            if ($exists == 1) {
-                while (list(, $cat) = each($_POST['category'])) {
-                    $dbHandle->exec("INSERT OR IGNORE INTO filescategories (fileID,categoryID) VALUES ($file_query," . intval($cat) . ")");
-                }
-            }
-            reset($_POST['category']);
+        
+        while (list(, $cat) = each($_POST['category'])) {
+
+            $dbHandle->exec("INSERT OR IGNORE INTO filescategories (fileID,categoryID) SELECT itemID, " . intval($cat) . " FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id DESC");
         }
+        $dbHandle->exec("DELETE FROM filescategories WHERE fileID NOT IN (SELECT id from library)");
     }
 
     // REMOVE FROM CATEGORIES
     if ($_POST['omnitool'] == '9' && !empty($_POST['category'])) {
-        while (list(, $value) = each($export_files)) {
-            $file_query = $dbHandle->quote($value);
-            while (list(, $cat) = each($_POST['category'])) {
-                print "DELETE FROM filescategories WHERE fileID=$file_query AND categoryID=" . intval($cat);
-                $dbHandle->exec("DELETE FROM filescategories WHERE fileID=$file_query AND categoryID=" . intval($cat));
-            }
-            reset($_POST['category']);
+        
+        while (list(, $cat) = each($_POST['category'])) {
+
+            $dbHandle->exec("DELETE FROM filescategories WHERE categoryID=" . intval($cat) . " AND fileID IN (SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id)");
         }
     }
 
     $dbHandle->commit();
 
     // DELETE ITEMS
-    if ($_POST['omnitool'] == '8' && isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A')
-        delete_record($dbHandle, $export_files);
+    if ($_POST['omnitool'] == '8' && isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
+
+        $result = $dbHandle->query("SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` LIMIT 10000");
+        $delete_files = $result->fetchAll(PDO::FETCH_COLUMN);
+        delete_record($dbHandle, $delete_files);
+    }
 
     $dbHandle = null;
 } elseif (isset($_SESSION['auth'])) {
@@ -182,7 +142,7 @@ if (!empty($_POST['omnitool']) && !empty($export_files)) {
                     <div style="float:right;position:relative;top:2px">
                         <select name="project3" style="width:150px">
                             <?php
-                            database_connect($database_path, 'library');
+                            database_connect(IL_DATABASE_PATH, 'library');
                             $desktop_projects = array();
                             $desktop_projects = read_desktop($dbHandle);
 

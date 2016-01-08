@@ -22,7 +22,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 }
             }
         }
-    } else {
+    } elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
         if (isset($_SESSION['proxy_name']))
             $proxy_name = $_SESSION['proxy_name'];
         if (isset($_SESSION['proxy_port']))
@@ -35,8 +35,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
     $user_id = intval($_SESSION['user_id']);
 
-    session_write_close();
-
     include_once 'functions.php';
 
     $error = '';
@@ -48,9 +46,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
     if (isset($_POST['autoupdate'])) {
 
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
         save_setting($dbHandle, 'autoupdate_database', $_POST['database']);
         $dbHandle = null;
+
+        session_write_close();
 
         $doi = '';
         $nasa_id = '';
@@ -83,8 +83,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 $pubmed_query = array();
 
-                if (!empty($_POST['authors']))
-                    preg_match('/(?<=L:").+?(?=")/i', $_POST['authors'], $author);
+                $first_author = '';
+                if (!empty($_POST['last_name'][0]))
+                    $first_author = $_POST['last_name'][0];
+
+                if (!empty($_POST['first_name'][0]))
+                    $first_author .= ' ' . $_POST['first_name'][0];
 
                 if (!empty($_POST['title'])) {
 
@@ -109,8 +113,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     }
                 }
 
-                if (!empty($_POST['authors']))
-                    $pubmed_query[] = "$author[0] [AU]";
+                if (!empty($first_author))
+                    $pubmed_query[] = "$first_author [AU]";
                 if (!empty($_POST['title']))
                     $pubmed_query[] = "$title_word [TI]";
                 if (!empty($_POST['year']))
@@ -141,9 +145,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             if (!empty($pmid)) {
                 //FETCH FROM PUBMED
                 fetch_from_pubmed('', $pmid);
-                $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
-                $response['uid'] = array_unique($response['uid']);
-                $_POST = array_merge($_POST, $response);
+                if (isset($response['uid'])) {
+                    $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
+                    $response['uid'] = array_unique($response['uid']);
+                }
+                $_POST = array_replace_recursive($_POST, $response);
             } else {
                 $error = "Error! Unique record not found in PubMed.";
             }
@@ -157,8 +163,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 $lookfor_query = array();
 
-                if (!empty($_POST['authors']))
-                    preg_match('/(?<=L:").+?(?=")/i', $_POST['authors'], $author);
+                $first_author = '';
+                if (!empty($_POST['last_name'][0]))
+                    $first_author = $_POST['last_name'][0];
 
                 if (!empty($_POST['title'])) {
 
@@ -183,8 +190,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     }
                 }
 
-                if (!empty($_POST['authors']))
-                    $lookfor_query[] = "author=" . urlencode($author[0]) . "&aut_req=YES";
+                if (!empty($first_author))
+                    $lookfor_query[] = "author=" . urlencode($first_author) . "&aut_req=YES";
                 if (!empty($_POST['title']))
                     $lookfor_query[] = "title=" . urlencode($title_word) . "&ttl_req=YES";
                 if (!empty($_POST['year']))
@@ -219,9 +226,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             if (!empty($doi) || !empty($nasa_id)) {
                 $response = array();
                 fetch_from_nasaads($doi, $nasa_id);
-                $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
-                $response['uid'] = array_unique($response['uid']);
-                $_POST = array_merge($_POST, $response);
+                if (isset($response['uid'])) {
+                    $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
+                    $response['uid'] = array_unique($response['uid']);
+                }
+                $_POST = array_replace_recursive($_POST, $response);
             }
             if (empty($response['title']))
                 $error = "Error! Unique record not found in NASA ADS.";
@@ -232,9 +241,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             if (!empty($ieee_id)) {
                 $response = array();
                 fetch_from_ieee($ieee_id);
-                $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
-                $response['uid'] = array_unique($response['uid']);
-                $_POST = array_merge($_POST, $response);
+                if (isset($response['uid'])) {
+                    $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
+                    $response['uid'] = array_unique($response['uid']);
+                }
+                $_POST = array_replace_recursive($_POST, $response);
             }
             if (empty($response['title']))
                 $error = "Error! Unique record not found in IEEE Xplore.";
@@ -246,8 +257,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 $lookfor_query = array();
 
-                if (!empty($_POST['authors']))
-                    preg_match('/(?<=L:").+?(?=")/i', $_POST['authors'], $author);
+                $first_author = '';
+                if (!empty($_POST['last_name'][0]))
+                    $first_author = $_POST['last_name'][0];
 
                 if (!empty($_POST['year'])) {
                     if (is_numeric($_POST['year'])) {
@@ -257,8 +269,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     }
                 }
 
-                if (!empty($author[0]))
-                    $lookfor_query[] = $author[0];
+                if (!empty($first_author))
+                    $lookfor_query[] = $first_author;
                 if (!empty($_POST['title']))
                     $lookfor_query[] = $_POST['title'];
                 if (!empty($year))
@@ -314,12 +326,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 // FETCH FROM CROSSREF
                 $response = array();
                 fetch_from_crossref($doi);
-                $_POST = array_merge($_POST, $response);
+                $_POST = array_replace_recursive($_POST, $response);
             }
             if (empty($response['title']))
                 $error = "Error! Unique record not found in Crossref.";
         }
     }
+
+    session_write_close();
 
 ########## save to database ##########
 
@@ -328,7 +342,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	remove line breaks from certain POST values	##########
 
         $order = array("\r\n", "\n", "\r");
-        $keys = array('authors', 'title', 'abstract', 'keywords');
+        $keys = array('title', 'abstract', 'keywords', 'affiliation');
 
         while (list($key, $field) = each($keys)) {
 
@@ -341,7 +355,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	record publication data, table library	##########
 
         $uid = '';
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $query = "UPDATE library SET authors=:authors, title=:title, journal=:journal, year=:year,
 				abstract=:abstract, uid=:uid, volume=:volume, pages=:pages,
@@ -351,7 +365,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 				title_ascii=:title_ascii, abstract_ascii=:abstract_ascii,
                                 custom1=:custom1, custom2=:custom2, custom3=:custom3, custom4=:custom4, bibtex=:bibtex,
 				affiliation=:affiliation, issue=:issue, modified_by=:modified_by,
-                                modified_date=strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')
+                                modified_date=strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'), bibtex_type=:bibtex_type
 			WHERE id=:id";
 
         $stmt = $dbHandle->prepare($query);
@@ -385,6 +399,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $stmt->bindParam(':custom4', $custom4, PDO::PARAM_STR);
         $stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
         $stmt->bindParam(':modified_by', $modified_by, PDO::PARAM_INT);
+        $stmt->bindParam(':bibtex_type', $bibtex_type, PDO::PARAM_STR);
 
         $file_id = (integer) $_POST['file'];
 
@@ -455,6 +470,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         empty($_POST['bibtex']) ? $bibtex = '' : $bibtex = trim($_POST['bibtex']);
 
+        empty($_POST['bibtex_type']) ? $bibtex_type = '' : $bibtex_type = trim($_POST['bibtex_type']);
+
         if (!empty($title))
             $database_update = $stmt->execute();
 
@@ -475,11 +492,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
 ##########	read reference data	##########
 
-    database_connect($usersdatabase_path, 'users');
-    $autoupdate_database = get_setting($dbHandle, 'autoupdate_database');
-    $dbHandle = null;
-
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $file_query = $dbHandle->quote($_GET['file']);
 
@@ -494,23 +507,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
     if (!empty($paper['uid']))
         $paper_uids = explode('|', $paper['uid']);
 
-    if (empty($paper['bibtex'])) {
-        $bibtex_author = substr($paper['authors'], 3);
-        $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ',') - 1);
-        $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
-        if (empty($bibtex_author))
-            $bibtex_author = 'unknown';
-
-        $bibtex_year_array = explode('-', $paper['year']);
-        $bibtex_year = '0000';
-        if (!empty($bibtex_year_array[0]))
-            $bibtex_year = $bibtex_year_array[0];
-
-        $bibtex_sugg = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
-    }
-
     $record = null;
     $dbHandle = null;
+
+    $autoupdate_database = get_setting('autoupdate_database');
+
     ?>
     <form id="metadataform" enctype="multipart/form-data" action="edit.php" method="POST">
         <input type="hidden" name="form_sent" value="1">
@@ -534,6 +535,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 } else {
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
+
                                 ?>
                                        PubMed
                             </td>
@@ -545,6 +547,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 } else {
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
+
                                 ?>
                                        NASA ADS
                             </td>
@@ -556,6 +559,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 } else {
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
+
                                 ?>
                                        IEEE Xplore
                             </td>
@@ -567,6 +571,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 } else {
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
+
                                 ?>
                                        CrossRef
                             </td>
@@ -585,6 +590,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <?php
             if (!empty($paper_uids)) {
                 foreach ($paper_uids as $paper_uid) {
+
                     ?>
                     <tr>
                         <td class="threedleft">
@@ -597,6 +603,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     <?php
                 }
             }
+
             ?>
             <tr>
                 <td class="threedleft">
@@ -620,7 +627,44 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     BibTex key:
                 </td>
                 <td class="threedright">
-                    <input type="text" size="80" name="bibtex" style="width: 99%" value="<?php print isset($paper['bibtex']) ? htmlspecialchars($paper['bibtex']) : ''  ?>" placeholder="<?php print isset($bibtex_sugg) ? htmlspecialchars($bibtex_sugg) : ''  ?>">
+                    <input type="text" size="80" name="bibtex" style="width: 99%" value="<?php print isset($paper['bibtex']) ? htmlspecialchars($paper['bibtex']) : ''  ?>">
+                </td>
+            </tr>
+            <tr>
+                <td class="threedleft">
+                    Publication type:
+                </td>
+                <td class="threedright">
+                    <select name="reference_type">
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'article') ? 'selected' : ''  ?>>article</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'book') ? 'selected' : ''  ?>>book</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'chapter') ? 'selected' : ''  ?>>chapter</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'conference') ? 'selected' : ''  ?>>conference</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'manual') ? 'selected' : ''  ?>>manual</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'thesis') ? 'selected' : ''  ?>>thesis</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'patent') ? 'selected' : ''  ?>>patent</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'report') ? 'selected' : ''  ?>>report</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'electronic') ? 'selected' : ''  ?>>electronic</option>
+                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'unpublished') ? 'selected' : ''  ?>>unpublished</option>
+                    </select>
+                    &nbsp;Bibtex type:
+                    <select name="bibtex_type">
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'article') ? 'selected' : ''  ?>>article</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'book') ? 'selected' : ''  ?>>book</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'booklet') ? 'selected' : ''  ?>>booklet</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'conference') ? 'selected' : ''  ?>>conference</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'inbook') ? 'selected' : ''  ?>>inbook</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'incollection') ? 'selected' : ''  ?>>incollection</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'inproceedings') ? 'selected' : ''  ?>>inproceedings</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'manual') ? 'selected' : ''  ?>>manual</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'mastersthesis') ? 'selected' : ''  ?>>mastersthesis</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'misc') ? 'selected' : ''  ?>>misc</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'phdthesis') ? 'selected' : ''  ?>>phdthesis</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'proceedings') ? 'selected' : ''  ?>>proceedings</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'techreport') ? 'selected' : ''  ?>>techreport</option>
+                        <option <?php print (!empty($paper['bibtex_type']) && $paper['bibtex_type'] == 'unpublished') ? 'selected' : ''  ?>>unpublished</option>
+
+                    </select>
                 </td>
             </tr>
             <tr>
@@ -651,16 +695,16 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     $first = trim($array2[1]);
                                     $first = substr($array2[1], 3, -1);
                                     if (!empty($last))
-                                        print '<div>Last name: <input type="text" value="' . htmlspecialchars($last) . '">
+                                        print '<div>Last name: <input type="text" name="last_name[]" value="' . htmlspecialchars($last) . '">
                                         &nbsp;<i class="fa fa-exchange flipnames"></i>&nbsp;
-                                        First name: <input type="text" value="' . htmlspecialchars($first) . '"></div>';
+                                        First name: <input type="text" name="first_name[]" value="' . htmlspecialchars($first) . '"></div>';
                                 }
                             }
                         }
                         ?>
-                        <div>Last name: <input type="text" value="">
+                        <div>Last name: <input type="text" name="last_name[]" value="">
                             &nbsp;<i class="fa fa-exchange flipnames"></i>&nbsp;
-                            First name: <input type="text" value="">
+                            First name: <input type="text" name="first_name[]" value="">
                             <i class="addauthorrow fa fa-plus-circle" style="cursor:pointer"></i></div>
                     </div>
                     <input type="hidden" name="authors" value="<?php echo isset($paper['authors']) ? htmlspecialchars($paper['authors']) : ''; ?>">
@@ -674,6 +718,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     } else {
                         echo "Affiliation:";
                     }
+
                     ?>
                 </td>
                 <td class="threedright">
@@ -717,6 +762,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     } else {
                         echo "Secondary Title:";
                     }
+
                     ?>
                 </td>
                 <td class="threedright">
@@ -731,6 +777,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     } else {
                         echo "Tertiary Title:";
                     }
+
                     ?>
                 </td>
                 <td class="threedright">
@@ -803,6 +850,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 }
                             }
                         }
+
                         ?>
                         <div>Last name: <input type="text" value="">
                             &nbsp;<i class="fa fa-exchange flipnames"></i>&nbsp;
@@ -839,6 +887,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <?php
             if (!empty($paper_urls)) {
                 foreach ($paper_urls as $paper_url) {
+
                     ?>
                     <tr>
                         <td class="threedleft">
@@ -851,6 +900,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     <?php
                 }
             }
+
             ?>
             <tr>
                 <td class="threedleft">
@@ -863,25 +913,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    Publication type:
-                </td>
-                <td class="threedright">
-                    <select name="reference_type">
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'article') ? 'selected' : ''  ?>>article</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'book') ? 'selected' : ''  ?>>book</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'chapter') ? 'selected' : ''  ?>>chapter</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'conference') ? 'selected' : ''  ?>>conference</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'manual') ? 'selected' : ''  ?>>manual</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'thesis') ? 'selected' : ''  ?>>thesis</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'patent') ? 'selected' : ''  ?>>patent</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'electronic') ? 'selected' : ''  ?>>electronic</option>
-                        <option <?php print (!empty($paper['reference_type']) && $paper['reference_type'] == 'unpublished') ? 'selected' : ''  ?>>unpublished</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1' ?>:
+                    <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom1" style="width: 99%" value="<?php print isset($paper['custom1']) ? htmlspecialchars($paper['custom1']) : ''  ?>">
@@ -889,7 +921,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2' ?>:
+                    <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom2" style="width: 99%" value="<?php print isset($paper['custom2']) ? htmlspecialchars($paper['custom2']) : ''  ?>">
@@ -897,7 +929,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3' ?>:
+                    <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom3" style="width: 99%" value="<?php print isset($paper['custom3']) ? htmlspecialchars($paper['custom3']) : ''  ?>">
@@ -905,7 +937,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
             <tr>
                 <td class="threedleft">
-                    <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4' ?>:
+                    <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4'  ?>:
                 </td>
                 <td class="threedright">
                     <input type="text" size="80" name="custom4" style="width: 99%" value="<?php print isset($paper['custom4']) ? htmlspecialchars($paper['custom4']) : ''  ?>">
@@ -913,8 +945,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             </tr>
         </table>
     </form>
+    <br><br>
     <?php
 } else {
     print 'Super User or User permissions required.';
 }
+
 ?>

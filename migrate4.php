@@ -42,7 +42,7 @@ function migrate_authors($string) {
 }
 
 //ADD TERTIARY_TITLE COLUMN TO TABLE LIBRARY AND UPGRADE EDITORS
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 $dbHandle->sqliteCreateFunction('migrateauthors', 'migrate_authors', 1);
 $dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
 $dbHandle->exec("ALTER TABLE library ADD COLUMN tertiary_title TEXT NOT NULL DEFAULT ''");
@@ -53,7 +53,7 @@ $dbHandle->exec("COMMIT");
 $dbHandle = null;
 
 //CONSOLIDATE DISCUSSIONS INTO ONE DATABASE
-database_connect($database_path, 'filediscussion');
+database_connect(IL_DATABASE_PATH, 'filediscussion');
 $dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS discussion (id INTEGER PRIMARY KEY,"
         . " fileID INTEGER NOT NULL,"
@@ -67,7 +67,7 @@ $dbHandle->exec("CREATE TABLE projectdiscussion (id integer PRIMARY KEY,"
         . " timestamp text NOT NULL DEFAULT '',"
         . " message text NOT NULL DEFAULT '')");
 $dbHandle->exec("COMMIT");
-$dbs = glob($database_path . 'project*.sq3', GLOB_NOSORT);
+$dbs = glob(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'project*.sq3', GLOB_NOSORT);
 if (is_array($dbs)) {
     foreach ($dbs as $db) {
         $projID = substr(basename($db, '.sq3'), 7);
@@ -90,7 +90,7 @@ if (is_array($dbs)) {
 }
 
 $dbHandle = null;
-rename($database_path . 'filediscussion.sq3', $database_path . 'discussions.sq3');
+rename(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'filediscussion.sq3', IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'discussions.sq3');
 ?>
 <html>
     <body>

@@ -1,7 +1,5 @@
-/nbproject
-/library/*.pdf
-/library/database/*.sq3
-/library/pngs/*.png
-/library/pngs/*.svg
-/library/supplement/*
-!/library/supplement/nothing
+nbproject
+library
+bin/**
+ilibrarian.conf
+unins*

@@ -3,11 +3,6 @@ $microtime1 = microtime(true);
 include_once 'data.php';
 include_once 'functions.php';
 
-function save_search($filename, $searches) {
-    $searches_content = gzcompress(serialize($searches), 1);
-    file_put_contents($filename, $searches_content, LOCK_EX);
-}
-
 if (isset($_GET['newsearch'])) {
     unset($_SESSION['session_anywhere']);
     unset($_SESSION['session_anywhere_separator']);
@@ -58,7 +53,7 @@ if (isset($_GET['newsearch'])) {
 
 if (isset($_GET['savesearch']) && !empty($_GET['searchname'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -103,7 +98,7 @@ if (isset($_GET['savesearch']) && !empty($_GET['searchname'])) {
 
 if (isset($_GET['loadsearch']) && !empty($_GET['searchname'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $stmt = $dbHandle->prepare("SELECT searchfield,searchvalue FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -126,7 +121,7 @@ if (isset($_GET['loadsearch']) && !empty($_GET['searchname'])) {
 
 if (isset($_GET['deletesearch']) && !empty($_GET['searchname'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -143,7 +138,7 @@ if (isset($_GET['deletesearch']) && !empty($_GET['searchname'])) {
 
 if (isset($_GET['renamesearch']) && !empty($_GET['searchname']) && !empty($_GET['searchname2'])) {
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $stmt = $dbHandle->prepare("UPDATE searches SET searchname=:searchname2 WHERE userID=:user AND searchname=:searchname");
 
@@ -160,6 +155,13 @@ if (isset($_GET['renamesearch']) && !empty($_GET['searchname']) && !empty($_GET[
     die('OK');
 }
 
+if (!isset($_GET['from'])) {
+    $from = '0';
+} else {
+    settype($_GET['from'], "integer");
+    $from = $_GET['from'];
+}
+
 if (!isset($_GET['project'])) {
     $project = '';
 } else {
@@ -167,29 +169,22 @@ if (!isset($_GET['project'])) {
 }
 
 if (!isset($_SESSION['limit'])) {
-    $limit = 10;
+    $limit = $_SESSION['limit'] = 10;
 } else {
     settype($_SESSION['limit'], "integer");
     $limit = $_SESSION['limit'];
 }
 
 if (!isset($_SESSION['orderby'])) {
-    $orderby = 'id';
+    $orderby = $_SESSION['orderby'] = 'id';
 } else {
     $orderby = $_SESSION['orderby'];
 }
 
 if (!isset($_SESSION['display'])) {
-    $display = 'summary';
+    $display = $_SESSION['display'] = 'summary';
 } else {
     $display = $_SESSION['display'];
-}
-
-if (!isset($_GET['from'])) {
-    $from = '0';
-} else {
-    settype($_GET['from'], "integer");
-    $from = $_GET['from'];
 }
 
 if (empty($_GET['select']) ||
@@ -211,7 +206,7 @@ if (!empty($_GET['searchmode'])) {
 
     while (list($key, $index) = each($get_array)) {
 
-        if (isset($_GET[$index]) && !empty($_GET[$index])) {
+        if (!empty($_GET[$index])) {
 
             ${$index} = $_GET[$index];
             $_SESSION['session_' . $index] = $_GET[$index];
@@ -230,8 +225,10 @@ if (!empty($_GET['searchmode'])) {
                     $index != 'include-categories') {
 
                 ${$index} = $_GET[$index];
-                ${$index . '_separator'} = $_GET[$index . '_separator'];
-                $_SESSION['session_' . $index . '_separator'] = $_GET[$index . '_separator'];
+                if (!empty($_GET[$index . '_separator'])) {
+                    ${$index . '_separator'} = $_GET[$index . '_separator'];
+                    $_SESSION['session_' . $index . '_separator'] = $_GET[$index . '_separator'];
+                }
             }
         } else {
 
@@ -256,9 +253,25 @@ if (!empty($_GET['searchmode'])) {
             }
         }
     }
+
+    // Store current table name hash in session.
+
+    $table_name_hash = '';
+    $table_name_array = $_GET;
+    $table_name_array['orderby'] = $orderby;
+    unset($table_name_array['_']);
+    unset($table_name_array['from']);
+    unset($table_name_array['limit']);
+    unset($table_name_array['display']);
+    $table_name_array['user_id'] = $_SESSION['user_id'];
+    $table_name_array = array_filter($table_name_array);
+    ksort($table_name_array);
+    $table_name_hash = 'search_' . hash('crc32', json_encode($table_name_array));
+    $_SESSION['display_files'] = $table_name_hash;
+
     session_write_close();
 
-// CACHING
+// FILE CACHING
 
     $db_change = database_change(array(
         'library',
@@ -267,37 +280,20 @@ if (!empty($_GET['searchmode'])) {
         'projectsusers',
         'projectsfiles',
         'filescategories',
-        'notes'
+        'notes',
+        'annotations'
             ), array(
         'full_text'
-    ));
-    if (isset($_GET['from'])) {
+            ), array('clipboard'));
 
+    if (isset($_GET['from'])) {
         $cache_name = cache_name();
         cache_start($db_change);
     }
 
-//READ CACHED SEARCHES
+//READ PROJECTS
 
-    $searches = array();
-    $searches_file = $temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'searches';
-    if (is_readable($searches_file)) {
-        $searches_content = file_get_contents($searches_file);
-        $searches = unserialize(gzuncompress($searches_content));
-    }
-    if (count($searches) > 0) {
-        foreach ($searches as $md5 => $search) {
-            if ($search['query_time'] < $db_change)
-                unset($searches[$md5]);
-        }
-    }
-
-//READ SHELF AND PROJECTS
-
-    database_connect($database_path, 'library');
-
-    $shelf_files = array();
-    $shelf_files = read_shelf($dbHandle);
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $desktop_projects = array();
     $desktop_projects = read_desktop($dbHandle);
@@ -330,7 +326,7 @@ if (!empty($_GET['searchmode'])) {
     if (!empty($_GET['reference_type'])) {
 
         $type_quoted = $dbHandle->quote($_GET['reference_type']);
-        $type_search = 'reference_type=' . $type_quoted . 'AND';
+        $type_search = 'reference_type=' . $type_quoted . ' AND';
     }
 
 ######### CATEGORIES ################
@@ -371,15 +367,8 @@ if (!empty($_GET['searchmode'])) {
     $in = '';
 
     if ($_GET['select'] == 'shelf') {
-        $in = "INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND";
-    }
-
-    if ($_GET['select'] == 'clipboard') {
-        $in = "id IN () AND";
-        if (!empty($_SESSION['session_clipboard'])) {
-            $clipboard_files = join(",", $_SESSION['session_clipboard']);
-            $in = "id IN ($clipboard_files) AND";
-        }
+        $in = "id IN (SELECT fileID FROM shelves WHERE userID=" . intval($_SESSION['user_id']) . ") AND";
+//        $in = "INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND";
     }
 
     if ($_GET['select'] == 'desk') {
@@ -389,7 +378,7 @@ if (!empty($_GET['searchmode'])) {
             $result = $dbHandle->query("SELECT fileID FROM projectsfiles WHERE projectID=" . intval($_GET['project']));
             $project_files = $result->fetchAll(PDO::FETCH_COLUMN);
             $project_files = implode(',', $project_files);
-            $in = "id IN (" . $project_files . ") AND ";
+            $in = "id IN (" . $project_files . ") AND";
             $result = null;
             $result = $dbHandle->query("SELECT project FROM projects WHERE projectID=" . intval($_GET['project']));
             $project_name = $result->fetchColumn();
@@ -397,11 +386,15 @@ if (!empty($_GET['searchmode'])) {
         }
     }
 
-    if (isset($orderby) && ($orderby == 'year' || $orderby == 'addition_date' || $orderby == 'rating' || $orderby == 'id')) {
-        $ordering = 'DESC';
-    } else {
-        $ordering = 'ASC';
+    if ($_GET['select'] == 'clipboard') {
+        $in = "id IN (SELECT id FROM clipboard.files) AND";
     }
+
+    $ordering = 'ORDER BY ' . $orderby . ' COLLATE NOCASE ASC';
+    if ($orderby == 'year' || $orderby == 'addition_date' || $orderby == 'rating' || $orderby == 'id')
+        $ordering = 'ORDER BY ' . $orderby . ' DESC';
+    if ($orderby == 'id')
+        $ordering = '';
 
     empty($in) ? $where = 'WHERE' : $where = '';
 
@@ -422,7 +415,6 @@ if (!empty($_GET['searchmode'])) {
         $case2 = 0;
     $rating_array = array();
 
-
     if (isset($_GET['searchmode']) && $_GET['searchmode'] == 'quick') {
         include 'quicksearch.php';
     } elseif (isset($_GET['searchmode']) && $_GET['searchmode'] == 'advanced') {
@@ -434,23 +426,6 @@ if (!empty($_GET['searchmode'])) {
 
     $search_query = join(' ', $search_query_array);
     $_GET['search_query'] = $search_query;
-
-//CREATE SEARCH MD5 HASH
-    $md5_query = '';
-    unset($_GET['_']);
-    $_GET['orderby'] = $orderby;
-    ksort($_GET);
-
-    while (list($key, $value) = each($_GET)) {
-        if (is_array($_GET[$key])) {
-            while (list(, $value2) = each($_GET[$key])) {
-                if (!empty($value2))
-                    $md5_query .= $key . $value2;
-            }
-        } elseif ($key != 'from' && $key != 'limit' && $key != 'display' && !empty($value))
-            $md5_query .= $key . $value;
-    }
-    $md5_query = md5($md5_query);
 
 //SEARCH
 
@@ -777,7 +752,7 @@ if (!empty($_GET['searchmode'])) {
 
         print '</td></tr></table>';
 
-        show_search_results($result, $_GET['select'], $display, $shelf_files, $desktop_projects, $tempdbHandle);
+        show_search_results($result, $_GET['select'], $shelf_files, $desktop_projects, $clip_files, $tempdbHandle);
 
         print '<table cellspacing="0" class="top" style="margin:1px 0px 2px 0px"><tr><td style="width:50%">';
 

@@ -1,8 +1,10 @@
 <?php
+include_once 'data.php';
+include_once 'functions.php';
 
 $id = sprintf("%05d", $_GET['id']);
 $output_arr = array ();
-$directory = dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "supplement";
+$directory = IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($id);
 
 if (is_dir($directory)) {
 
@@ -13,7 +15,7 @@ if (is_dir($directory)) {
             $file = basename($file);
             $isimage = false;
             $image_array = array();
-            $image_array = @getimagesize('library/supplement/' . $file);
+            $image_array = @getimagesize(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file);
             $image_mime = $image_array['mime'];
             if ($image_mime == 'image/jpeg' || $image_mime == 'image/gif' || $image_mime == 'image/png')
                 $isimage = true;

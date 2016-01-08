@@ -110,6 +110,20 @@ include_once 'data.php';
             </td>
         </tr>
     </table>
+    <?php
+    if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
+        ?>
+    <table cellspacing=0 style="margin:6px 0;width:93%">
+        <tr>
+            <td class="leftleftbutton">&nbsp;</td>
+            <td class="leftbutton ui-widget-header ui-corner-right" id="reindexlink">
+                Batch PDF indexing
+            </td>
+        </tr>
+    </table>
+    <?php
+    }
+    ?>
     <table cellspacing=0 style="margin:6px 0;width:93%">
         <tr>
             <td class="leftleftbutton">&nbsp;</td>

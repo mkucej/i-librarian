@@ -6,6 +6,7 @@ include_once 'functions.php';
 <html style="width:100%;height:100%">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>I, Librarian <?php print $version ?></title>
         <link type="text/css" href="css/custom-theme/jquery-ui-custom.min.css?v=<?php print $version ?>" rel="stylesheet">
         <link type="text/css" href="css/plugins.css?v=<?php print $version ?>" rel="stylesheet">

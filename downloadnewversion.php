@@ -24,7 +24,7 @@ if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
                 }
             }
         }
-    } else {
+    } elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
         if (isset($_SESSION['proxy_name']))
             $proxy_name = $_SESSION['proxy_name'];
         if (isset($_SESSION['proxy_port']))

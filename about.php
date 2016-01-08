@@ -1,6 +1,7 @@
 <div style="text-align:center">
     <div class="item-sticker ui-widget-content ui-corner-all" style="margin:auto;margin-top:100px;width:340px">
-        <div class="ui-widget-header ui-dialog-titlebar ui-corner-top titles file-title" style="border:0">I, Librarian 
+        <div class="ui-widget-header ui-dialog-titlebar ui-corner-top" style="border:0;font-size:1.25em">
+            I, Librarian 
             <?php
             include_once 'data.php';
             print $version;
@@ -9,7 +10,7 @@
         <div class="separator" style="margin:0"></div>
         <div class="alternating_row ui-corner-bottom" style="padding:4px 12px;overflow:auto;">
             <p>
-                Copyright 2000 - <?php echo date('Y') ?> Martin Kucej
+                Copyright &middot; 2000 - <?php echo date('Y') ?> &middot; Scilico, LLC
             </p>
             <p style="text-align:justify">
                 I, Librarian is licensed under GPLv3. The program is provided "as is"

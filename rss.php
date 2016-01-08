@@ -3,9 +3,7 @@ include_once 'data.php';
 include_once 'functions.php';
 session_write_close();
 
-$librarian_url = $url;
-
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 
 if (isset($_GET['project'])) {
     $result = $dbHandle->query("SELECT id,title,abstract,addition_date FROM library
@@ -31,7 +29,7 @@ if (!empty($project_name)) {
     $rssfeed .= '<title>I, Librarian RSS feed</title>';
 }
 
-$rssfeed .= '<link>'.$librarian_url.'</link>';
+$rssfeed .= '<link>' . IL_URL . '</link>';
 $rssfeed .= '<description>New articles in I, Librarian</description>';
 $rssfeed .= '<language>en-us</language>'.PHP_EOL;
 
@@ -41,7 +39,7 @@ while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
     $rssfeed .= '<item>';
     $rssfeed .= '<title>' . htmlspecialchars($title) . '</title>';
     $rssfeed .= '<description>' . htmlspecialchars($abstract) . '</description>';
-    $rssfeed .= '<link>'.$librarian_url.'stable.php?id='.$id.'</link>';
+    $rssfeed .= '<link>' . IL_URL . 'stable.php?id='.$id.'</link>';
     $rssfeed .= '<pubDate>' . date("D, d M Y H:i:s O", strtotime($addition_date)) . '</pubDate>';
     $rssfeed .= '</item>'.PHP_EOL;
 }

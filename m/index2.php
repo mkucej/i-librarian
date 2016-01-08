@@ -1,11 +1,11 @@
 <?php
-include_once 'data.php';
+include_once '../data.php';
 include_once '../functions.php';
 
 //UPGRADING DATABASE
-if (is_file($database_path . 'library.sq3')) {
+if (is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
     $isupgraded = false;
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
     $result = $dbHandle->query("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='categories'");
     $newtable = $result->fetchColumn();
     $result = null;
@@ -34,7 +34,9 @@ if (is_file($database_path . 'library.sq3')) {
 
 $ini_array = parse_ini_file("../ilibrarian.ini");
 
-/////////////// LDAP SETTINGS //////////////////////////////
+/**
+ * LDAP settings from ilibrarian.ini.
+ */
 $ldap_active = $ini_array['ldap_active'];
 $ldap_version = $ini_array['ldap_version'];
 $ldap_server = $ini_array['ldap_server'];
@@ -46,263 +48,56 @@ $ldap_admin_cn = $ini_array['ldap_admin_cn'];
 $ldap_filter = $ini_array['ldap_filter'];
 if (!extension_loaded('ldap'))
     $ldap_active = false;
-/////////////// END LDAP SETTINGS //////////////////////////////
-///////////////start sign out//////////////////////////////
 
-if (isset($_GET['action']) && $_GET['action'] == 'signout') {
-    // DELETE USER'S FILE CACHE
-    $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . '*', GLOB_NOSORT);
-    if (is_array($clean_files)) {
-        foreach ($clean_files as $clean_file) {
-            if (is_file($clean_file) && is_writable($clean_file))
-                @unlink($clean_file);
-        }
-    }
-    $_SESSION = array();
-    session_regenerate_id(TRUE);
-    session_destroy();
-    die('OK');
-}
-///////////////end sign out////////////////////////////////
-///////////////auto sign in start////////////////////////////////
-
+/**
+ * Auto-sign in.
+ */
 if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'] == 1) {
 
-    database_connect($usersdatabase_path, 'users');
-    $quoted_user = $dbHandle->quote($ini_array['username']);
-    $autosign_query = $dbHandle->query("SELECT password FROM users WHERE username=$quoted_user");
-    if ($autosign_query)
-        $autosign = true;
+    database_connect(IL_USER_DATABASE_PATH, 'users');
 
-    if ($autosign) {
-        $autosign_user = $autosign_query->fetch(PDO::FETCH_ASSOC);
-        $_POST['form'] = 'signin';
-        $_POST['user'] = $ini_array['username'];
-        $_POST['pass'] = $autosign_user['password'];
-        $_POST['keepsigned'] = 1;
-    }
-    $autosign_query = null;
-    $dbHandle = null;
-}
+    $username_quoted = $dbHandle->quote($ini_array['username']);
 
-///////////////auto sign in end////////////////////////////////
-///////////////start authentication////////////////////////
-if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']) && !empty($_POST['pass']) && !isset($_SESSION['auth'])) {
+    $result = $dbHandle->query("SELECT userID, permissions FROM users WHERE username=$username_quoted");
 
-    $username = trim($_POST['user']);
-    $password = trim($_POST['pass']);
-
-    database_connect($usersdatabase_path, 'users');
-
-    $username_quoted = $dbHandle->quote($username);
-
-    $dbHandle->exec("CREATE TABLE IF NOT EXISTS logins (
-            id INTEGER PRIMARY KEY,
-            userID INTEGER NOT NULL DEFAULT '',
-            sessionID TEXT NOT NULL DEFAULT '',
-            logintime TEXT NOT NULL DEFAULT ''
-            )");
-
-    if ($ini_array['autosign'] == 0) {
-
-        // IMPOSE 2 SEC SIGN IN TIME OUT TO ELIMINATE BRUTE FORCE ATTACKS
-
-        $result = $dbHandle->query("SELECT logintime FROM logins WHERE sessionID='" . session_id() . "' AND
-            userID=(SELECT userID FROM users WHERE username=" . $username_quoted . ")");
-        $logintime = $result->fetchColumn();
+    $row = $result->fetch(PDO::FETCH_ASSOC);
         $result = null;
+    $dbHandle = null;
 
-        if (!$logintime) {
-            $dbHandle->exec("INSERT INTO logins (userID,sessionID,logintime)
-                VALUES ((SELECT userID FROM users WHERE username=" . $username_quoted . "),'" . session_id() . "','" . time() . "')");
-        } else {
-            $dbHandle->exec("UPDATE logins SET logintime='" . time() . "' WHERE sessionID='" . session_id() . "'
-                AND userID=(SELECT userID FROM users WHERE username=" . $username_quoted . ")");
-        }
+    extract($row);
 
-        if ((time() - $logintime) < 2)
-            die('Failed sign-in time out in effect.');
-    }
-
-    /* IS THE USER AN LDAP USER? */
-    if ($ldap_active) {
-
-        if (!$ldap_connect = ldap_connect($ldap_server, $ldap_port))
-            die("Could not connect to LDAP server");
-
-        if (!ldap_set_option($ldap_connect, LDAP_OPT_PROTOCOL_VERSION, $ldap_version))
-            die("Failed to set version to protocol $ldap_version");
-
-        $ldap_dn = $ldap_cn . $username . ',' . $ldap_rdn['users'] . ',' . $ldap_basedn;
-
-        /* AUTHENTICATE */
-        if ($ldap_bind = @ldap_bind($ldap_connect, $ldap_dn, $password)) {
-
-            /* AUTHORIZE ADMIN */
-            $ldap_dn = $ldap_admin_cn . ',' . $ldap_rdn['groups'] . ',' . $ldap_basedn;
-            $ldap_sr = @ldap_read($ldap_connect, $ldap_dn, '(' . $ldap_filter . $username . ')', array('memberUid'));
-            $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
-
-            $permissions = 'U';
-            if ($ldap_info_group['count'] > 0)
-                $permissions = 'A';
-
-            $dbHandle->beginTransaction();
-
-            $count = $dbHandle->query("SELECT count(*) FROM users WHERE username=$username_quoted LIMIT 1");
-            $rows = $count->fetchColumn();
-            $count = null;
-
-            if ($rows == 0) {
-
-                $dbHandle->exec("INSERT INTO users (username,password,permissions) VALUES ($username_quoted,'','$permissions')");
-
-                $last_id = $dbHandle->query("SELECT last_insert_rowid() FROM users");
-                $id = $last_id->fetchColumn();
-                $last_id = null;
-
-                $dbHandle->exec("INSERT INTO projects (userID,project) VALUES ($id,$username_quoted || '''s project', '1')");
-            }
-
-            $result = $dbHandle->query("SELECT userID FROM users WHERE username=$username_quoted LIMIT 1");
-            $id = $result->fetchColumn();
-            $result = null;
-
-            $dbHandle->commit();
-
-            $_SESSION['user_id'] = $id;
-            $_SESSION['user'] = $_POST['user'];
+    $_SESSION['user_id'] = $userID;
+    $_SESSION['user'] = $ini_array['username'];
             $_SESSION['permissions'] = $permissions;
             $_SESSION['auth'] = true;
-        }
-    } else {
+    $_POST['keepsigned'] = 1;
 
-        /* IF LDAP NOT ENABLED, CHECK THE LOCAL DB */
-        if (check_encrypted_password($dbHandle, $username, $password)) {
+    // Set fake form submit to read settings.
+    $_POST['form'] = 1;
 
-            $result = $dbHandle->query("SELECT userID,permissions FROM users WHERE username=" . $username_quoted);
-            $user = $result->fetch(PDO::FETCH_ASSOC);
-            $result = null;
-
-            if (!empty($user['userID'])) {
-                $_SESSION['user_id'] = $user['userID'];
-                $_SESSION['user'] = $_POST['user'];
-                $_SESSION['permissions'] = $user['permissions'];
-                $_SESSION['auth'] = true;
-                $_SESSION['watermarks'] = '';
-            }
-        }
-    }
-
-    /* OK, THIS IS A REGISTERED USER. DO THE PROXY SETTINGS AND CREATE A TEMP DIR */
-    if (isset($_SESSION['auth'])) {
-
-        if ($ini_array['autosign'] == 0) {
-
-            // ALLOW ONLY ONE LOGIN AT A TIME
-
-            $result = $dbHandle->query("SELECT sessionID FROM logins WHERE sessionID != '" . session_id() . "' AND
-            userID=(SELECT userID FROM users WHERE username=" . $username_quoted . ")");
-
-            while ($oldsession = $result->fetch(PDO::FETCH_ASSOC)) {
-                @unlink($temp_dir . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions' . DIRECTORY_SEPARATOR . 'sess_' . $oldsession['sessionID']);
-                $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . $oldsession['sessionID'] . DIRECTORY_SEPARATOR . '*', GLOB_NOSORT);
-                if (is_array($clean_files)) {
-                    foreach ($clean_files as $clean_file) {
-                        if (is_file($clean_file) && is_writable($clean_file))
-                            @unlink($clean_file);
-                    }
-                }
-            }
-            $result = null;
-            $dbHandle->query("DELETE FROM logins WHERE sessionID != '" . session_id() . "' AND
-            userID=(SELECT userID FROM users WHERE username=" . $username_quoted . ")");
-        }
-
-        if (isset($_POST['keepsigned']) && $_POST['keepsigned'] == 1) {
-            $keepsigned = 1;
-            save_setting($dbHandle, 'keepsigned', '1');
-            setcookie(session_name(), session_id(), time() + 604800);
-        } else {
-            save_setting($dbHandle, 'keepsigned', '');
-            setcookie(session_name(), session_id(), 0);
-        }
-
-        $connection = '';
-        $proxy_setting = array();
-
-        $proxy = $dbHandle->query("SELECT setting_name,setting_value FROM settings WHERE setting_name LIKE 'settings_global_%'");
-
-        $proxy_settings = $proxy->fetchAll(PDO::FETCH_ASSOC);
-
-        while (list($key, $proxy_setting) = each($proxy_settings)) {
-            if ($proxy_setting['setting_name'] == 'settings_global_connection' && $proxy_setting['setting_value'] == 'proxy') {
-                $connection = 'proxy';
-            }
-            if ($proxy_setting['setting_name'] == 'settings_global_connection' && $proxy_setting['setting_value'] == 'autodetect') {
-                $_SESSION['connection'] = "autodetect";
-            }
-            if ($proxy_setting['setting_name'] == 'settings_global_connection' && $proxy_setting['setting_value'] == 'url') {
-                $_SESSION['connection'] = "url";
-            }
-            if ($proxy_setting['setting_name'] == 'settings_global_wpad_url') {
-                $_SESSION['wpad_url'] = $proxy_setting['setting_value'];
-            }
-            if ($proxy_setting['setting_name'] == 'settings_global_watermarks') {
-                $_SESSION['watermarks'] = $proxy_setting['setting_value'];
-            }
-        }
-
-        if ($connection == "proxy") {
-            $proxy_setting = array();
-            reset($proxy_settings);
-            while (list($key, $proxy_setting) = each($proxy_settings)) {
-                $setting_name = substr($proxy_setting['setting_name'], 16);
-                $_SESSION[$setting_name] = $proxy_setting['setting_value'];
-            }
-        }
-
-        $result = $dbHandle->query("SELECT setting_name,setting_value FROM settings WHERE userID=" . intval($_SESSION['user_id']));
-
-        while ($custom_settings = $result->fetch(PDO::FETCH_ASSOC)) {
-
-            $_SESSION[substr($custom_settings['setting_name'], 9)] = $custom_settings['setting_value'];
-        }
-
-        //MOBILE VERSION - ALWAYS START WITH TITLES
-        $_SESSION['display'] = 'brief';
-
-        ####### create directory for caching ########
-
-        @mkdir($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id());
-    } else {
-        die('Bad username or password.');
-    }
-
-    $dbHandle = null;
-
-    if (!isset($autosign) || $autosign != 1)
-        die('OK');
+    include 'authenticate.php';
 }
-///////////////end authentication/////////////////////////
+
 ?>
 <!DOCTYPE html>
 <html style="width:100%;height:100%">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>I, Librarian Mobile <?php print $version ?></title>
-        <link type="text/css" href="css/librarian-mobile.min.css?v=<?php print $version ?>" rel="stylesheet">
-        <link rel="stylesheet" href="css/jquery.mobile.structure-1.3.1.min.css">
-        <link type="text/css" href="css/static.css?v=<?php print $version ?>" rel="stylesheet">
-        <script type="text/javascript" src="js/jquery-1.9.1.min.js?v=<?php print $version ?>"></script>
-        <script type="text/javascript" src="js/jquery.mobile.min.js?v=<?php print $version ?>"></script>
+        <title>I, Librarian Mobile</title>
+        <link rel="stylesheet" href="css/i-librarian.min.css?v=<?php print $version ?>" rel="stylesheet">
+        <link rel="stylesheet" href="css/jquery.mobile.icons.min.css">
+        <link rel="stylesheet" href="css/jquery.mobile.structure-1.4.5.min.css">
+        <link rel="stylesheet" href="css/static.css?v=<?php print $version ?>" rel="stylesheet">
+        <script type="text/javascript" src="js/jquery-1.11.3.min.js?v=<?php print $version ?>"></script>
+        <script type="text/javascript" src="js/jquery.mobile-1.4.5.min.js"></script>
         <script type="text/javascript" src="js/jquery.form.js?v=<?php print $version ?>"></script>
         <script type="text/javascript" src="js/javascript.js?v=<?php print $version ?>"></script>
     </head>
     <body style="margin:0;border:0;padding:0;width:100%">
         <?php
         if (isset($_SESSION['auth'])) {
+
             ?>
             <div id="top-page" data-role="page" data-theme="a">
                 <div id="splash2">
@@ -310,10 +105,10 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                     <h3>loading</h3>
                 </div>
                 <div data-role="panel" data-position="left" data-display="overlay" data-theme="none"
-                     id="panel-desk" style="background-color:rgba(0,0,0,0.85);color:#fff;"><div>loading projects...</div>
+                     id="panel-desk" style="background-color:rgba(60,60,70,1);color:#fff;"><div>loading projects...</div>
                 </div>
                 <div data-role="panel" data-position="right" data-display="overlay" data-theme="none"
-                     id="panel-menu" style="background-color:rgba(0,0,0,0.85);color:#fff;">
+                     id="panel-menu" style="background-color:rgba(60,60,70,1);color:#fff;">
                     <div data-role="collapsible-set" data-content-theme="a" style="margin:0">
                         <div data-role="collapsible">
                             <h3>Search</h3>
@@ -330,11 +125,11 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                                     </fieldset>
                                     <table style="width:100%">
                                         <tr>
-                                            <td style="width:64%;padding-right:2%">
-                                                <button id="search">Search</button>
+                                            <td style="width:50%;padding-right:2%">
+                                                <button id="search" class="ui-btn ui-corner-all">Search</button>
                                             </td>
                                             <td>
-                                                <button id="clear">Clear</button>
+                                                <button id="clear" class="ui-btn ui-corner-all">Clear</button>
                                             </td>
                                         </tr>
                                     </table>
@@ -354,24 +149,28 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                                     <?php
                                     if (empty($_SESSION['orderby']) || (!empty($_SESSION['orderby']) && $_SESSION['orderby'] == 'id'))
                                         print ' checked';
+
                                     ?>>
                                     <label for="radio-orderby-id">Date Added</label>
                                     <input name="radio-orderby" id="radio-orderby-year" value="year" type="radio"
                                     <?php
                                     if (!empty($_SESSION['orderby']) && $_SESSION['orderby'] == 'year')
                                         print 'checked';
+
                                     ?>>
                                     <label for="radio-orderby-year">Date Published</label>
                                     <input name="radio-orderby" id="radio-orderby-journal" value="journal" type="radio"
                                     <?php
                                     if (!empty($_SESSION['orderby']) && $_SESSION['orderby'] == 'journal')
                                         print 'checked';
+
                                     ?>>
                                     <label for="radio-orderby-journal">Journal</label>
                                     <input name="radio-orderby" id="radio-orderby-title" value="title" type="radio"
                                     <?php
                                     if (!empty($_SESSION['orderby']) && $_SESSION['orderby'] == 'title')
                                         print 'checked';
+
                                     ?>>
                                     <label for="radio-orderby-title">Title</label>
                                 </fieldset>
@@ -385,6 +184,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                                     <?php
                                     if (!empty($_SESSION['display']) && $_SESSION['display'] == 'brief')
                                         print ' checked';
+
                                     ?>
                                            >
                                     <label for="radio-display-titles">Titles</label>
@@ -392,6 +192,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                                     <?php
                                     if (!empty($_SESSION['display']) && $_SESSION['display'] == 'icons')
                                         print ' checked';
+
                                     ?>>
                                     <label for="radio-display-icons">Icons</label>
                                 </fieldset>
@@ -400,12 +201,12 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                         <div data-role="collapsible">
                             <h3>Clipboard</h3>
                             <div>
-                                <button id="add-clipboard">Add All to Clipboard</button>
-                                <button id="clear-clipboard">Clear Clipboard</button>
+                                <button id="add-clipboard" class="ui-btn ui-corner-all">Add All to Clipboard</button>
+                                <button id="clear-clipboard" class="ui-btn ui-corner-all">Clear Clipboard</button>
                             </div>
                         </div>
                     </div>
-                    <a href="#" id="link-signout" data-role="button" data-inline="true" data-icon="back" data-mini="true" style="margin-top:6px">Sign Out</a>
+                    <a href="#" id="link-signout" class="ui-btn ui-corner-all ui-icon-power ui-btn-icon-left" style="margin-top:6px">Sign Out</a>
                 </div>
                 <div data-role="content" style="padding:0;margin:0;border:0">
                     <div data-role="navbar" id="top-panel">
@@ -419,34 +220,32 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                     <div style="text-align:center;margin-top:20px">
                         <div data-role="controlgroup" data-type="horizontal" data-mini="true" style="margin:auto" id="menubar">
                             <button id="page-first">First</button>
-                            <button id="page-prev"><div style="width:37px">Prev</div></button>
+                            <button id="page-prev">Prev</button>
                             <button id="link-menu" data-icon="bars" data-iconpos="left">Menu</button>
-                            <button id="page-next"><div style="width:37px">Next</div></button>
+                            <button id="page-next">Next</button>
                             <button id="page-last">Last</button>
                         </div>
                     </div>
                     <div id="bottom-panel" style="min-height: 200px"></div>
-                    <div style="text-align:center;margin:20px 8px">
+                    <div style="text-align:center;margin:20px 0">
                         <div data-role="controlgroup" data-type="horizontal" data-mini="true" style="margin:auto" id="menubar2">
-                            <button id="page-prev2" data-icon="arrow-l"><div style="width:107px">Prev</div></button>
-                            <button id="page-next2" data-icon="arrow-r" data-iconpos="right"><div style="width:107px">Next</div></button>
+                            <button id="page-prev2" data-icon="arrow-l"><div style="width:84px">Prev</div></button>
+                            <button id="page-next2" data-icon="arrow-r" data-iconpos="right"><div style="width:84px">Next</div></button>
                         </div>
                     </div>
                 </div>
             </div>
             <?php
         } else {
+
             ?>
             <div id="signin-background" data-role="page" data-theme="a">
                 <div data-role="panel" data-position="right" data-display="overlay" data-theme="none"
-                     id="mypanel" style="background-color:rgba(0,0,0,0.85);color:#fff;padding-top:40px">
+                     id="mypanel" style="background-color:rgba(60,60,70,1);color:#fff;padding-top:40px">
                     <button data-icon="alert" data-iconpos="left">Wrong credentials.</button>
                 </div>
                 <div data-role="header">
                     <div style="text-align:center;padding: 12px 0;font-size:1.2em">I, Librarian Mobile</div>
-                    <div style="text-align: center;font-size:0.8em;padding-bottom:8px;display:none">
-                        <?php print $version; ?> &copy; 2013 Martin Kucej GPLv3
-                    </div>
                 </div>
                 <div data-role="content">
                     <div id="splash">
@@ -454,19 +253,21 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                     </div>
                     <form action="index2.php" method="POST" id="signinform">
                         <input type="hidden" name="form" value="signin">
-                        <ul data-role="listview" data-inset="true" style="width:290px;margin:auto;margin-top:12px">
-                            <li style="padding:0 10px">
+                        <div class="ui-body ui-body-a" style="margin:auto;width:250px">
                                 <input type="text" name="user" size="10" value="" placeholder="<?php print ($ldap_active) ? 'LDAP ' : ''  ?>Username">
                                 <input type="password" name="pass" size="10" value="" placeholder="Password">
-                                <button id="signinbutton" data-icon="edit" data-inline="false">Sign In</button>
+                            <button id="signinbutton" class="ui-btn ui-corner-all ui-btn-icon-left ui-icon-user" data-icon="edit">Sign In</button>
                                 <label><input type="checkbox" name="keepsigned" value="1" checked>Keep me signed in</label>
-                            </li>
-                        </ul>
+                        </div>
                     </form>
                 </div>
+                <div style="text-align: center;font-size:0.8em">
+                    &copy; <?php echo date('Y'); ?> Scilico, LLC
+            </div>
             </div>
             <?php
         }
+
         ?>
     </body>
 </html>

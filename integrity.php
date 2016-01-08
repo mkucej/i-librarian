@@ -7,9 +7,9 @@ $allowed_databases = array ('library', 'fulltext', 'users', 'discussions', 'hist
 
 if (!empty($_GET['db']) && in_array($_GET['db'], $allowed_databases)) {
     if ($_GET['db'] == 'users') {
-        database_connect($usersdatabase_path, 'users');
+        database_connect(IL_USER_DATABASE_PATH, 'users');
     } else {
-        database_connect($database_path, $_GET['db']);
+        database_connect(IL_DATABASE_PATH, $_GET['db']);
     }
     $result = $dbHandle->query('PRAGMA integrity_check');
     $answer = $result->fetchColumn();

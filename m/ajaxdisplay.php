@@ -1,5 +1,5 @@
 <?php
-include_once 'data.php';
+include_once '../data.php';
 
 if (isset($_GET['limit'])) {
 	settype($_GET['limit'], "integer");

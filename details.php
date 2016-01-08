@@ -1,14 +1,28 @@
 <?php
 
 include_once 'data.php';
+include_once 'functions.php';
 
 function formatBytes($size, $precision = 1) {
     $base = log($size) / log(1024);
     $suffixes = array('', 'k', 'M', 'G', 'T');
     return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+
 }
 
 if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['permissions'] == 'A') {
+
+    // Save Libre Office path.
+    if (!empty($_GET['soffice_path'])) {
+
+        database_connect(IL_USER_DATABASE_PATH, 'users');
+        
+        save_settings($dbHandle, array('global_soffice_path' => $_GET['soffice_path']));
+
+        $dbHandle = null;
+        
+        die();
+    }
 
     session_write_close();
 
@@ -24,15 +38,15 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print "<tr><td class=\"details\" style=\"white-space: nowrap\">PHP version</td>";
 
-        print "<td class=\"details\">>5.3.2</td><td class=\"details\">" . PHP_VERSION . "</td>";
+        print "<td class=\"details\">>5.4.0</td><td class=\"details\">" . PHP_VERSION . "</td>";
 
         print "<td class=\"details\">";
 
-        print version_compare(PHP_VERSION, "5.3.2", "<") ? "<span style=\"color: red; font-weight: bold\">!!!</span>" : "<span style=\"color: green; font-weight: bold\">OK</span>";
+        print version_compare(PHP_VERSION, "5.4.0", "<") ? "<span style=\"color: red; font-weight: bold\">!!!</span>" : "<span style=\"color: green; font-weight: bold\">OK</span>";
 
         print "</td></tr>";
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $sqlite_version = $dbHandle->query("SELECT sqlite_version()");
 
@@ -42,11 +56,11 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print "<tr><td class=\"details\" style=\"white-space: nowrap\">SQLite database version</td>";
 
-        print "<td class=\"details\">>3.6.15</td><td class=\"details\">$sqlite_version</td>";
+        print "<td class=\"details\">>3.7.11</td><td class=\"details\">$sqlite_version</td>";
 
         print "<td class=\"details\" style=\"\">";
 
-        print version_compare($sqlite_version, "3.6.15", "<") ? "<span style=\"color: red; font-weight: bold\">!!!</span>" : "<span style=\"color: green; font-weight: bold\">OK</span>";
+        print version_compare($sqlite_version, "3.7.11", "<") ? "<span style=\"color: red; font-weight: bold\">!!!</span>" : "<span style=\"color: green; font-weight: bold\">OK</span>";
 
         print "</td></tr>";
 
@@ -54,7 +68,10 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         $extensions = array('pdo' => 'built-in SQLite database',
             'pdo_sqlite' => 'built-in SQLite database',
-            'gd' => 'icon views and PDF viewer');
+            'gd' => 'icon views and PDF viewer',
+            'fileinfo' => 'file type detection',
+            'openssl' => 'secure HTTP connections',
+            'zip' => 'export to ZIP');
 
         while (list($extension, $feature) = each($extensions)) {
 
@@ -69,7 +86,7 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print "<tr><td class=\"details alternating_row\" style=\"width: 100%\" colspan=4>Optional PHP extensions:</td></tr>";
 
-        $extensions = array('zip' => 'export to ZIP', 'ldap' => 'LDAP authentication');
+        $extensions = array('ldap' => 'LDAP authentication');
 
         while (list($extension, $feature) = each($extensions)) {
 
@@ -168,9 +185,9 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print '</tr>';
 
-        print "<tr><td class=\"details\" style=\"white-space: nowrap;height:19px;line-height:19px\">Pdftk</td>";
+        print "<tr><td class=\"details\" style=\"white-space: nowrap;height:19px;line-height:19px\">Pdfdetach</td>";
 
-        print "<td class=\"details\" style=\"white-space: nowrap;height:19px;line-height:19px\">PDF bookmarks and watermarks</td>";
+        print "<td class=\"details\" style=\"white-space: nowrap;height:19px;line-height:19px\">unpacking PDF-attached files</td>";
 
         print '<td class="details" id="details-11" style="white-space: nowrap;height:19px;line-height:19px"><img src="img/ajaxloader.gif" style="vertical-align:middle"></td>';
         print '<td class="details" id="details-12" style="font-weight: bold;height:19px;line-height:19px"><img src="img/ajaxloader.gif" style="vertical-align:middle"></td>';
@@ -193,11 +210,29 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
         print '<td class="details" id="details-15" style="white-space: nowrap;height:19px;line-height:19px"><img src="img/ajaxloader.gif" style="vertical-align:middle"></td>';
         print '<td class="details" id="details-16" style="font-weight: bold;height:19px;line-height:19px"><img src="img/ajaxloader.gif" style="vertical-align:middle"></td></tr>';
 
-        print "<tr><td class=\"details alternating_row\" style=\"width: 100%\" colspan=4>I, Librarian " . $version . " is installed in \"" . dirname(__FILE__) . "\":</td></tr>";
+        if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
+            if (empty($_SESSION['soffice_path'])) {
+                // Translate default LibreOffice path.
+                exec('echo %PROGRAMFILES%\\LibreOffice 4\\program', $output);
+                $soffice_path = $output[0];
+            } else {
+                $soffice_path = $_SESSION['soffice_path'];
+            }
+            // If LibreOffice not there, prompt for new path.
+            if (!is_executable($soffice_path[0] . DIRECTORY_SEPARATOR . 'soffice.exe')) {
+                echo '<tr><td class="details">LibreOffice Path:</td><td class="details" colspan=3>';
+                echo '<form id="details-form"><input type="text" name="soffice_path" value="' . $soffice_path . '" style="width:30em">';
+                echo ' <span class="ui-state-highlight">&nbsp;Save&nbsp;</span></form>';
+                echo '</td></tr>';
+            }
+        }
+        echo "</td>";
 
-        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to PDF files:</td><td class=\"details\" style=\"font-size: 11px\">" . dirname(__FILE__) . DIRECTORY_SEPARATOR . "library</td>";
+        print "<tr><td class=\"details alternating_row\" style=\"width: 100%\" colspan=4>I, Librarian " . $version . " is installed in \"" . __DIR__ . "\":</td></tr>";
 
-        if (is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library") && @file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . '.')) {
+        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to PDF files:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_PDF_PATH  . "</td>";
+
+        if (is_writable(IL_PDF_PATH) && @file_exists(IL_PDF_PATH . DIRECTORY_SEPARATOR . '.')) {
 
             print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
         } else {
@@ -205,19 +240,9 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
         }
 
-        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to supplementary files:</td><td class=\"details\" style=\"font-size: 11px\">" . dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "supplement</td>";
+        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to supplementary files:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_SUPPLEMENT_PATH . "</td>";
 
-        if (is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "supplement") && @file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "supplement" . DIRECTORY_SEPARATOR . '.')) {
-
-            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
-        } else {
-
-            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
-        }
-
-        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to database files:</td><td class=\"details\" style=\"font-size: 11px\">" . dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "database</td>";
-
-        if (is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "database") && @file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR . '.')) {
+        if (is_writable(IL_SUPPLEMENT_PATH) && @file_exists(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '.')) {
 
             print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
         } else {
@@ -225,9 +250,9 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
         }
 
-        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to PNG images:</td><td class=\"details\" style=\"font-size: 11px\">" . dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "pngs</td>";
+        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to database files:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_DATABASE_PATH . "</td>";
 
-        if (is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "pngs") && @file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "pngs" . DIRECTORY_SEPARATOR . '.')) {
+        if (is_writable(IL_DATABASE_PATH) && @file_exists(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . '.')) {
 
             print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
         } else {
@@ -235,9 +260,19 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
         }
 
-        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Temporary directory:</td><td class=\"details\" style=\"font-size: 11px\">" . $temp_dir . " <span id=\"clear-trash\" class=\"ui-state-highlight\">&nbsp;<i class=\"fa fa-trash-o\"></i> Clear&nbsp;</span></td>";
+        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to PDF images:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_IMAGE_PATH . "</td>";
 
-        if (is_writable($temp_dir) && @file_exists($temp_dir . DIRECTORY_SEPARATOR . '.')) {
+        if (is_writable(IL_IMAGE_PATH) && @file_exists(IL_IMAGE_PATH . DIRECTORY_SEPARATOR . '.')) {
+
+            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+        } else {
+
+            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+        }
+
+        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Temporary directory:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_TEMP_PATH . " <span id=\"clear-trash\" class=\"ui-state-highlight\">&nbsp;<i class=\"fa fa-trash-o\"></i> Clear&nbsp;</span></td>";
+
+        if (is_writable(IL_TEMP_PATH) && @file_exists(IL_TEMP_PATH . DIRECTORY_SEPARATOR . '.')) {
 
             print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
         } else {
@@ -248,13 +283,13 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
     print "<tr><td class=\"details alternating_row\" style=\"width: 100%\" colspan=4>SQLite database files:</td></tr>";
 
-    $database_files = scandir(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database');
+    $database_files = scandir(IL_DATABASE_PATH);
 
     while (list($key, $database_file) = each($database_files)) {
 
         if (substr($database_file, -4) == '.sq3') {
 
-            $dbsize = filesize(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . $database_file);
+            $dbsize = filesize(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $database_file);
             $dbsize = formatBytes($dbsize);
 
             print "<tr><td class=\"details\">$database_file</td>";
@@ -263,7 +298,7 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print ' <span class="ui-state-highlight vacuum" data-db="' . basename($database_file, '.sq3') . '">&nbsp;Vacuum&nbsp;</span>';
             print '</td>';
 
-            if (is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . "library" . DIRECTORY_SEPARATOR . "database" . DIRECTORY_SEPARATOR . $database_file)) {
+            if (is_writable(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $database_file)) {
 
                 print "<td class=\"details\" style=\"white-space: nowrap\">writable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
             } else {
@@ -277,4 +312,5 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 } else {
     print 'Super User authorization required.';
 }
+
 ?>

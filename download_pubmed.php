@@ -24,7 +24,7 @@ if (isset($_SESSION['auth'])) {
                 }
             }
         }
-    } else {
+    } elseif (isset($_SESSION['connection']) && $_SESSION['connection'] == "proxy") {
         if (isset($_SESSION['proxy_name']))
             $proxy_name = $_SESSION['proxy_name'];
         if (isset($_SESSION['proxy_port']))
@@ -61,7 +61,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['save']) && $_GET['save'] == '1' && !empty($_GET['searchname'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -112,7 +112,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['load']) && $_GET['load'] == '1' && !empty($_GET['saved_search'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("SELECT searchfield,searchvalue FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -156,7 +156,7 @@ if (isset($_SESSION['auth'])) {
 
     if (isset($_GET['delete']) && $_GET['delete'] == '1' && !empty($_GET['saved_search'])) {
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $stmt = $dbHandle->prepare("DELETE FROM searches WHERE userID=:user AND searchname=:searchname");
 
@@ -330,7 +330,7 @@ if (isset($_SESSION['auth'])) {
 
         if (!empty($_SESSION['session_download_searchname'])) {
 
-            database_connect($database_path, 'library');
+            database_connect(IL_DATABASE_PATH, 'library');
 
             $stmt = $dbHandle->prepare("UPDATE searches SET searchvalue=:searchvalue WHERE userID=:userID AND searchname=:searchname AND searchfield='last_search'");
 
@@ -445,7 +445,7 @@ if (isset($_SESSION['auth'])) {
 
             print '<div class="alternating_row">';
 
-            database_connect($database_path, 'library');
+            database_connect(IL_DATABASE_PATH, 'library');
             $jdbHandle = new PDO('sqlite:journals.sq3');
 
             foreach ($xml->DocSum as $docsum) {
@@ -823,7 +823,7 @@ if (isset($_SESSION['auth'])) {
         </div>
         <?php
         // CLEAN DOWNLOAD CACHE
-        $clean_files = glob($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
+        $clean_files = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'page_*_download', GLOB_NOSORT);
         if (is_array($clean_files)) {
             foreach ($clean_files as $clean_file) {
                 if (is_file($clean_file) && is_writable($clean_file))

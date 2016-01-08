@@ -21,7 +21,7 @@ if (isset($_SESSION['auth'])) {
 
         if (!empty($_GET['category2'])) {
 
-            database_connect($database_path, 'library');
+            database_connect(IL_DATABASE_PATH, 'library');
 
             $query = "INSERT INTO categories (category) VALUES (:category)";
             $stmt = $dbHandle->prepare($query);
@@ -50,7 +50,7 @@ if (isset($_SESSION['auth'])) {
 
         ####### record new relations into filescategories #########
 
-        database_connect($database_path, 'library');
+        database_connect(IL_DATABASE_PATH, 'library');
 
         $categories = array();
 
@@ -80,7 +80,7 @@ if (isset($_SESSION['auth'])) {
 
 ##########	read reference data, categories	##########
 
-    database_connect($database_path, 'library');
+    database_connect(IL_DATABASE_PATH, 'library');
 
     $file_query = $dbHandle->quote($_GET['file']);
 

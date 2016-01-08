@@ -1,21 +1,23 @@
 <?php
-include_once 'data.php';
+
+include_once '../data.php';
 include_once '../functions.php';
 
-$export_files = array();
-$export_files = read_export_files(0);
+database_connect(IL_DATABASE_PATH, 'library');
+attach_clipboard($dbHandle);
+$quoted_path = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'history.sq3');
+$dbHandle->exec("ATTACH DATABASE $quoted_path as history");
+
+$dbHandle->beginTransaction();
 
 if (isset($_GET['action']) && $_GET['action'] == 'add') {
     
-    $_SESSION['session_clipboard'] = array();
-    $_SESSION['session_clipboard'] = $export_files;
-    
+    $dbHandle->exec("INSERT OR IGNORE INTO clipboard.files (id) SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id DESC");
 } else {
     
-    $_SESSION['session_clipboard'] = array();
-    
-    if (isset($_GET['selection']) && $_GET['selection'] == 'clipboard') {
-            save_export_files(array());
-    }
+    $dbHandle->exec("DELETE FROM clipboard.files WHERE id IN (SELECT itemID FROM history.`" . $_SESSION['display_files'] . "` ORDER BY id)");
+
 }
-?>
+    
+$dbHandle->commit();
+$dbHandle = null;

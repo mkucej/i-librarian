@@ -1,7 +1,7 @@
 <?php
 
 // I, Librarian version
-$version = '3.5';
+$version = '3.6';
 
 // initial PHP settings
 ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
@@ -19,29 +19,52 @@ if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off')
 $parsed_file = parse_url($protocol . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'], PHP_URL_PATH);
 $parsed_file = str_replace(basename($parsed_file), '', $parsed_file);
 $url = $protocol . "://" . $_SERVER['HTTP_HOST'] . $parsed_file;
-if (substr($url, -1) != "/")
+if (substr($url, -1) != "/") {
     $url = $url . "/";
+}
+
+define('IL_URL', $url);
 
 // library and database full paths
-$library_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR;
-$database_path = $library_path . 'database' . DIRECTORY_SEPARATOR;
-$usersdatabase_path = $library_path . 'database' . DIRECTORY_SEPARATOR;
+define('IL_LIBRARY_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'library');
+define('IL_DATABASE_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'database');
+define('IL_USER_DATABASE_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'database');
+define('IL_SUPPLEMENT_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'supplement');
+define('IL_IMAGE_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'pngs');
+define('IL_PDF_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'pdfs');
+define('IL_PDF_CACHE_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'pdfcache');
 
 // exit if library is not writeable
-if (!is_writable($library_path)) {
+if (!is_writable(IL_LIBRARY_PATH)) {
+    $bad_path = IL_LIBRARY_PATH;
     include 'fatalerror.php';
     die();
 }
 
 // set temp dir for this installation
 $temp_dir = sys_get_temp_dir();
-if (PHP_OS == 'Linux')
+if (PHP_OS == 'Linux') {
     $temp_dir = '/var/tmp';
-if (substr($temp_dir, -1) == DIRECTORY_SEPARATOR)
+}
+if (substr($temp_dir, -1) == DIRECTORY_SEPARATOR) {
     $temp_dir = substr($temp_dir, 0, -1);
-$temp_dir .= DIRECTORY_SEPARATOR . 'i-librarian' . DIRECTORY_SEPARATOR . md5(strstr($url, '://'));
-if (!is_dir($temp_dir))
-    @mkdir($temp_dir, 0700, true);
+}
+
+// exit if temp is not writeable
+if (!is_writable($temp_dir)) {
+    $bad_path = $temp_dir;
+    include 'fatalerror.php';
+    die();
+}
+
+// Create temp dir.
+$temp_dir .= DIRECTORY_SEPARATOR . 'i-librarian' . DIRECTORY_SEPARATOR . md5(strstr(IL_URL, '://'));
+
+define('IL_TEMP_PATH', $temp_dir);
+
+if (!is_dir(IL_TEMP_PATH)) {
+    @mkdir(IL_TEMP_PATH, 0700, true);
+}
 
 // remove magic quotes from GET and POST
 if (get_magic_quotes_gpc() == 1) {
@@ -94,7 +117,7 @@ if (get_magic_quotes_gpc() == 1) {
 // session garbage collection
 $probability = rand(1, 100000);
 if ($probability == 50000) {
-    $session_dir = $temp_dir . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions';
+    $session_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions';
     if (is_dir($session_dir)) {
         $clean_files = glob($session_dir . DIRECTORY_SEPARATOR . 'sess_*', GLOB_NOSORT);
         if (is_array($clean_files)) {
@@ -107,9 +130,11 @@ if ($probability == 50000) {
 }
 
 // set session path and start session
-if (!is_dir($temp_dir . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions'))
-    mkdir($temp_dir . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions', 0700);
-session_save_path($temp_dir . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions');
+if (!is_dir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions')) {
+    mkdir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions', 0700);
+}
+
+session_save_path(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions');
 
 session_start();
 
@@ -119,14 +144,21 @@ $ini_array = parse_ini_file("ilibrarian.ini");
 $stablelinks = $ini_array['stablelinks'];
 $rsslinks = $ini_array['rsslinks'];
 
-$allowed_pages = array('index2.php', 'resetpassword.php', 'remoteuploader.php', 'style.php');
+$allowed_pages = array(
+    'authenticate.php',
+    'index2.php',
+    'resetpassword.php',
+    'remoteuploader.php',
+    'style.php');
 if ($stablelinks == '1')
     $allowed_pages[] = 'stable.php';
 if ($rsslinks == '1')
     $allowed_pages[] = 'rss.php';
-//var_dump(!isset($_SESSION['auth']));
-if (!in_array(basename($_SERVER['PHP_SELF']), $allowed_pages) && !isset($_SESSION['auth']))
-    die('signed_out');
+
+if (!in_array(basename($_SERVER['PHP_SELF']), $allowed_pages) && !isset($_SESSION['auth'])) {
+    http_response_code(403);
+    die();
+}
 
 // set cookie timeout for 0 or 7 days
 $keepsigned = '';
@@ -137,9 +169,9 @@ if (isset($_POST['keepsigned']) && $_POST['keepsigned'] == 1) {
     $cookietimeout = 604800;
 } elseif (!empty($_SESSION['user_id'])) {
 
-    if (file_exists($usersdatabase_path . 'users.sq3') && !isset($_SESSION['keepsigned'])) {
+    if (file_exists(IL_USER_DATABASE_PATH . DIRECTORY_SEPARATOR . 'users.sq3') && !isset($_SESSION['keepsigned'])) {
         try {
-            $dbHandle = new PDO('sqlite:' . $usersdatabase_path . 'users.sq3');
+            $dbHandle = new PDO('sqlite:' . IL_USER_DATABASE_PATH . DIRECTORY_SEPARATOR . 'users.sq3');
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage() . "<br/>";
             print "PHP extensions PDO and PDO_SQLite must be installed.";
@@ -168,10 +200,9 @@ if (isset($_POST['keepsigned']) && $_POST['keepsigned'] == 1) {
 setcookie(session_name(), session_id(), time() + $cookietimeout);
 
 // create user specific directory for caching
-if (!is_dir($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id()))
-    mkdir($temp_dir . DIRECTORY_SEPARATOR . 'lib_' . session_id(), 0700);
+if (!is_dir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id()))
+    mkdir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id(), 0700);
 
 // hosting specific
 $hosted = false;
-$forced_ssl = false;
 ?>

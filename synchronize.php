@@ -27,23 +27,23 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
         
         if (!is_dir($directory . DIRECTORY_SEPARATOR. 'library' . DIRECTORY_SEPARATOR .'database')) die('Error! Cannot find libary files.');
         
-        if (filemtime($database_path.'library.sq3') >
+        if (filemtime(IL_DATABASE_PATH . DIRECTORY_SEPARATOR .'library.sq3') >
             filemtime($directory.DIRECTORY_SEPARATOR.'library'.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'library.sq3'))
             die('Error! This backup is older then your library. Use Restore function instead.');
 
-        if ($is_dir && is_writable(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library')) {
+        if ($is_dir && is_writable(IL_LIBRARY_PATH)) {
 
             if (!is_readable($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'library.sq3'))
                 die('Error! Access denied. Cannot read the library.');
 
-            database_connect($usersdatabase_path, 'users');
+            database_connect(IL_USER_DATABASE_PATH, 'users');
             save_setting($dbHandle, 'backup_dir', $directory);
             $dbHandle = null;
 
             if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-                exec("xcopy \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library' . "\" /c /v /q /s /e /h /y /d");
+                exec("xcopy \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y /d");
             } else {
-                exec(escapeshellcmd("cp -pru \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . dirname(__FILE__) . DIRECTORY_SEPARATOR . "\""));
+                exec(escapeshellcmd("cp -pru \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . __DIR__ . DIRECTORY_SEPARATOR . "\""));
             }
             die('Done');
         } else {
@@ -51,9 +51,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
         }
     }
 
-    database_connect($usersdatabase_path, 'users');
-    $backup_dir = get_setting($dbHandle, 'backup_dir');
-    $dbHandle = null;
+    $backup_dir = get_setting('backup_dir');
     ?>
 
     <table style="width: 100%"><tr><td class="details alternating_row"><b>Synchronize library with a backup copy</b></td></tr></table>
