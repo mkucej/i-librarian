@@ -1,6 +1,7 @@
 <?php
 
 $_POST['dir'] = urldecode($_POST['dir']);
+$_POST['dir'] = str_replace("\\", "/", $_POST['dir']);
 
 if (file_exists($_POST['dir']) && is_readable($_POST['dir'])) {
     $files = scandir($_POST['dir']);

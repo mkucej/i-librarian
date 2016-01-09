@@ -277,6 +277,10 @@ $(window).load(function () {
             'Select': function () {
                 $(this).dialog('close');
                 var dir = $('#filetree-input').val();
+                dir = dir.substr(0, ($('#filetree-input').val().length - 1));
+                if (navigator.platform === 'Win32' && dir.substr(1,1) !== ':') {
+                    dir = 'C:' + dir;
+                }
                 $('input[name="directory"]:visible').val(dir);
             },
             Cancel: function () {
