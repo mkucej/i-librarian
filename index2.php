@@ -2,34 +2,12 @@
 include_once 'data.php';
 include_once 'functions.php';
 
-// Create library dirs.
-if (!is_dir(IL_DATABASE_PATH)) {
-    @mkdir(IL_DATABASE_PATH, 0755, true);
-}
-if (!is_dir(IL_USER_DATABASE_PATH)) {
-    @mkdir(IL_USER_DATABASE_PATH, 0755, true);
-}
-if (!is_dir(IL_SUPPLEMENT_PATH)) {
-    @mkdir(IL_SUPPLEMENT_PATH, 0755, true);
-}
-if (!is_dir(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '01')) {
-    @mkdir(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '01', 0755, true);
-}
-if (!is_dir(IL_IMAGE_PATH)) {
-    @mkdir(IL_IMAGE_PATH, 0755, true);
-}
-if (!is_dir(IL_PDF_PATH)) {
-    @mkdir(IL_PDF_PATH, 0755, true);
-}
-if (!is_dir(IL_PDF_PATH . DIRECTORY_SEPARATOR . '01')) {
-    @mkdir(IL_PDF_PATH . DIRECTORY_SEPARATOR . '01', 0755, true);
-}
-if (!is_dir(IL_PDF_CACHE_PATH)) {
-    @mkdir(IL_PDF_CACHE_PATH, 0755, true);
-}
-
-//UPGRADING DATABASE
-if (is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
+// Install or upgrade.
+if (!is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
+    
+    include 'install.php';
+} else {
+    
     $isupgraded = false;
     $is_2_11 = false;
     database_connect(IL_DATABASE_PATH, 'library');

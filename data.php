@@ -12,6 +12,8 @@ ini_set('max_execution_time', 300);
 ini_set('memory_limit', '512M');
 date_default_timezone_set(@date_default_timezone_get());
 
+$ini_array = parse_ini_file("ilibrarian.ini");
+
 // find out what the url string is
 $protocol = 'http';
 if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off')
@@ -26,7 +28,17 @@ if (substr($url, -1) != "/") {
 define('IL_URL', $url);
 
 // library and database full paths
-define('IL_LIBRARY_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'library');
+if (!empty($ini_array['library_path'])) {
+    
+    if (substr($ini_array['library_path'], -1) == DIRECTORY_SEPARATOR) {
+        $ini_array['library_path'] = substr($ini_array['library_path'], 0, -1);
+    }
+    
+    define('IL_LIBRARY_PATH', $ini_array['library_path'] . DIRECTORY_SEPARATOR . 'library');
+} else {
+    
+    define('IL_LIBRARY_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'library');
+}
 define('IL_DATABASE_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'database');
 define('IL_USER_DATABASE_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'database');
 define('IL_SUPPLEMENT_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'supplement');
@@ -42,10 +54,17 @@ if (!is_writable(IL_LIBRARY_PATH)) {
 }
 
 // set temp dir for this installation
-$temp_dir = sys_get_temp_dir();
-if (PHP_OS == 'Linux') {
-    $temp_dir = '/var/tmp';
+if (!empty($ini_array['temp_path'])) {
+    
+    $temp_dir = $ini_array['temp_path'];
+} else {
+    
+    $temp_dir = sys_get_temp_dir();
+    if (PHP_OS == 'Linux') {
+        $temp_dir = '/var/tmp';
+    }
 }
+
 if (substr($temp_dir, -1) == DIRECTORY_SEPARATOR) {
     $temp_dir = substr($temp_dir, 0, -1);
 }
@@ -138,9 +157,8 @@ session_save_path(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'I,_Librarian_sessions');
 
 session_start();
 
-// PREVENT ACCESSING PAGES WHEN SIGNED OUT, SENDS FLAG TO JAVASCRIPT CLIENT
+// PREVENT ACCESSING PAGES WHEN SIGNED OUT, SENDS 403
 // READ OPEN-ACCESS LINKS
-$ini_array = parse_ini_file("ilibrarian.ini");
 $stablelinks = $ini_array['stablelinks'];
 $rsslinks = $ini_array['rsslinks'];
 
@@ -205,4 +223,3 @@ if (!is_dir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id()))
 
 // hosting specific
 $hosted = false;
-?>
