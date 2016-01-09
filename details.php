@@ -103,7 +103,12 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print "Required php.ini settings:</td></tr>";
 
-        $directives = array('file_uploads' => '1', 'upload_max_filesize' => '200M', 'post_max_size' => '800M', 'max_input_time' => '60');
+        $directives = array(
+            'file_uploads' => '1',
+            'upload_max_filesize' => '200M',
+            'post_max_size' => '800M',
+            'max_input_time' => '60',
+            'max_input_vars' => '10000');
 
         while (list($directive, $value) = each($directives)) {
 

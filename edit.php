@@ -543,7 +543,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="pubmed"
                                 <?php
-                                if (isset($autoupdate_database) && $autoupdate_database == 'pubmed') {
+                                if (empty($autoupdate_database) || $autoupdate_database == 'pubmed') {
                                     echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
                                 } elseif (!isset($autoupdate_database)) {
                                     echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
@@ -557,31 +557,31 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="nasaads"
                                 <?php
-                                if (isset($autoupdate_database) && $autoupdate_database == 'nasaads') {
+                                if ($autoupdate_database == 'nasaads') {
                                     echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
                                 } else {
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
 
                                 ?>
-                                       NASA ADS
+                                       NASA
                             </td>
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="ieee"
                                 <?php
-                                if (isset($autoupdate_database) && $autoupdate_database == 'ieee') {
+                                if ($autoupdate_database == 'ieee') {
                                     echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
                                 } else {
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';
                                 }
 
                                 ?>
-                                       IEEE Xplore
+                                       IEEE
                             </td>
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="crossref"
                                 <?php
-                                if (isset($autoupdate_database) && $autoupdate_database == 'crossref') {
+                                if ($autoupdate_database == 'crossref') {
                                     echo 'checked>&nbsp;<i class="fa fa-circle"></i>';
                                 } else {
                                     echo '>&nbsp;<i class="fa fa-circle-o"></i>';

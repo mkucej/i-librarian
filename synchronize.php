@@ -14,8 +14,6 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
         $directory = substr($directory, 0, -1);
 
     if (!empty($directory)) {
-        
-        if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') $directory = str_replace("/", "\\", $directory);
 
         if (!is_dir($directory)) {
             $is_dir = false;
@@ -25,15 +23,15 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
         
         if (!$is_dir) die('Error! Directory does not exist.');
         
-        if (!is_dir($directory . DIRECTORY_SEPARATOR. 'library' . DIRECTORY_SEPARATOR .'database')) die('Error! Cannot find libary files.');
+        if (!is_dir($directory . DIRECTORY_SEPARATOR .'database')) die('Error! Cannot find libary files.');
         
         if (filemtime(IL_DATABASE_PATH . DIRECTORY_SEPARATOR .'library.sq3') >
-            filemtime($directory.DIRECTORY_SEPARATOR.'library'.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'library.sq3'))
+            filemtime($directory.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'library.sq3'))
             die('Error! This backup is older then your library. Use Restore function instead.');
 
         if ($is_dir && is_writable(IL_LIBRARY_PATH)) {
 
-            if (!is_readable($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'library.sq3'))
+            if (!is_readable($directory . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'library.sq3'))
                 die('Error! Access denied. Cannot read the library.');
 
             database_connect(IL_USER_DATABASE_PATH, 'users');
@@ -41,9 +39,9 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
             $dbHandle = null;
 
             if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-                exec("xcopy \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y /d");
+                exec("xcopy \"" . $directory . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y /d");
             } else {
-                exec(escapeshellcmd("cp -pru \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . __DIR__ . DIRECTORY_SEPARATOR . "\""));
+                exec(escapeshellcmd("cp -pru \"" . $directory . "\" \"" . IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . "\""));
             }
             die('Done');
         } else {

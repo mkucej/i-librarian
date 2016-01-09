@@ -207,8 +207,8 @@ body.leftindex, div.leftindex {
 body.discussion {
     background-color: #" . $alternating_row_background_color . ";
     margin: 0;
-    width:100%;
-    height:100%
+    height: 100%;
+    padding:1em 2em;
 }
 
 .clicked {

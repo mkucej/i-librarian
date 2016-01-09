@@ -36,7 +36,7 @@ if ($_SERVER['REMOTE_ADDR'] == 'localhost' || $_SERVER['REMOTE_ADDR'] == '127.0.
             </tr>
             <tr>
                 <td style="padding:6px">
-                    New Password:
+                    New password:
                 </td>
                 <td style="padding:6px">
                     <input type="password" size="10" name="new_password1" style="width:90%">
@@ -44,7 +44,7 @@ if ($_SERVER['REMOTE_ADDR'] == 'localhost' || $_SERVER['REMOTE_ADDR'] == '127.0.
             </tr>
             <tr>
                 <td style="padding:6px">
-                    Retype:
+                    Re-type:
                 </td>
                 <td style="padding:6px">
                     <input type="password" size="10" name="new_password2" style="width:90%">
@@ -52,7 +52,7 @@ if ($_SERVER['REMOTE_ADDR'] == 'localhost' || $_SERVER['REMOTE_ADDR'] == '127.0.
             </tr>
             <tr>
                 <td style="padding:6px">
-                    <button id="resetpasswordbutton"><i class="fa fa-exclamation-triangle ui-state-error-text"></i> Change</button>
+                    <button id="resetpasswordbutton"><i class="fa fa-exclamation-triangle ui-state-error-text"></i> Reset</button>
                 </td>
                 <td style="padding:6px;vertical-align:middle">
                     <span style="cursor:pointer" id="backtologin">Sign In</span>

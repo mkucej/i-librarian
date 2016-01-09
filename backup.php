@@ -8,7 +8,7 @@ if ($hosted == true)
 
 function safe_copy($file, $directory) {
 
-    $path_to = str_replace(__DIR__, $directory, $file);
+    $path_to = str_replace(IL_LIBRARY_PATH, $directory, $file);
 
     if (!is_file($path_to) || (is_file($path_to) && filemtime($file) > filemtime($path_to))) {
 
@@ -67,12 +67,21 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 database_connect(IL_USER_DATABASE_PATH, 'users');
                 save_setting($dbHandle, 'backup_dir', $directory);
                 $dbHandle = null;
+                
+                // Create folders.
+                $lit = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(IL_LIBRARY_PATH));
+                while ($lit->valid()) {
+                    $dir = $lit->key();
+                    if (is_dir($dir)) {
+                        $path_to = str_replace(IL_LIBRARY_PATH, $directory, $dir);
+                        if (!is_dir($path_to)) {
+                            mkdir($path_to);
+                        }
+                    }
+                    $lit->next();
+                }
 
-                @mkdir($directory . DIRECTORY_SEPARATOR . 'library');
-                @mkdir($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database');
-                @mkdir($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'supplement');
-                @mkdir($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'pngs');
-
+                // Copy files.
                 $lit = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(IL_LIBRARY_PATH));
                 while ($lit->valid()) {
                     $file = $lit->key();
@@ -83,14 +92,18 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 }
 
                 // DELETE NON-EXISTENT FILES
-
                 $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
                 while ($it->valid()) {
                     $backupfile = $it->key();
                     if (is_file($backupfile)) {
-                        $libfile = str_replace($directory, __DIR__, $backupfile);
-                        if (!is_file($libfile))
+                        echo $backupfile . PHP_EOL;
+                        echo $directory . PHP_EOL;
+                        $libfile = str_replace($directory, IL_LIBRARY_PATH, $backupfile);
+                        echo $libfile . PHP_EOL;
+                        if (!is_file($libfile)) {
+                            
                             @unlink($backupfile);
+                        }
                     }
                     $it->next();
                 }
@@ -143,9 +156,6 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
 
         if (!empty($directory)) {
 
-            if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN')
-                $directory = str_replace("/", "\\", $directory);
-
             if (!is_dir($directory)) {
                 $is_dir = false;
             } else {
@@ -154,25 +164,22 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
 
             if ($is_dir && is_writable(IL_LIBRARY_PATH)) {
 
-                if (!is_readable($directory . DIRECTORY_SEPARATOR . 'library' . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'library.sq3'))
+                if (!is_readable($directory . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'library.sq3'))
                     die('Error! Access denied or directory does not exist.');
-
-                database_connect(IL_USER_DATABASE_PATH, 'users');
-                save_setting($dbHandle, 'backup_dir', $directory);
-                $dbHandle = null;
-
+                
                 if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
                     exec("del /q \"" . IL_LIBRARY_PATH . "\"");
                     exec("rmdir \"" . IL_DATABASE_PATH . "\" /s/q");
                     exec("rmdir \"" . IL_SUPPLEMENT_PATH . "\" /s/q");
                     exec("rmdir \"" . IL_IMAGE_PATH . "\" /s/q");
-                    exec("xcopy \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y");
+                    exec("xcopy \"" . $directory . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y", $a);
+                    var_dump("xcopy \"" . $directory . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y");
                 } else {
                     exec("rm -f \"" . IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . "*.*\"");
                     exec("rm -rf \"" . IL_DATABASE_PATH . "\"");
                     exec("rm -rf \"" . IL_SUPPLEMENT_PATH . "\"");
                     exec("rm -rf \"" . IL_IMAGE_PATH . "\"");
-                    exec(escapeshellcmd("cp -r \"" . $directory . DIRECTORY_SEPARATOR . 'library' . "\" \"" . __DIR__ . DIRECTORY_SEPARATOR . "\""));
+                    exec(escapeshellcmd("cp -r \"" . $directory . "\" \"" . IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . "\""));
                 }
                 die('Done');
             } else {

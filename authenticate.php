@@ -52,7 +52,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'signout') {
 if (isset($_POST['form']) && $_POST['form'] == 'signup' && !empty($_POST['user']) && !empty($_POST['pass']) && !empty($_POST['pass2'])) {
 
     // If registration not allowed, exit with error.
-    $dbHandle = database_connect(IL_USER_DATABASE_PATH, users);
+    $dbHandle = database_connect(IL_USER_DATABASE_PATH, 'users');
     
     $result = $dbHandle->query("SELECT setting_value as v FROM settings"
             . " WHERE setting_name = 'disallow_signup'");

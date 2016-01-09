@@ -684,6 +684,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $nasa_id = '';
         $isbn = '';
         $ol_id = '';
+        $ieee_id = '';
 
         if (!empty($_POST['doi'])) {
             $doi = trim($_POST['doi']);
@@ -716,46 +717,42 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             if ($uid_array2[0] == 'ISBN')
                 $isbn = trim($uid_array2[1]);
         }
+        
+        $response = array();
 
         //FETCH FROM ARXIV
-        if (!empty($arxiv_id)) {
-            $response = array();
+        if (empty($response) && !empty($arxiv_id)) {
             fetch_from_arxiv($arxiv_id);
             $_POST = array_replace_recursive($_POST, $response);
             $_POST['form_new_file_link'] = 'http://arxiv.org/pdf/' . $arxiv_id;
         }
 
         //FETCH FROM PUBMED
-        if (!empty($pmid) || (isset($_POST['fetch-pubmed']) && !empty($doi))) {
-            $response = array();
+        if (empty($response) && (!empty($pmid) || (isset($_POST['fetch-pubmed']) && !empty($doi)))) {
             fetch_from_pubmed($doi, $pmid);
             $_POST = array_replace_recursive($_POST, $response);
         }
 
         // FETCH FROM NASA ADS
-        if (!empty($nasa_id) || (isset($_POST['fetch-nasaads']) && !empty($doi) && empty($pmid))) {
-            $response = array();
+        if (empty($response) && (!empty($nasa_id) || (isset($_POST['fetch-nasaads']) && !empty($doi) && empty($pmid)))) {
             fetch_from_nasaads($doi, $nasa_id);
             $_POST = array_replace_recursive($_POST, $response);
         }
         
         // FETCH FROM IEEE
-        if (!empty($ieee_id) || (isset($_POST['fetch-ieee']) && !empty($doi) && empty($pmid) && empty($nasa_id))) {
-            $response = array();
+        if (empty($response) && (!empty($ieee_id) || (isset($_POST['fetch-ieee']) && !empty($doi) && empty($pmid) && empty($nasa_id)))) {
             fetch_from_ieee($doi, $ieee_id);
             $_POST = array_replace_recursive($_POST, $response);
         }
 
         // FETCH FROM CROSSREF
-        if (isset($_POST['fetch-crossref']) && !empty($doi) && empty($pmid) && empty($nasa_id) && empty($ieee_id)) {
-            $response = array();
+        if (empty($response) && (isset($_POST['fetch-crossref']) && !empty($doi) && empty($pmid) && empty($nasa_id) && empty($ieee_id))) {
             fetch_from_crossref($doi);
             $_POST = array_replace_recursive($_POST, $response);
         }
 
         // FETCH FROM GOOGLE PATENTS
-        if (!empty($patent_id)) {
-            $response = array();
+        if (empty($response) && !empty($patent_id)) {
             fetch_from_googlepatents($patent_id);
             $_POST = array_replace_recursive($_POST, $response);
             $_POST['reference_type'] = 'patent';
@@ -763,8 +760,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         // FETCH FROM OPEN LIBRARY
-        if (!empty($ol_id) || !empty($isbn)) {
-            $response = array();
+        if (empty($response) && (!empty($ol_id) || !empty($isbn))) {
             fetch_from_ol($ol_id, $isbn);
             if (isset($response['uid'])) {
                 $response['uid'] = array_merge_recursive($_POST['uid'], $response['uid']);
@@ -777,6 +773,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         database_connect(IL_DATABASE_PATH, 'library');
 
+        $result = null;
+        
         if (!empty($_POST['doi'])) {
             $doi_query = $dbHandle->quote($_POST['doi']);
             $result = $dbHandle->query("SELECT id,title FROM library WHERE doi=$doi_query LIMIT 1");
@@ -816,15 +814,19 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	check for duplicate titles in table library	##########
 
         database_connect(IL_DATABASE_PATH, 'library');
+        
+        $result = null;
 
         if (!empty($_POST['doi'])) {
             $doi_query = $dbHandle->quote($_POST['doi']);
             $result = $dbHandle->query("SELECT id,title FROM library WHERE doi=$doi_query LIMIT 1");
+            $result = $result->fetchAll(PDO::FETCH_ASSOC);
         } else {
             $title_query = $dbHandle->quote($_POST['title']);
             $result = $dbHandle->query("SELECT id,title FROM library WHERE title=" . $title_query . " LIMIT 1");
+            $result = $result->fetchAll(PDO::FETCH_ASSOC);
         }
-        $result = $result->fetchAll(PDO::FETCH_ASSOC);
+        
         $dbHandle = null;
 
         if (count($result) > 0) {
@@ -898,7 +900,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                             <option value="NASAADS">NASA ADS</option>
                                             <option value="OL">Open Library</option>
                                             <option value="PMID">PubMed</option>
-                                            <option value="PMCID">PubMed Central</option>
                                         </select>
                                     </td>
                                     <td style="width:99%">

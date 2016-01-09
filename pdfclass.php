@@ -44,10 +44,10 @@ class PDFViewer {
             } elseif (strpos($line, "Page") === 0 && strpos($line, "size:") !== FALSE) {
 
                 preg_match("/(size: )(\d+\.?\d+)( x )(\d+\.?\d+)( pts)/", $line, $match);
-                $page_sizes[] = [
+                $page_sizes[] = array(
                     round($this->page_resolution * $match[2] / 72),
                     round($this->page_resolution * $match[4] / 72)
-                ];
+                );
             }
         }
 
@@ -59,7 +59,7 @@ class PDFViewer {
             displayError('Pdfinfo: malformed PDF.');
         }
 
-        return ['page_number' => $page_number, 'page_sizes' => $page_sizes];
+        return array('page_number' => $page_number, 'page_sizes' => $page_sizes);
 
     }
 
