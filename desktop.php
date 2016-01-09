@@ -20,6 +20,7 @@ $result2 = $dbHandle->query("SELECT userID,username FROM users ORDER BY username
 $users = $result2->fetchAll(PDO::FETCH_ASSOC);
 $dbHandle->exec("DETACH DATABASE usersdatabase");
 $number_of_users = count($users);
+
 ?>
 <div class="leftindex" id="leftindex-left" style="float:left;width:233px;height:100%;overflow:scroll">
     <form id="quicksearch" action="search.php" method="GET" target="rightpanel">
@@ -159,6 +160,13 @@ $number_of_users = count($users);
                         </a>
                     </td>
                 </tr>
+                <tr>
+                    <td colspan="2" style="text-align:right">
+                        <a href="projectnotes.php?projectID=<?php print htmlspecialchars(urlencode($project['projectID'])) ?>" target="_blank">
+                            <i class="fa fa-pencil"></i> Notes
+                        </a>
+                    </td>
+                </tr>
             </table>
             <b>Creator</b> &bull; <?php print htmlspecialchars(get_username($dbHandle, $project['creator'])) ?>
             <br>
@@ -167,6 +175,9 @@ $number_of_users = count($users);
 
                 $collaborators = $dbHandle->query("SELECT userID FROM projectsusers WHERE projectID=" . intval($project['projectID']));
                 $collaborators = $collaborators->fetchAll(PDO::FETCH_COLUMN);
+            }
+
+            if ($_SESSION['user_id'] == $project['creator']) {
                 ?>
                 <table cellspacing=0>
                     <tr>
@@ -198,12 +209,12 @@ $number_of_users = count($users);
                         </td>
                     </tr>
                     <tr>
-                        <td style="text-align:center">
+                        <td style="text-align:center;padding-top:2px">
                             <span class="ui-state-highlight ui-corner-bottom adduser">
                                 &nbsp;Add <i class="fa fa-angle-right"></i>&nbsp;
                             </span>
                         </td>
-                        <td style="text-align:center">
+                        <td style="text-align:center;padding-top:2px">
                             <span class="ui-state-highlight ui-corner-bottom removeuser">
                                 &nbsp;<i class="fa fa-angle-left"></i> Remove&nbsp;
                             </span>
@@ -211,18 +222,12 @@ $number_of_users = count($users);
                     </tr>
                 </table>
                 <br>
-                <?php
-            }
-            ?>
-            <form action="ajaxdesk.php" method="GET">
-                <input type="hidden" name="rename" value="Rename">
-                <input type="hidden" name="id" value="<?php print htmlspecialchars($project['projectID']) ?>">
-                <input type="text" name="project" value="<?php print htmlspecialchars($project['project']) ?>" style="width:47%">
-                <button class="renamebutton" style="margin:0;width:49%">Rename</button><br>
-            </form>
-            <?php
-            if ($_SESSION['user_id'] == $project['creator']) {
-                ?>
+                <form action="ajaxdesk.php" method="GET">
+                    <input type="hidden" name="rename" value="Rename">
+                    <input type="hidden" name="id" value="<?php print htmlspecialchars($project['projectID']) ?>">
+                    <input type="text" name="project" value="<?php print htmlspecialchars($project['project']) ?>" style="width:47%">
+                    <button class="renamebutton" style="margin:0;width:49%">Rename</button><br>
+                </form>
                 <form action="ajaxdesk.php" method="GET">
                     <input type="hidden" name="id" value="<?php print htmlspecialchars($project['projectID']) ?>">
                     <input type="hidden" name="delete" value="">

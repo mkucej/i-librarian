@@ -1,21 +1,49 @@
 <?php
 include_once 'data.php';
 include_once 'functions.php';
+include_once 'index.inc.php';
 session_write_close();
 
+echo '<body class="discussion">';
+
+if (empty($_GET['project']) || !is_numeric($_GET['project'])) {
+    displayError('No project ID provided.');
+} else {
+    $projectID = intval($_GET['project']);
+}
+
 database_connect(IL_DATABASE_PATH, 'library');
-$id_query = $dbHandle->quote($_GET['project']);
+
+$id_query = $dbHandle->quote($projectID);
+
+// Check if the user is in this project.
+$stmt = $dbHandle->prepare("SELECT projects.project as p"
+        . " FROM projects LEFT OUTER JOIN projectsusers ON projectsusers.projectID=projects.projectID"
+        . " WHERE projects.projectID=:projectID AND (projectsusers.userID=:userID OR projects.userID=:userID)");
+
+$stmt->bindParam(':userID', $_SESSION['user_id'], PDO::PARAM_INT);
+$stmt->bindParam(':projectID', $projectID, PDO::PARAM_INT);
+
+$stmt->execute();
+
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (empty($result['p'])) {
+    
+    displayError('You are not authorized to see this project.');
+} else {
+    
+    echo "<h2>Discussion about the project: \"" . htmlspecialchars($result['p']) . "\"</h2>";
+}
+
 $query = $dbHandle->query("SELECT project FROM projects WHERE projectID=$id_query LIMIT 1");
 $project_name = $query->fetchColumn();
 $dbHandle = null;
 
-include_once 'index.inc.php';
+
 ?>
-<body class="discussion">
-<div style="margin:8px;width:99%;height:99%">
-<h2>Discussion about the "<?php if(isset($_GET['project'])) print htmlspecialchars($project_name) ?>" project</h2>
 <div class="messages <?php print intval($_GET['project']); ?>"
-     style="width:99%;height:50%;overflow: scroll;border: 1px white inset;background-color: white"></div>
+     style="height:50%;overflow: scroll;border: 1px solid rgba(0,0,0,0.25);background-color: white"></div>
 <form action="discussion.php" method="GET">
 <input type="hidden" name="project" value="<?php print htmlspecialchars($_GET['project']) ?>">
 <button name="delete1" id="delete1">Delete Discussion</button>
@@ -28,7 +56,6 @@ include_once 'index.inc.php';
 <br>
 <button id="newmessage">Send Message</button>
 </form>
-</div>
 <script type="text/javascript">
     var projectID=$('.messages').attr('class').split(' ').pop();
     function loadmessages() {
