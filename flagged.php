@@ -28,7 +28,6 @@ if (is_array($clean_files)) {
 }
 
 database_connect(IL_DATABASE_PATH, 'library');
-$dbHandle->exec("CREATE TABLE IF NOT EXISTS flagged (id INTEGER PRIMARY KEY, userID INTEGER NOT NULL, database TEXT NOT NULL, uid TEXT NOT NULL, UNIQUE (userID,database,uid))");
 
 if (!empty($_GET['empty'])) {
     $dbHandle->exec("DELETE FROM flagged WHERE userID=" . $user_id . " AND database='" . $database . "'");

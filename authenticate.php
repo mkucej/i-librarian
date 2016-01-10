@@ -342,13 +342,6 @@ if (isset($_SESSION['auth']) && isset($_POST['form'])) {
         $session_id_q = $dbHandle->quote(session_id());
 
         // Save this signin in db.
-        $dbHandle->exec("CREATE TABLE IF NOT EXISTS logins (
-            id INTEGER PRIMARY KEY,
-            userID INTEGER NOT NULL DEFAULT '',
-            sessionID TEXT NOT NULL DEFAULT '',
-            logintime TEXT NOT NULL DEFAULT ''
-            )");
-
         $dbHandle->exec("DELETE FROM logins"
                 . " WHERE sessionID=$session_id_q AND userID=$user_id_q");
         $dbHandle->exec("INSERT INTO logins (userID, sessionID, logintime)"

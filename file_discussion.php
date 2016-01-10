@@ -5,7 +5,6 @@ include_once 'functions.php';
 if (isset($_SESSION['auth'])) {
 
     database_connect(IL_DATABASE_PATH, 'discussions');
-    $dbHandle->exec("CREATE TABLE IF NOT EXISTS filediscussion (id INTEGER PRIMARY KEY, fileID INTEGER NOT NULL, user TEXT NOT NULL, timestamp TEXT NOT NULL, message TEXT NOT NULL)");
 
     if (!empty($_POST['newmessage']) && !empty($_POST['file'])) {
 

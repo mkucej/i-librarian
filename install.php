@@ -294,12 +294,12 @@ $dbHandle->exec("CREATE TABLE IF NOT EXISTS search_tables ("
             . "created TEXT NOT NULL DEFAULT '',"
             . "total_rows TEXT NOT NULL DEFAULT '')");
 
-$dbHandle->exec("CREATE TABLE IF NOT EXISTS bookmarks (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS usersfiles (
                 id INTEGER PRIMARY KEY,
                 userID INTEGER NOT NULL DEFAULT '',
-                file TEXT NOT NULL DEFAULT '',
-                page INTEGER NOT NULL DEFAULT 1,
-                UNIQUE(userID,file)
+                fileID INTEGER NOT NULL DEFAULT '',
+                viewed INTEGER NOT NULL DEFAULT '',
+                UNIQUE(userID,fileID)
                 )");
 
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS bookmarks (

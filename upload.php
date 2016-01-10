@@ -1599,7 +1599,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         </div>
                         <div class="suggestions" style="width: 574px">
                             <?php
-                            if (!empty($_POST['title'])) {
+                            if (!empty($_POST['title']) && !empty($_POST['abstract']) ) {
                                 $cat_all = array_unique($cat_all);
                                 while (list($key, $value) = each($cat_all)) {
                                     if (stristr("$_POST[title] $_POST[abstract]", $value))

@@ -1,4 +1,5 @@
 <?php
+
 class PDFViewer {
 
     public $file_name;
@@ -27,6 +28,7 @@ class PDFViewer {
         if (!is_file($this->pdf_full_path)) {
             die('<div style="text-align:center;padding-top:270px;color:#b6b8bc;font-size:36px">No PDF</div>');
         }
+
     }
 
     public function getPageInfo() {
@@ -311,7 +313,7 @@ class PDFViewer {
 
         // Pdftohtml.
         // XML output file not found. Create one.
-        if (!file_exists($temp_xml . '.xml')) {
+        if (!file_exists($temp_xml . '.xml') || filemtime($temp_xml . '.xml') < filemtime($this->pdf_full_path)) {
             system(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -f 1 -l 1 -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
         }
 
@@ -346,7 +348,7 @@ class PDFViewer {
 
             if ($child->getName() === 'item' && isset($child['page'])) {
 
-                $bookmark[] = ['title' => (string) $child, 'page' => (integer) $child['page'], 'level' => $level];
+                $bookmark[] = array('title' => (string) $child, 'page' => (integer) $child['page'], 'level' => $level);
             } elseif ($child->getName() === 'outline') {
 
                 $level++;
@@ -365,142 +367,151 @@ class PDFViewer {
         // SQLite storage.
         $temp_db = $this->pdf_cache_path . DIRECTORY_SEPARATOR . $this->file_name . '.sq3';
 
-        // Database already exists.
-        if (file_exists($temp_db)) {
-            return;
-        }
+        // Database not found. Check the log whether conversion is running. If yes, delay.
+        if (!file_exists($temp_db) || filemtime($temp_db) < filemtime($this->pdf_full_path)) {
 
-        // Write to log file.
-        $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
+            for ($i = 1; $i <= 60; $i++) {
 
-        $logHandle->exec("CREATE TABLE IF NOT EXISTS files (file TEXT PRIMARY KEY)");
-
-        $file_q = $logHandle->quote($this->file_name);
-
-        $insert = $logHandle->exec("INSERT OR IGNORE INTO files VALUES($file_q)");
-
-        $logHandle = null;
-
-        // IMPORTANT: If no insert due to unique constraint, exit.
-        if ($insert == 0) {
-            return;
-        }
-
-        // XML output file not found. Create one.
-        if (!file_exists($temp_xml . '.xml')) {
-            system(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -hidden -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
-        }
-
-        if (!file_exists($temp_xml . '.xml')) {
-            sendError('PDF to XML conversion failed.');
-        }
-
-        // Create and populate the database.
-        $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
-
-        $dbHandle->exec("CREATE TABLE IF NOT EXISTS texts ("
-                . "id INTEGER PRIMARY KEY, "
-                . "top TEXT NOT NULL DEFAULT '', "
-                . "left TEXT NOT NULL DEFAULT '', "
-                . "height TEXT NOT NULL DEFAULT '', "
-                . "width TEXT NOT NULL DEFAULT '', "
-                . "text TEXT NOT NULL DEFAULT '', "
-                . "page_number INTEGER NOT NULL DEFAULT '')");
-
-        // Try to repair some malformed files.
-        $string = file_get_contents($temp_xml . '.xml');
-        $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]+/u', ' ', $string);
-        $string = preg_replace('/\s{2,}/ui', ' ', $string);
-        $string = str_ireplace('<!doctype pdf2xml system "pdf2xml.dtd">', '<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">', $string);
-
-        // Load XML file into object.
-        $xml = @simplexml_load_string($string);
-
-        if ($xml === FALSE) {
-            sendError('Invalid XML encoding.');
-        }
-
-        $dbHandle->beginTransaction();
-
-        // Iterate XML page by page.
-        foreach ($xml->page as $page) {
-
-            // Get page number and size.
-            foreach ($page->attributes() as $a => $b) {
-
-                if ($a == 'number') {
-                    $page_number = (string) $b;
-                }
-
-                if ($a == 'height') {
-                    $page_height = (string) $b;
-                }
-
-                if ($a == 'width') {
-                    $page_width = (string) $b;
+                if ($this->checkPDFLog($this->file_name . '.sq3')) {
+                    usleep(500000);
                 }
             }
+        }
 
-            // Sanitize db input.
-            $page_number_q = $dbHandle->quote($page_number);
+        if (!file_exists($temp_db) || filemtime($temp_db) < filemtime($this->pdf_full_path)) {
 
-            // Get info on each text element.
-            $i = 0;
+            // Write to log file.
+            $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
 
-            foreach ($page->text as $row) {
+            $logHandle->exec("CREATE TABLE IF NOT EXISTS files (file TEXT PRIMARY KEY)");
 
-                $row = strip_tags($row->asXML());
+            $file_q = $logHandle->quote($this->file_name . '.sq3');
 
-                foreach ($page->text[$i]->attributes() as $a => $b) {
+            $insert = $logHandle->exec("INSERT OR IGNORE INTO files VALUES($file_q)");
 
-                    if ($a == 'top') {
-                        $row_top = 100 * round($b / $page_height, 3);
-                    }
+            $logHandle = null;
 
-                    if ($a == 'left') {
-                        $row_left = 100 * round($b / $page_width, 3);
+            // IMPORTANT: If no insert due to unique constraint, exit.
+            if ($insert == 0) {
+                return;
+            }
+
+            // XML output file not found. Create one.
+            if (!file_exists($temp_xml . '.xml')) {
+                system(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -hidden -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
+            }
+
+            if (!file_exists($temp_xml . '.xml')) {
+                sendError('PDF to XML conversion failed.');
+            }
+
+            // Create and populate the database.
+            $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
+
+            $dbHandle->exec("CREATE TABLE IF NOT EXISTS texts ("
+                    . "id INTEGER PRIMARY KEY, "
+                    . "top TEXT NOT NULL DEFAULT '', "
+                    . "left TEXT NOT NULL DEFAULT '', "
+                    . "height TEXT NOT NULL DEFAULT '', "
+                    . "width TEXT NOT NULL DEFAULT '', "
+                    . "text TEXT NOT NULL DEFAULT '', "
+                    . "page_number INTEGER NOT NULL DEFAULT '')");
+
+            // Try to repair some malformed files.
+            $string = file_get_contents($temp_xml . '.xml');
+            $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]+/u', ' ', $string);
+            $string = preg_replace('/\s{2,}/ui', ' ', $string);
+            $string = str_ireplace('<!doctype pdf2xml system "pdf2xml.dtd">', '<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">', $string);
+
+            // Load XML file into object.
+            $xml = @simplexml_load_string($string);
+
+            if ($xml === FALSE) {
+                sendError('Invalid XML encoding.');
+            }
+
+            $dbHandle->beginTransaction();
+
+            // Iterate XML page by page.
+            foreach ($xml->page as $page) {
+
+                // Get page number and size.
+                foreach ($page->attributes() as $a => $b) {
+
+                    if ($a == 'number') {
+                        $page_number = (string) $b;
                     }
 
                     if ($a == 'height') {
-                        $row_height = 100 * round($b / $page_height, 3);
+                        $page_height = (string) $b;
                     }
 
                     if ($a == 'width') {
-                        $row_width = 100 * round($b / $page_width, 3);
+                        $page_width = (string) $b;
                     }
                 }
 
-                $i = $i + 1;
-
                 // Sanitize db input.
-                $row_top_q = $dbHandle->quote($row_top);
-                $row_left_q = $dbHandle->quote($row_left);
-                $row_height_q = $dbHandle->quote($row_height);
-                $row_width_q = $dbHandle->quote($row_width);
-                $row_q = $dbHandle->quote($row);
+                $page_number_q = $dbHandle->quote($page_number);
 
-                $dbHandle->exec("INSERT INTO texts (top,left,height,width,text,page_number) "
-                        . "VALUES($row_top_q, $row_left_q, $row_height_q, $row_width_q, $row_q, $page_number_q)");
+                // Get info on each text element.
+                $i = 0;
+
+                foreach ($page->text as $row) {
+
+                    $row = strip_tags($row->asXML());
+
+                    foreach ($page->text[$i]->attributes() as $a => $b) {
+
+                        if ($a == 'top') {
+                            $row_top = 100 * round($b / $page_height, 3);
+                        }
+
+                        if ($a == 'left') {
+                            $row_left = 100 * round($b / $page_width, 3);
+                        }
+
+                        if ($a == 'height') {
+                            $row_height = 100 * round($b / $page_height, 3);
+                        }
+
+                        if ($a == 'width') {
+                            $row_width = 100 * round($b / $page_width, 3);
+                        }
+                    }
+
+                    $i = $i + 1;
+
+                    // Sanitize db input.
+                    $row_top_q = $dbHandle->quote($row_top);
+                    $row_left_q = $dbHandle->quote($row_left);
+                    $row_height_q = $dbHandle->quote($row_height);
+                    $row_width_q = $dbHandle->quote($row_width);
+                    $row_q = $dbHandle->quote($row);
+
+                    $dbHandle->exec("INSERT INTO texts (top,left,height,width,text,page_number) "
+                            . "VALUES($row_top_q, $row_left_q, $row_height_q, $row_width_q, $row_q, $page_number_q)");
+                }
             }
+
+            $dbHandle->commit();
+
+            $dbHandle->exec("CREATE INDEX IF NOT EXISTS ind_pages ON texts(page_number)");
+
+            $dbHandle = null;
+
+            // We are done, delete from log.
+            $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
+
+            $file_q = $logHandle->quote($this->file_name . '.sq3');
+
+            $logHandle->exec("DELETE FROM files WHERE file=$file_q");
+
+            $logHandle = null;
+
+            // Delete XML file.
+            unlink($temp_xml . '.xml');
         }
-
-        $dbHandle->commit();
-
-        $dbHandle->exec("CREATE INDEX IF NOT EXISTS ind_pages ON texts(page_number)");
-
-        $dbHandle = null;
-
-        // We are done, delete from log.
-        $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
-
-        $file_q = $logHandle->quote($this->file_name);
-
-        $logHandle->exec("DELETE FROM files WHERE file=$file_q");
-
-        $logHandle = null;
-        
-        // Delete XML file.
-        unlink($temp_xml . '.xml');
 
     }
 
@@ -521,12 +532,12 @@ class PDFViewer {
         if (!is_file($temp_db)) {
 
             // Is it being created?
-            if ($this->checkPDFLog($this->file_name)) {
+            if ($this->checkPDFLog($this->file_name . '.sq3')) {
 
                 // Wait up to 30 sec.
                 for ($i = 1; $i <= 60; $i++) {
 
-                    if ($this->checkPDFLog($this->file_name)) {
+                    if ($this->checkPDFLog($this->file_name . '.sq3')) {
                         usleep(500000);
                     }
                 }
@@ -590,12 +601,12 @@ class PDFViewer {
         if (!is_file($temp_db)) {
 
             // Is it being created?
-            if ($this->checkPDFLog($this->file_name)) {
+            if ($this->checkPDFLog($this->file_name . '.sq3')) {
 
                 // Wait up to 30 sec.
                 for ($i = 1; $i <= 60; $i++) {
 
-                    if ($this->checkPDFLog($this->file_name)) {
+                    if ($this->checkPDFLog($this->file_name . '.sq3')) {
                         usleep(500000);
                     }
                 }
@@ -649,37 +660,9 @@ class PDFViewer {
 
     }
 
-    protected function connectAnnotationDatabase() {
-
-        $dbHandle = database_connect($this->database_path, 'library');
-
-        $dbHandle->exec("CREATE TABLE IF NOT EXISTS yellowmarkers
-                 (id INTEGER PRIMARY KEY,
-                  userID INTEGER NOT NULL,
-                  filename TEXT NOT NULL,
-                  page INTEGER NOT NULL,
-                  top TEXT NOT NULL,
-                  left TEXT NOT NULL,
-                  width TEXT NOT NULL,
-                  UNIQUE (userID,filename,page,top,left))");
-
-        $dbHandle->exec("CREATE TABLE IF NOT EXISTS annotations
-                 (id INTEGER PRIMARY KEY,
-                  userID INTEGER NOT NULL,
-                  filename TEXT NOT NULL,
-                  page INTEGER NOT NULL,
-                  top TEXT NOT NULL,
-                  left TEXT NOT NULL,
-                  annotation TEXT NOT NULL,
-                  UNIQUE (userID,filename,page,top,left))");
-
-        return $dbHandle;
-
-    }
-
     public function deletePDFAnnotation($type, $dbids = array()) {
 
-        $dbHandle = $this->connectAnnotationDatabase();
+        $dbHandle = database_connect($this->database_path, 'library');
 
         $file_name_q = $dbHandle->quote($this->file_name);
         $user_id_q = $dbHandle->quote($_SESSION['user_id'], PDO::PARAM_INT);
@@ -718,7 +701,7 @@ class PDFViewer {
 
     public function editPDFNote($dbid, $text) {
 
-        $dbHandle = $this->connectAnnotationDatabase();
+        $dbHandle = database_connect($this->database_path, 'library');
 
         $user_id_q = $dbHandle->quote($_SESSION['user_id'], PDO::PARAM_INT);
         $dbid_q = $dbHandle->quote($dbid, PDO::PARAM_INT);
@@ -732,7 +715,7 @@ class PDFViewer {
 
     public function savePDFNote($page, $top, $left) {
 
-        $dbHandle = $this->connectAnnotationDatabase();
+        $dbHandle = database_connect($this->database_path, 'library');
 
         $user_id_q = $dbHandle->quote($_SESSION['user_id'], PDO::PARAM_INT);
         $file_name_q = $dbHandle->quote($this->file_name);
@@ -752,7 +735,7 @@ class PDFViewer {
 
     public function savePDFMarkers($page, $markers) {
 
-        $dbHandle = $this->connectAnnotationDatabase();
+        $dbHandle = database_connect($this->database_path, 'library');
 
         $user_id_q = $dbHandle->quote($_SESSION['user_id'], PDO::PARAM_INT);
         $file_name_q = $dbHandle->quote($this->file_name);
@@ -772,7 +755,7 @@ class PDFViewer {
                     . " (userID, filename, page, top, left, width)"
                     . " VALUES ($user_id_q, $file_name_q, $page_q, $top_q, $left_q, $width_q)");
 
-            $last_ids[] = ['markid' => $marker['id'], 'dbid' => $dbHandle->lastInsertId()];
+            $last_ids[] = array('markid' => $marker['id'], 'dbid' => $dbHandle->lastInsertId());
         }
 
         $dbHandle->commit();
@@ -783,7 +766,7 @@ class PDFViewer {
 
     public function getPDFMarkers($users = null) {
 
-        $dbHandle = $this->connectAnnotationDatabase();
+        $dbHandle = database_connect($this->database_path, 'library');
 
         if (!isset($users)) {
             $user_id_q = $dbHandle->quote($_SESSION['user_id'], PDO::PARAM_INT);
@@ -813,8 +796,8 @@ class PDFViewer {
 
     public function getPDFNotes($users = null) {
 
-        $dbHandle = $this->connectAnnotationDatabase();
-        
+        $dbHandle = database_connect($this->database_path, 'library');
+
         $quoted_path = $dbHandle->quote($this->database_path . DIRECTORY_SEPARATOR . 'users.sq3');
 
         $dbHandle->exec("ATTACH DATABASE $quoted_path AS userdatabase");
@@ -841,7 +824,7 @@ class PDFViewer {
 
             $output[] = array_map('htmlspecialchars', $row);
         }
-        
+
         $dbHandle->exec("DETACH DATABASE userdatabase");
 
         return json_encode($output);

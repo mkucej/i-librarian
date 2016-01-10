@@ -1,5 +1,6 @@
 nbproject
 library
+!library/.htaccess
 bin/**
 ilibrarian.conf
 unins*

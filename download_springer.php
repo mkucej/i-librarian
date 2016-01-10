@@ -245,14 +245,7 @@ if (!empty($_GET['action'])) {
             unset($csv_array[0]);
 
         // OPEN STORAGE
-        try {
-            $dbHandle2 = new PDO('sqlite:' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
-                    . 'springer_' . md5($springer_url) . '.sq3');
-        } catch (PDOException $e) {
-            print "Error: " . $e->getMessage() . "<br/>";
-            print "PHP extensions PDO and PDO_SQLite must be installed.";
-            die();
-        }
+        $dbHandle2 = database_connect(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id(), 'springer_' . md5($springer_url));
 
         $dbHandle2->exec("CREATE TABLE IF NOT EXISTS items (
                 id INTEGER PRIMARY KEY,
@@ -312,14 +305,7 @@ if (!empty($_GET['action'])) {
 
     //LOAD RESULTS AND DISPLAY
     // OPEN STORAGE
-    try {
-        $dbHandle2 = new PDO('sqlite:' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
-                . 'springer_' . md5($springer_url) . '.sq3');
-    } catch (PDOException $e) {
-        print "Error: " . $e->getMessage() . "<br/>";
-        print "PHP extensions PDO and PDO_SQLite must be installed.";
-        die();
-    }
+    $dbHandle2 = database_connect(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id(), 'springer_' . md5($springer_url));
 
     $result = $dbHandle2->query("SELECT count(*) FROM items");
     $count = $result->fetchColumn();

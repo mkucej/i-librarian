@@ -523,10 +523,10 @@ var thumbHandler = {
     },
     get: function (from) {
         // Exit if being called.
-        if (localStorage.getItem('thumblock' + from) !== null) {
+        if (sessionStorage.getItem('thumblock' + from) !== null) {
             return;
         }
-        localStorage.setItem('thumblock' + from, 1);
+        sessionStorage.setItem('thumblock' + from, 1);
         $.ajax({
             url: 'pdfcontroller.php',
             data: {
@@ -547,7 +547,7 @@ var thumbHandler = {
                 }
             },
             complete: function () {
-                localStorage.removeItem('thumblock' + from);
+                sessionStorage.removeItem('thumblock' + from);
             }
         });
     },

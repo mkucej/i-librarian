@@ -12,8 +12,6 @@ if (!empty($_GET['project'])) {
 
 database_connect(IL_DATABASE_PATH, 'discussions');
 
-$dbHandle->exec("CREATE TABLE IF NOT EXISTS projectdiscussion (id INTEGER PRIMARY KEY, projectID integer NOT NULL, user TEXT NOT NULL, timestamp TEXT NOT NULL, message TEXT NOT NULL)");
-
 if(isset($_POST['newmessage']) && !empty($_POST['newmessage'])) {
 
 	$stmt = $dbHandle->prepare("INSERT INTO projectdiscussion (projectID, user, timestamp, message) VALUES (:projectID, :user, :timestamp, :message)");
