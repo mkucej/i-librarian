@@ -2,3 +2,13 @@
     php_value upload_max_filesize 400M
     php_value post_max_size 800M
 </IfModule>
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(ini|conf)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(ini|conf)$">
+        Order allow, deny
+    </FilesMatch>
+</IfModule>
