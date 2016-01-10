@@ -489,17 +489,17 @@ if (isset($_GET['file'])) {
             <div class="file-grid">
                 <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Categories</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">' . $category_string . '</div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:160px">' . $category_string . '</div>
             </div>
             <div class="file-grid">
                 <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Keywords</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">' . htmlspecialchars($paper['keywords']) . '</div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:160px">' . htmlspecialchars($paper['keywords']) . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%">
                 <div class="ui-widget-header ui-dialog-titlebar" style="border:0;border-radius:0">Miscellaneous</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:150px">
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:160px">
                 <u>Publication type:</u> ' . htmlspecialchars($paper['reference_type']);
 
         if (!empty($paper['bibtex_type'])) {

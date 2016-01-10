@@ -1449,7 +1449,6 @@ var selectimport = {
                 });
             });
         });
-        $("#select-remote .fa-exclamation-triangle").tipsy();
     }
 };
 var synchronize = {
