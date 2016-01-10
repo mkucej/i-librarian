@@ -707,7 +707,6 @@ function select_tesseract() {
 function select_soffice() {
 
     $output = 'soffice';
-    $path = '"%PROGRAMFILES%\\LibreOffice 4\\program\\soffice.exe"';
 
     if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
         if (!empty($_SESSION['soffice_path'])) {

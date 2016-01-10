@@ -89,6 +89,13 @@ class PDFViewer {
             if (!$page) {
                 $page = 1;
             }
+            
+            $page_info = $this->getPageInfo();
+            
+            // History can be stale.
+            if ($page_info['page_number'] < $page) {
+                $page = 1;
+            }
 
             $dbHandle = null;
 
@@ -379,6 +386,11 @@ class PDFViewer {
         }
 
         if (!file_exists($temp_db) || filemtime($temp_db) < filemtime($this->pdf_full_path)) {
+            
+            // Delete stale database.
+            if (file_exists($temp_db)) {
+                unlink($temp_db);
+            }
 
             // Write to log file.
             $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
@@ -405,7 +417,6 @@ class PDFViewer {
                 sendError('PDF to XML conversion failed.');
             }
 
-            // Create and populate the database.
             $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
 
             $dbHandle->exec("CREATE TABLE IF NOT EXISTS texts ("
