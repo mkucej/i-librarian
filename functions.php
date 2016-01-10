@@ -2554,13 +2554,16 @@ function delete_record($dbHandle, $files) {
     $filenames = $result->fetchAll(PDO::FETCH_COLUMN);
     $result = null;
 
-    // delete PDFs, supplementary files and images
+    // delete PDFs, PDF cache, supplementary files and images
     while (list(, $filename) = each($filenames)) {
 
         $pdf_path = IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($filename) . DIRECTORY_SEPARATOR;
 
         if (is_file($pdf_path . $filename))
             unlink($pdf_path . $filename);
+        
+        if (is_file(IL_PDF_CACHE_PATH . DIRECTORY_SEPARATOR . $filename . '.sq3'))
+            unlink(IL_PDF_CACHE_PATH . DIRECTORY_SEPARATOR . $filename . '.sq3');
 
         $integer1 = sprintf("%05d", intval($filename));
 
