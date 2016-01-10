@@ -2494,7 +2494,7 @@ function read_shelf($dbHandle, $id_array) {
 
 function read_desktop($dbHandle) {
     
-    if ($_GET['select'] == 'desk') {
+    if (isset($_GET['select']) && $_GET['select'] == 'desk') {
         $active = '';
     } else {
         $active = " AND projects.active=1";
