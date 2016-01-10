@@ -217,8 +217,15 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
             $ldap_user_dn = ldap_get_dn($ldap_connect, $ldap_user_sr);
         } else {
 
+            $bind_rdn = '';
+            if (!empty($ldap_username_attr)) {
+                $bind_rdn .= $ldap_username_attr . '=' . $username . ',';
+            }
+            if (!empty($ldap_user_rdn)) {
+                $bind_rdn .= $ldap_user_rdn . ',';
+            }
             // Authenticate.
-            if (!$ldap_bind = ldap_bind($ldap_connect, $ldap_username_attr . '=' . $username . ',' . $ldap_user_rdn . ',' . $ldap_basedn, $password)) {
+            if (!$ldap_bind = ldap_bind($ldap_connect, $bind_rdn . $ldap_basedn, $password)) {
                 sendError("Failed to authenticate.");
             }
         }
@@ -295,7 +302,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
         $result = null;
 
         if ($user_password === '') {
-            sendError('Your local password is not set.<br> Use <b>Create account</b> link to set new password.');
+            sendError('Your local password is not set. Use Create Account to set a new password.');
         }
 
         // Verify password.
