@@ -330,7 +330,7 @@ if (!isset($_GET['commence'])) {
 
     ########create log file###########
     $log = IL_TEMP_PATH . DIRECTORY_SEPARATOR . md5($_GET['user']) . '-librarian-import.log';
-    file_put_contents($log, '<b>Log:</b><br>');
+    file_put_contents($log, '');
 
     $database_pubmed = '';
     $database_nasaads = '';
@@ -466,12 +466,12 @@ if (!isset($_GET['commence'])) {
                     database_connect(IL_DATABASE_PATH, 'library');
                     record_unknown($dbHandle, $title, $string, $file, $userID);
 
-                    $put = " ($i) " . basename($file) . ": Recorded into category !unknown. Full text not indexed (copying disallowed).<br>";
-                    file_put_contents($log, $put, FILE_APPEND);
+                    $put = "<hr> " . basename($file) . ": Recorded into category !unknown. Full text not indexed (copying disallowed).<br>";
+                    file_put_contents($log, $put . file_get_contents($log));
                 } else {
 
-                    $put = " ($i) " . basename($file) . ": copying disallowed.<br>";
-                    file_put_contents($log, $put, FILE_APPEND);
+                    $put = "<hr> " . basename($file) . ": copying disallowed.<br>";
+                    file_put_contents($log, $put . file_get_contents($log));
                 }
             } else {
 
@@ -494,12 +494,12 @@ if (!isset($_GET['commence'])) {
                         database_connect(IL_DATABASE_PATH, 'library');
                         record_unknown($dbHandle, $title, $string, $file, $userID);
 
-                        $put = " ($i) " . basename($file) . ": Recorded into category !unknown. DOI not found.<br>";
-                        file_put_contents($log, $put, FILE_APPEND);
+                        $put = "<hr> " . basename($file) . ": Recorded into category !unknown. DOI not found.<br>";
+                        file_put_contents($log, $put . file_get_contents($log));
                     } else {
 
-                        $put = " ($i) " . basename($file) . ": DOI not found.<br>";
-                        file_put_contents($log, $put, FILE_APPEND);
+                        $put = "<hr> " . basename($file) . ": DOI not found.<br>";
+                        file_put_contents($log, $put . file_get_contents($log));
                     }
                 } else {
 
@@ -523,8 +523,8 @@ if (!isset($_GET['commence'])) {
 
                     if (isset($_GET['database_pubmed']) && $_GET['database_pubmed'] == '1') {
 
-                        $put = " ($i) " . basename($file) . ": Querying Pubmed with $doi <br>";
-                        file_put_contents($log, $put, FILE_APPEND);
+                        $put = " " . basename($file) . ": Querying Pubmed with $doi <br>";
+                        file_put_contents($log, $put . file_get_contents($log));
 
                         $response = array();
                         fetch_from_pubmed($doi, '');
@@ -536,8 +536,8 @@ if (!isset($_GET['commence'])) {
 
                     if (isset($_GET['database_nasaads']) && $_GET['database_nasaads'] == '1' && empty($title)) {
 
-                        $put = " ($i) " . basename($file) . ": Querying NASA ADS with $doi <br>";
-                        file_put_contents($log, $put, FILE_APPEND);
+                        $put = " " . basename($file) . ": Querying NASA ADS with $doi <br>";
+                        file_put_contents($log, $put . file_get_contents($log));
 
                         $response = array();
                         fetch_from_nasaads($doi, '');
@@ -549,8 +549,8 @@ if (!isset($_GET['commence'])) {
 
                     if (isset($_GET['database_crossref']) && $_GET['database_crossref'] == '1' && empty($title)) {
 
-                        $put = " ($i) " . basename($file) . ": Querying CrossRef with $doi <br>";
-                        file_put_contents($log, $put, FILE_APPEND);
+                        $put = " " . basename($file) . ": Querying CrossRef with $doi <br>";
+                        file_put_contents($log, $put . file_get_contents($log));
 
                         ############ CrossRef ##############
                         $response = array();
@@ -565,8 +565,8 @@ if (!isset($_GET['commence'])) {
 
                         if (isset($_GET['database_pubmed']) && $_GET['database_pubmed'] == '1') {
 
-                            $put = " ($i) " . basename($file) . ": Querying PubMed again with $doi <br>";
-                            file_put_contents($log, $put, FILE_APPEND);
+                            $put = "  " . basename($file) . ": Querying PubMed again with $doi <br>";
+                            file_put_contents($log, $put . file_get_contents($log));
 
                             ##########	open esearch, fetch PMID	##########
 
@@ -580,8 +580,8 @@ if (!isset($_GET['commence'])) {
 
                         if (isset($_GET['database_nasaads']) && $_GET['database_nasaads'] == '1' && empty($title)) {
 
-                            $put = " ($i) " . basename($file) . ": Querying NASA ADS again with $doi <br>";
-                            file_put_contents($log, $put, FILE_APPEND);
+                            $put = "  " . basename($file) . ": Querying NASA ADS again with $doi <br>";
+                            file_put_contents($log, $put . file_get_contents($log));
 
                             $response = array();
                             fetch_from_nasaads($doi, '');
@@ -593,8 +593,8 @@ if (!isset($_GET['commence'])) {
 
                         if (isset($_GET['database_crossref']) && $_GET['database_crossref'] == '1' && empty($title)) {
 
-                            $put = " ($i) " . basename($file) . ": Querying CrossRef again with $doi<br>";
-                            file_put_contents($log, $put, FILE_APPEND);
+                            $put = "  " . basename($file) . ": Querying CrossRef again with $doi<br>";
+                            file_put_contents($log, $put . file_get_contents($log));
 
                             ############ CrossRef ##############
                             $response = array();
@@ -613,12 +613,12 @@ if (!isset($_GET['commence'])) {
                             database_connect(IL_DATABASE_PATH, 'library');
                             record_unknown($dbHandle, $title, $string, $file, $userID);
 
-                            $put = " ($i) " . basename($file) . ": Recorded into category !unknown. No database record found.<br>";
-                            file_put_contents($log, $put, FILE_APPEND);
+                            $put = "<hr>  " . basename($file) . ": Recorded into category !unknown. No database record found.<br>";
+                            file_put_contents($log, $put . file_get_contents($log));
                         } else {
 
-                            $put = " ($i) " . basename($file) . ": No database record found.<br>";
-                            file_put_contents($log, $put, FILE_APPEND);
+                            $put = "<hr>  " . basename($file) . ": No database record found.<br>";
+                            file_put_contents($log, $put . file_get_contents($log));
                         }
                     }
 
@@ -797,14 +797,14 @@ if (!isset($_GET['commence'])) {
                         }
                         rmdir($unpack_dir);
 
-                        $put = " ($i) " . basename($file) . ": Recorded.<br>";
-                        file_put_contents($log, $put, FILE_APPEND);
+                        $put = "<hr>  " . basename($file) . ": Recorded.<br>";
+                        file_put_contents($log, $put . file_get_contents($log));
                     }
                 }
             }
         } else {
-            $put = " ($i) " . basename($file) . ": Not readable.<br>";
-            file_put_contents($log, $put, FILE_APPEND);
+            $put = "<hr>  " . basename($file) . ": Not readable.<br>";
+            file_put_contents($log, $put . file_get_contents($log));
         }
     } ####while loop
     ##########  ANALYZE  ##########

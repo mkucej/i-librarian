@@ -51,11 +51,7 @@ if (isset($_SESSION['auth'])) {
                     <input type="file" name="form_graphical_abstract" accept="image/*"><br>
                     <br>
                     <b>Add supplementary files:</b><br>
-                    <input type="file" name="form_supplementary_file1"><br>
-                    <input type="file" name="form_supplementary_file2"><br>
-                    <input type="file" name="form_supplementary_file3"><br>
-                    <input type="file" name="form_supplementary_file4"><br>
-                    <input type="file" name="form_supplementary_file5"><br>
+                    <input type="file" name="form_supplementary_file[]" multiple><br>
                 </form>
             </td>
             <td style="width:90%;padding: 2px 6px">

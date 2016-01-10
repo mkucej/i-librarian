@@ -90,12 +90,12 @@ if ($_GET['select'] == 'desk') {
                             <td class="select_span">
                                 <input type="radio" name="fulltext_separator" value="AND" style="display:none"
                                 <?php
-                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'AND') echo 'checked';
+                                if (!isset($_SESSION['session_fulltext_separator']) || $_SESSION['session_fulltext_separator'] == 'AND') echo 'checked';
                                 ?>
                                 >
                                 <i class="fa
                                 <?php
-                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'AND') {
+                                if (!isset($_SESSION['session_fulltext_separator']) || $_SESSION['session_fulltext_separator'] == 'AND') {
                                     echo 'fa-circle';
                                 } else {
                                     echo 'fa-circle-o';

@@ -66,24 +66,25 @@ if (!empty($_POST['rename']) && !empty($_POST['file'])) {
             $new_name = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $new_name);
             $new_name = substr($old_name, 0, 5) . $new_name;
             if ($old_name != $new_name)
-                $rename = rename(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($old_name) . DIRECTORY_SEPARATOR . $old_name,
-                        IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
+                $rename = rename(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($old_name) . DIRECTORY_SEPARATOR . $old_name, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
         }
     }
 }
 
 ##########	record supplementary files	##########
 
-for ($i = 1; $i <= 5; $i++) {
-    if (isset($_FILES['form_supplementary_file' . $i]) && is_uploaded_file($_FILES['form_supplementary_file' . $i]['tmp_name'])) {
-        $new_name = preg_replace('/[\/\\\]/', '_', $_FILES['form_supplementary_file' . $i]['name']);
-        $new_name = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $new_name);
-        $new_name = sprintf("%05d", intval($_POST['file'])) . $new_name;
+if (!empty($_FILES['form_supplementary_file']['name'])) {
+    for ($i = 0; $i < count($_FILES['form_supplementary_file']['name']); $i++) {
+        if (is_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i])) {
+            $new_name = preg_replace('/[\/\\\]/', '_', $_FILES['form_supplementary_file']['name'][$i]);
+            $new_name = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $new_name);
+            $new_name = sprintf("%05d", intval($_POST['file'])) . $new_name;
 
-        move_uploaded_file($_FILES['form_supplementary_file' . $i]['tmp_name'],
-                IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
+            move_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
+        }
     }
 }
+
 
 ##########	record graphical abstract	##########
 
@@ -92,14 +93,13 @@ if (isset($_FILES['form_graphical_abstract']) && is_uploaded_file($_FILES['form_
     if (empty($extension))
         $extension = 'jpg';
     $new_name = sprintf("%05d", intval($_POST['file'])) . 'graphical_abstract.' . $extension;
-    move_uploaded_file($_FILES['form_graphical_abstract']['tmp_name'],
-            IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
+    move_uploaded_file($_FILES['form_graphical_abstract']['tmp_name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
 }
 
 ##########	replace PDF	##########
 
 if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']['tmp_name'])) {
-    
+
     $file_extension = pathinfo($_FILES['form_new_file']['name'], PATHINFO_EXTENSION);
 
     if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
@@ -115,8 +115,7 @@ if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']
         } else {
             copy($converted_file, IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
             $supplement_filename = sprintf("%05d", intval($_POST['filename'])) . $_FILES['form_new_file']['name'];
-            copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'],
-                    IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($supplement_filename) . DIRECTORY_SEPARATOR . $supplement_filename);
+            copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($supplement_filename) . DIRECTORY_SEPARATOR . $supplement_filename);
             unlink($converted_file);
         }
     } else {
@@ -136,8 +135,7 @@ if (!empty($_POST['filename']) && is_writable(IL_TEMP_PATH . DIRECTORY_SEPARATOR
     $uploaded_file_content = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], FILE_BINARY, null, 0, 100);
 
     if (stripos($uploaded_file_content, '%PDF') === 0) {
-        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'],
-                IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
+        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
         $hash = md5_file(IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
     } else {
@@ -188,7 +186,7 @@ if (!empty($_POST['filename']) && is_writable(IL_TEMP_PATH . DIRECTORY_SEPARATOR
                     $output = $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($file_query,$fulltext_query)");
                     $dbHandle->commit();
                     $dbHandle = null;
-                    if(!$output)
+                    if (!$output)
                         $error = "File recorded, however, a database error occured during text extraction.";
                 } else {
                     $error = "File recorded, however, a text extraction error occured.";
@@ -213,4 +211,5 @@ if (is_array($clean_files)) {
 
 if (!empty($error))
     print "Error! " . $error;
+
 ?>

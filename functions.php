@@ -34,7 +34,8 @@ function perform_search($sql) {
     global $ordering;
     global $result;
     global $rows;
-
+    global $case;
+    
     // Generate table name hash.
 
     $table_name_hash = '';
@@ -115,6 +116,12 @@ function perform_search($sql) {
     // No. Get all ids ordered + total count and save to history.
     // Yes. Do id-based paging.
     if ($table == 0) {
+        
+        $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
+        
+        if ($case == 1) {
+            $dbHandle->exec("PRAGMA case_sensitive_like = 1");
+        }
 
         $dbHandle->exec("CREATE TABLE IF NOT EXISTS history.`" . $table_name_hash . "` "
                 . "(id INTEGER PRIMARY KEY, itemID INTEGER NOT NULL DEFAULT '')");
@@ -1392,8 +1399,10 @@ function fetch_from_googlepatents($patent_id) {
 
     //GET PDF LINK
     preg_match('/(\<a id=\"appbar\-download\-pdf\-link\" href=\")(.+)(\">\<\/a\>)/Ui', $dom, $pdf_link);
-    $response['form_new_file_link'] = 'http:' . $pdf_link[2];
-
+    if (!empty($pdf_link[2])) {
+        $response['form_new_file_link'] = 'http:' . htmlspecialchars($pdf_link[2]);
+    }
+    
     //GET OTHER META TAGS
     file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id), $dom);
     $tags = get_meta_tags(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));

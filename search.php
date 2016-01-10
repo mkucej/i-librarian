@@ -335,7 +335,7 @@ if (!empty($_GET['searchmode'])) {
 
     if (isset($_GET['category'])) {
         $category_array_unassigned = array();
-        if (in_array(0, $_GET['category'])) {
+        if (in_array('NA', $_GET['category'])) {
             if (!isset($_GET['include-categories']) || (isset($_GET['include-categories']) && $_GET['include-categories'] == 1)) {
                 $result = $dbHandle->query("SELECT id FROM library WHERE id NOT IN (SELECT fileID FROM filescategories)");
             } elseif (isset($_GET['include-categories']) && $_GET['include-categories'] == 2) {
@@ -344,8 +344,8 @@ if (!empty($_GET['searchmode'])) {
             $category_array_unassigned = $result->fetchAll(PDO::FETCH_COLUMN);
             $result = null;
         }
-        $_GET['category'] = array_diff($_GET['category'], array(0));
-        $categories = join(',', $_GET['category']);
+        $categories_array = array_diff($_GET['category'], array('NA'));
+        $categories = join(',', $categories_array);
         if (preg_match('/[^\d\,]/', $categories) > 0)
             $categories = '';
         if (!isset($_GET['include-categories']) || (isset($_GET['include-categories']) && $_GET['include-categories'] == 1)) {
@@ -408,6 +408,7 @@ if (!empty($_GET['searchmode'])) {
     $year_array = array();
     $fulltext_array = array();
     $notes_array = array();
+    $search_array = array();
     $case2 = $case;
     if (empty($case))
         $case2 = 0;
@@ -420,7 +421,20 @@ if (!empty($_GET['searchmode'])) {
     } elseif (isset($_GET['searchmode']) && $_GET['searchmode'] == 'expert') {
         include 'expertsearch.php';
     }
-    $search_query_array = array_merge((array) $anywhere_array, (array) $authors_array, (array) $journal_array, (array) $secondary_title_array, (array) $affiliation_array, (array) $keywords_array, (array) $title_array, (array) $abstract_array, (array) $year_array, (array) $search_id_array, (array) $fulltext_array, (array) $notes_array);
+    $search_query_array = array_merge(
+            (array) $anywhere_array,
+            (array) $authors_array,
+            (array) $journal_array,
+            (array) $secondary_title_array,
+            (array) $affiliation_array,
+            (array) $keywords_array,
+            (array) $title_array,
+            (array) $abstract_array,
+            (array) $year_array,
+            (array) $search_id_array,
+            (array) $fulltext_array,
+            (array) $notes_array,
+            (array) $search_array);
 
     $search_query = join(' ', $search_query_array);
 
@@ -431,27 +445,18 @@ if (!empty($_GET['searchmode'])) {
 
     if (!empty($search_string) && $_GET['searchtype'] == 'metadata') {
 
-        $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
-        if ($case == 1)
-            $dbHandle->exec("PRAGMA case_sensitive_like = 1");
-
-        $dbHandle->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
-
         if ($_GET['select'] == 'shelf') {
             perform_search("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search $search_string $ordering");
         } else {
             perform_search("SELECT id FROM library WHERE $in $rating_search $type_search $category_search $search_string $ordering");
         }
-
+        
     } elseif (!empty($search_string) && $_GET['searchtype'] == 'notes') {
 
         $notes_in = str_replace("id IN", "fileID IN", $in);
         $notes_category_search = str_replace("id IN", "fileID IN", $category_search);
 
         $dbHandle->sqliteCreateFunction('search_strip_tags', 'sqlite_strip_tags', 1);
-        $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
-        if ($case == 1)
-            $dbHandle->exec("PRAGMA case_sensitive_like = 1");
 
         if ($_GET['select'] == 'shelf') {
             $notes_query = "SELECT fileID FROM notes INNER JOIN shelves USING (fileID,userID) WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $notes_category_search $search_string";
@@ -462,10 +467,6 @@ if (!empty($_GET['searchmode'])) {
         perform_search("SELECT id FROM library WHERE $rating_search $type_search id IN ($notes_query) $ordering");
 
     } elseif (!empty($search_string) && $_GET['searchtype'] == 'pdfnotes') {
-
-        $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
-        if ($case == 1)
-            $dbHandle->exec("PRAGMA case_sensitive_like = 1");
 
         $notes_query = "SELECT filename FROM annotations WHERE userID=" . intval($_SESSION['user_id']) . " AND $search_string";
 

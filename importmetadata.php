@@ -1,6 +1,7 @@
 <?php
 ignore_user_abort();
 include_once 'data.php';
+session_write_close();
 $url = '';
 
 if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['permissions'] == 'U')) {
@@ -20,8 +21,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $user_id = $_SESSION['user_id'];
         $hashes = array();
 
-        session_write_close();
-
         $record_count = 0;
         $duplicate_count = 0;
         $pdf_count = 0;
@@ -30,8 +29,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $dbname = uniqid() . '-temp.sq3';
         $fdbname = uniqid() . '-ftemp.sq3';
 
-        $dbHandle = new PDO('sqlite:' . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-        $fdbHandle = new PDO('sqlite:' . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+        $dbHandle = new PDO('sqlite:' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+        $fdbHandle = new PDO('sqlite:' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
 
         $dbHandle->beginTransaction();
         $create = $dbHandle->exec("CREATE TABLE library (
@@ -91,7 +90,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $query = "INSERT INTO library (file, authors, affiliation, title, journal, year, addition_date, abstract, rating, uid, volume, issue, pages, secondary_title, tertiary_title, editor,
                                         url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by, bibtex, bibtex_type)
-                 VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(file)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')), :authors, :affiliation, :title, :journal,
+                 VALUES (lower(hex(randomblob(4))) || '.pdf', :authors, :affiliation, :title, :journal,
                  :year, :addition_date, :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
                  :url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by, :bibtex, :bibtex_type)";
 
@@ -144,8 +143,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     print "Error! " . $e->getMessage();
                     die();
                 }
@@ -158,8 +157,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     print "Error! " . $e->getMessage();
                     die();
                 }
@@ -331,15 +330,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
                 if (is_file($file_to_copy) && is_readable($file_to_copy)) {
                     $result = $dbHandle->query("SELECT file FROM library WHERE id=" . $last_id);
                     $pdf_filename = $result->fetchColumn();
-                    $pdf_filename = 'temp-' . $pdf_filename;
                     $result = null;
                     copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
@@ -379,8 +377,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('Error! PDF files cannot be parsed. Please upload one of the indicated file types.');
                 }
             } elseif (!empty($_POST['form_import_textarea'])) {
@@ -647,8 +645,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     }
 
                     $file_to_copy = '';
-                    if (isset($file_to_copy_match[0]))
+                    if (isset($file_to_copy_match[0])) {
                         $file_to_copy = $file_to_copy_match[0];
+                        $file_to_copy = str_replace("\\", "/", $file_to_copy);
+                    }
                     if (strpos($file_to_copy, "file://") === 0)
                         $file_to_copy = preg_replace('/(file:\/\/.*\/)(.*)/Ui', "$2", $file_to_copy);
                     if (substr(strtoupper(PHP_OS), 0, 3) != 'WIN')
@@ -670,7 +670,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     if (!empty($title) && is_file($file_to_copy) && is_readable($file_to_copy)) {
                         $result = $dbHandle->query("SELECT file FROM library WHERE id=" . $last_id);
                         $pdf_filename = $result->fetchColumn();
-                        $pdf_filename = 'temp-' . $pdf_filename;
                         $result = null;
                         copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
@@ -703,8 +702,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
@@ -724,8 +723,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('Error! PDF files cannot be parsed. Please upload one of the indicated file types.');
                 }
             } elseif (!empty($_POST['form_import_textarea'])) {
@@ -895,8 +894,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
@@ -914,8 +913,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('Error! PDF files cannot be parsed. Please upload one of the indicated file types.');
                 }
             } elseif (!empty($_POST['form_import_textarea'])) {
@@ -1218,12 +1217,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             if ($description == ':PDF') {
                                 $file_to_copy = substr($file_to_copy_match[0], strpos($file_to_copy_match[0], ':') + 1, strrpos($file_to_copy_match[0], ':') - strlen($file_to_copy_match[0]));
                             }
+                            $file_to_copy = str_replace("\\", "/", $file_to_copy);
                         }
 
                         if (is_file($file_to_copy) && is_readable($file_to_copy)) {
                             $result = $dbHandle->query("SELECT file FROM library WHERE id=" . $last_id);
                             $pdf_filename = $result->fetchColumn();
-                            $pdf_filename = 'temp-' . $pdf_filename;
                             $result = null;
                             copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
@@ -1257,8 +1256,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $stmt = null;
                     $dbHandle = null;
                     $fdbHandle = null;
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-                    unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+                    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
                     die('No records found.');
                 }
 
@@ -1270,17 +1269,17 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $dbHandle = null;
         $fdbHandle = null;
         $ids = array();
-        
+
         // load data into main database
-        
+
         database_connect(IL_DATABASE_PATH, 'library');
 
         $dbHandle->exec("PRAGMA journal_mode = DELETE");
 
-        $db_path_query = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
+        $db_path_query = $dbHandle->quote(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
         $dbHandle->exec("ATTACH DATABASE " . $db_path_query . " AS tempdb");
 
-        $db_path_query = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+        $db_path_query = $dbHandle->quote(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
         $dbHandle->exec("ATTACH DATABASE " . $db_path_query . " AS tempfdb");
 
         $dbHandle->exec("PRAGMA tempdb.journal_mode = DELETE");
@@ -1335,7 +1334,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             set_time_limit(600);
 
             $tmpresult = $dbHandle->query("SELECT * FROM tempdb.library WHERE id >= $i AND id < $i + 1000 ORDER BY id ASC");
-            
+
             $dbHandle->exec("BEGIN DEFERRED TRANSACTION");
 
             while ($tmprow = $tmpresult->fetch(PDO::FETCH_ASSOC)) {
@@ -1370,7 +1369,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 $insert = $stmt->execute();
                 $new_id = $dbHandle->lastInsertId();
-                $new_file = str_pad($new_id, 6, "0", STR_PAD_LEFT) . '.pdf';
+                $new_file = str_pad($new_id, 5, "0", STR_PAD_LEFT) . '.pdf';
                 $ids[] = $new_id;
                 $insert = null;
 
@@ -1383,7 +1382,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $insert = $stmt2->execute();
                     $insert = null;
                 }
-                
+
                 // Save citation key.
                 if (empty($bibtex)) {
 
@@ -1411,10 +1410,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 }
 
                 //RENAME TEMP PDFS
-                if (is_writable(IL_PDF_PATH . DIRECTORY_SEPARATOR . 'temp-' . $tmprow['file'])) {
+                if (is_writable(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'])) {
                     $dbHandle->exec("UPDATE tempfdb.full_text SET fileID=" . $new_id . " WHERE fileID=" . $tmprow['id']);
-                    rename(IL_PDF_PATH . DIRECTORY_SEPARATOR . 'temp-' . $tmprow['file'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+                    copy(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
                     $hashes[$new_id] = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+                    @unlink(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file']);
                 }
 
                 $tmprow = null;
@@ -1545,7 +1545,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         database_connect(IL_DATABASE_PATH, 'fulltext');
 
-        $db_path_query = $dbHandle->quote(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+        $db_path_query = $dbHandle->quote(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
         $dbHandle->exec("ATTACH DATABASE " . $db_path_query . " AS tempdb");
 
         $query = "INSERT INTO full_text (fileID,full_text) VALUES (:fileID,:full_text)";
@@ -1594,8 +1594,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $dbHandle = null;
 
-        unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $dbname);
-        unlink(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $fdbname);
+        unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
+        unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
 
         die('Done. Total items recorded: ' . $record_count);
     } else {

@@ -1296,6 +1296,7 @@ var batchimport = {
                     $('#dialog-confirm').html('<div id="log-output"></div>')
                             .dialog('option', 'buttons', {
                                 'Close': function () {
+                                    clearTimeout(pollID);
                                     $(this).dialog('close');
                                 }
                             }).dialog({

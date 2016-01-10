@@ -41,6 +41,7 @@ while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
     $rssfeed .= '<description>' . htmlspecialchars($abstract) . '</description>';
     $rssfeed .= '<link>' . IL_URL . 'stable.php?id='.$id.'</link>';
     $rssfeed .= '<pubDate>' . date("D, d M Y H:i:s O", strtotime($addition_date)) . '</pubDate>';
+    $rssfeed .= '<guid>' . IL_URL . 'stable.php?id=' . $id . '</guid>';
     $rssfeed .= '</item>'.PHP_EOL;
 }
 

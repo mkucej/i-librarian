@@ -162,21 +162,24 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
             $authors = '';
             $authors_ascii = '';
-        } elseif(!empty($_POST['authors'])) {
+        } elseif (!empty($_POST['authors'])) {
 
             $authors = htmlspecialchars_decode($_POST['authors']);
             $authors_ascii = utf8_deaccent($authors);
-        } elseif(!empty($_POST['last_name'])) {
+        } elseif (!empty($_POST['last_name'])) {
 
-            if (is_string($_POST['last_name'])) {
+            if (!empty($_POST['last_name']) && is_string($_POST['last_name'])) {
                 $_POST['last_name'] = json_decode($_POST['last_name'], true);
             }
-            if (is_string($_POST['first_name'])) {
+            if (!empty($_POST['first_name']) && is_string($_POST['first_name'])) {
                 $_POST['first_name'] = json_decode($_POST['first_name'], true);
             }
+            $names = array();
             for ($i = 0; $i < count($_POST['last_name']); $i++) {
-                // Get last and first name, deaccent.
-                $names[] = 'L:"' . $_POST['last_name'][$i] . '",F:"' . $_POST['first_name'][$i] . '"';
+                if (!empty($_POST['last_name'][$i])) {
+                    // Get last and first name, deaccent.
+                    $names[] = 'L:"' . $_POST['last_name'][$i] . '",F:"' . $_POST['first_name'][$i] . '"';
+                }
             }
             $authors = join(';', $names);
             $authors_ascii = utf8_deaccent($authors);
@@ -469,19 +472,25 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         ##########	record supplementary files	##########
 
-        for ($i = 1; $i <= 5; $i++) {
+        if (!empty($_FILES['form_supplementary_file']['name'])) {
+            
+            for ($i = 0; $i < count($_FILES['form_supplementary_file']['name']); $i++) {
+                
+                if (is_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i])) {
+                    
+                    $supplement_filename = preg_replace('/[\/\\\]/', '_', $_FILES['form_supplementary_file']['name'][$i]);
+                    $supplement_filename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $supplement_filename);
+                    $supplement_filename = sprintf("%05d", $new_file) . $supplement_filename;
 
-            if (isset($_FILES['form_supplementary_file' . $i]) && is_uploaded_file($_FILES['form_supplementary_file' . $i]['tmp_name'])) {
-
-                $supplement_filename = sprintf("%05d", intval($new_file)) . $_FILES['form_supplementary_file' . $i]['name'];
-
-                $move = move_uploaded_file($_FILES['form_supplementary_file' . $i]['tmp_name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
-                if ($move == false)
-                    $error[] = "Error! The supplementary file " . $_FILES['form_supplementary_file' . $i]['name'] . " has not been recorded.";
-                if ($move == true)
-                    $message[] = "The supplementary file file " . $_FILES['form_supplementary_file' . $i]['name'] . " has been recorded.";
+                    $move = move_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
+                    if ($move == false)
+                        $error[] = "Error! The supplementary file " . $_FILES['form_supplementary_file']['name'][$i] . " has not been recorded.";
+                    if ($move == true)
+                        $message[] = "The supplementary file file " . $_FILES['form_supplementary_file']['name'][$i] . " has been recorded.";
+                }
             }
         }
+        
         if (file_exists(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file)) {
             $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
             mkdir($unpack_dir);
@@ -717,7 +726,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             if ($uid_array2[0] == 'ISBN')
                 $isbn = trim($uid_array2[1]);
         }
-        
+
         $response = array();
 
         //FETCH FROM ARXIV
@@ -738,7 +747,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             fetch_from_nasaads($doi, $nasa_id);
             $_POST = array_replace_recursive($_POST, $response);
         }
-        
+
         // FETCH FROM IEEE
         if (empty($response) && (!empty($ieee_id) || (isset($_POST['fetch-ieee']) && !empty($doi) && empty($pmid) && empty($nasa_id)))) {
             fetch_from_ieee($doi, $ieee_id);
@@ -756,7 +765,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             fetch_from_googlepatents($patent_id);
             $_POST = array_replace_recursive($_POST, $response);
             $_POST['reference_type'] = 'patent';
-            $_POST['url'] = 'https://www.google.com/patents/' . $patent_id;
+            $_POST['url'][] = 'https://www.google.com/patents/' . $patent_id;
         }
 
         // FETCH FROM OPEN LIBRARY
@@ -774,7 +783,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         database_connect(IL_DATABASE_PATH, 'library');
 
         $result = null;
-        
+
         if (!empty($_POST['doi'])) {
             $doi_query = $dbHandle->quote($_POST['doi']);
             $result = $dbHandle->query("SELECT id,title FROM library WHERE doi=$doi_query LIMIT 1");
@@ -784,7 +793,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $result = $dbHandle->query("SELECT id,title FROM library WHERE title=$title_query LIMIT 1");
             $result = $result->fetchAll(PDO::FETCH_ASSOC);
         }
-        
+
         $dbHandle = null;
 
         if (count($result) > 0) {
@@ -814,7 +823,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	check for duplicate titles in table library	##########
 
         database_connect(IL_DATABASE_PATH, 'library');
-        
+
         $result = null;
 
         if (!empty($_POST['doi'])) {
@@ -826,7 +835,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $result = $dbHandle->query("SELECT id,title FROM library WHERE title=" . $title_query . " LIMIT 1");
             $result = $result->fetchAll(PDO::FETCH_ASSOC);
         }
-        
+
         $dbHandle = null;
 
         if (count($result) > 0) {
@@ -940,14 +949,16 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                         <?php
                                     }
                                     if (!isset($_SESSION['remove_ieee'])) {
+
                                         ?>
                                         <td class="select_span" style="line-height:22px;padding-right:1em">
                                             <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-ieee" value="1" checked>
                                             <i class="fa fa-check-square"></i>
                                             IEEE
                                         </td>
-                                        <?php
-                                    }?>
+                                        <?php }
+
+                                    ?>
                                     <td class="select_span" style="line-height:22px;padding-right:1em">
                                         <input type="checkbox" class="uploadcheckbox" style="display:none" name="fetch-crossref" value="1" checked>
                                         <i class="fa fa-check-square"></i>
@@ -1501,7 +1512,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 </tr>
                 <tr>
                     <td class="threedleft">
-                        <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1'  ?>:
+        <?php print (!empty($_SESSION['custom1'])) ? $_SESSION['custom1'] : 'Custom 1'  ?>:
                     </td>
                     <td class="threedright">
                         <input type="text" size="80" name="custom1" style="width: 99%" value="<?php print isset($_POST['custom1']) ? htmlspecialchars($_POST['custom1']) : ''  ?>">
@@ -1509,7 +1520,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 </tr>
                 <tr>
                     <td class="threedleft">
-                        <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2'  ?>:
+        <?php print (!empty($_SESSION['custom2'])) ? $_SESSION['custom2'] : 'Custom 2'  ?>:
                     </td>
                     <td class="threedright">
                         <input type="text" size="80" name="custom2" style="width: 99%" value="<?php print isset($_POST['custom2']) ? htmlspecialchars($_POST['custom2']) : ''  ?>">
@@ -1517,7 +1528,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 </tr>
                 <tr>
                     <td class="threedleft">
-                        <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3'  ?>:
+        <?php print (!empty($_SESSION['custom3'])) ? $_SESSION['custom3'] : 'Custom 3'  ?>:
                     </td>
                     <td class="threedright">
                         <input type="text" size="80" name="custom3" style="width: 99%" value="<?php print isset($_POST['custom3']) ? htmlspecialchars($_POST['custom3']) : ''  ?>">
@@ -1525,7 +1536,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 </tr>
                 <tr>
                     <td class="threedleft">
-                        <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4'  ?>:
+        <?php print (!empty($_SESSION['custom4'])) ? $_SESSION['custom4'] : 'Custom 4'  ?>:
                     </td>
                     <td class="threedright">
                         <input type="text" size="80" name="custom4" style="width: 99%" value="<?php print isset($_POST['custom4']) ? htmlspecialchars($_POST['custom4']) : ''  ?>">
@@ -1546,11 +1557,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         Supplementary files:
                     </td>
                     <td class="threedright">
-                        <input type="file" name="form_supplementary_file1"><br>
-                        <input type="file" name="form_supplementary_file2"><br>
-                        <input type="file" name="form_supplementary_file3"><br>
-                        <input type="file" name="form_supplementary_file4"><br>
-                        <input type="file" name="form_supplementary_file5">
+                        <input type="file" name="form_supplementary_file[]" multiple>
                     </td>
                 </tr>
             </table>

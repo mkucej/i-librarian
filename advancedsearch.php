@@ -1216,7 +1216,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
                         <table cellspacing=0 style="width: 50%;float: left;padding:2px">
                             <tr>
                                 <td class="select_span">
-                                    <input type="checkbox" name="category[]" value="0" style="display:none">&nbsp;<i class="fa fa-square-o"></i> !unassigned
+                                    <input type="checkbox" name="category[]" value="NA" style="display:none">&nbsp;<i class="fa fa-square-o"></i> !unassigned
                                 </td>
                             </tr>
                             <?php
