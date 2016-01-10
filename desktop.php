@@ -266,9 +266,11 @@ $number_of_users = count($users);
         <input type="text" size="10" name="project" value="" style="width:125px;margin-left:3px" placeholder="Create project">
         <button id="createproject">Create</button>
     </form>
-    <br><br>
+    <h4 style="margin-left:0.5em">Active</h4>
     <?php
     foreach ($projects as $project) {
+        
+        if ($project['active'] === '1') {
         ?>
         <table cellspacing=0 width="210px" style="margin:6px 0px" class="projectheader">
             <tr>
@@ -376,6 +378,120 @@ $number_of_users = count($users);
             ?>
         </div>
         <?php
+        }
+    } //while
+    echo '<h4 style="margin-left:0.5em">Inactive</h4>';
+    foreach ($projects as $project) {
+        
+        if ($project['active'] === '0') {
+        ?>
+        <table cellspacing=0 width="210px" style="margin:6px 0px" class="projectheader">
+            <tr>
+                <td class="leftleftbutton">&nbsp;</td>
+                <td class="leftbutton ui-widget-header ui-corner-right">
+                    <div style="width:200px;white-space:nowrap;overflow:hidden"><?php print htmlspecialchars($project['project']) ?></div>
+                </td>
+            </tr>
+        </table>
+        <div class="projectcontainer" id="project-<?php print intval($project['projectID']); ?>" style="display: none;width:200px;margin-left: 10px">
+            <table style="width:98%">
+                <tr>
+                    <td class="select_span desk-active" style="width:50%">
+                        <input type="checkbox" style="display:none" <?php echo (isset($project['active']) && $project['active'] == '1') ? 'checked' : '' ?>>
+                        <i class="fa fa-<?php echo (isset($project['active']) && $project['active'] == '1') ? 'check-square' : 'square-o' ?>"></i>
+                        active
+                    </td>
+                    <td style="text-align:right">
+                        <a href="discussion.php?project=<?php print htmlspecialchars(urlencode($project['projectID'])) ?>" target="_blank">
+                            <i class="fa fa-comments-o"></i> Discussion
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:right">
+                        <a href="projectnotes.php?projectID=<?php print htmlspecialchars(urlencode($project['projectID'])) ?>" target="_blank">
+                            <i class="fa fa-pencil"></i> Notes
+                        </a>
+                    </td>
+                </tr>
+            </table>
+            <b>Creator</b> &bull; <?php print htmlspecialchars(get_username($dbHandle, $project['creator'])) ?>
+            <br>
+            <?php
+            if ($number_of_users > 1) {
+
+                $collaborators = $dbHandle->query("SELECT userID FROM projectsusers WHERE projectID=" . intval($project['projectID']));
+                $collaborators = $collaborators->fetchAll(PDO::FETCH_COLUMN);
+            }
+
+            if ($_SESSION['user_id'] == $project['creator']) {
+                ?>
+                <table cellspacing=0>
+                    <tr>
+                        <td>Users:</td>
+                        <td>Collaborators:</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <select size="<?php print min($number_of_users - 1, 8) ?>" style="width:96px" name="adduser">
+                                <?php
+                                while (list($key, $user) = each($users)) {
+                                    if (!in_array($user['userID'], $collaborators) && $user['userID'] != $project['creator'])
+                                        print '<option value="' . $user['userID'] . '">' . htmlspecialchars($user['username']) . '</option>' . PHP_EOL;
+                                }
+                                reset($users);
+                                ?>
+                            </select>
+                        </td>
+                        <td>
+                            <select size="<?php print min($number_of_users - 1, 8) ?>" style="width:96px" name="removeuser">
+                                <?php
+                                while (list($key, $user) = each($users)) {
+                                    if (in_array($user['userID'], $collaborators) && $user['userID'] != $project['creator'])
+                                        print '<option value="' . $user['userID'] . '">' . htmlspecialchars($user['username']) . '</option>' . PHP_EOL;
+                                }
+                                reset($users);
+                                ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:center;padding-top:2px">
+                            <span class="ui-state-highlight ui-corner-bottom adduser">
+                                &nbsp;Add <i class="fa fa-angle-right"></i>&nbsp;
+                            </span>
+                        </td>
+                        <td style="text-align:center;padding-top:2px">
+                            <span class="ui-state-highlight ui-corner-bottom removeuser">
+                                &nbsp;<i class="fa fa-angle-left"></i> Remove&nbsp;
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+                <br>
+                <form action="ajaxdesk.php" method="GET">
+                    <input type="hidden" name="rename" value="Rename">
+                    <input type="hidden" name="id" value="<?php print htmlspecialchars($project['projectID']) ?>">
+                    <input type="text" name="project" value="<?php print htmlspecialchars($project['project']) ?>" style="width:47%">
+                    <button class="renamebutton" style="margin:0;width:49%">Rename</button><br>
+                </form>
+                <form action="ajaxdesk.php" method="GET">
+                    <input type="hidden" name="id" value="<?php print htmlspecialchars($project['projectID']) ?>">
+                    <input type="hidden" name="delete" value="">
+                    <button class="deletebutton" style="margin:2px 0px;width:49%"><i class="fa fa-trash-o"></i> Delete</button>
+                </form>
+                <form action="ajaxdesk.php" method="GET">
+                    <input type="hidden" name="id" value="<?php print htmlspecialchars($project['projectID']) ?>">
+                    <input type="hidden" name="empty" value="">
+                    <button class="emptybutton" style="margin:2px 0px;width:49%"><i class="fa fa-external-link"></i> Empty</button>
+                </form>
+                <br>
+                <?php
+            }
+            ?>
+        </div>
+        <?php
+        }
     } //while
     $dbHandle = null;
     ?>

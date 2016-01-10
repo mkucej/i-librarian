@@ -2493,13 +2493,19 @@ function read_shelf($dbHandle, $id_array) {
 /////////////read desktop/////////////////////////
 
 function read_desktop($dbHandle) {
+    
+    if ($_GET['select'] == 'desk') {
+        $active = '';
+    } else {
+        $active = " AND projects.active=1";
+    }
 
     if (isset($_SESSION['auth'])) {
         $files_array = array();
         $id_query = $dbHandle->quote($_SESSION['user_id']);
         $query = $dbHandle->query("SELECT DISTINCT projects.projectID AS projectID,project FROM projects
                         LEFT OUTER JOIN projectsusers ON projects.projectID=projectsusers.projectID
-                        WHERE (projects.userID=$id_query OR projectsusers.userID=$id_query) AND projects.active='1' ORDER BY project COLLATE NOCASE ASC");
+                        WHERE (projects.userID=$id_query OR projectsusers.userID=$id_query) $active ORDER BY project COLLATE NOCASE ASC");
         $files_array = $query->fetchAll(PDO::FETCH_ASSOC);
         $query = null;
         return $files_array;
