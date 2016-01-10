@@ -2,22 +2,16 @@
 
 // Create library dirs.
 if (!is_dir(IL_DATABASE_PATH)) {
-    @mkdir(IL_DATABASE_PATH, 0755, true);
+    @mkdir(IL_DATABASE_PATH, 0755);
 }
 if (!is_dir(IL_USER_DATABASE_PATH)) {
-    @mkdir(IL_USER_DATABASE_PATH, 0755, true);
-}
-if (!is_dir(IL_SUPPLEMENT_PATH)) {
-    @mkdir(IL_SUPPLEMENT_PATH, 0755, true);
+    @mkdir(IL_USER_DATABASE_PATH, 0755);
 }
 if (!is_dir(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '01')) {
     @mkdir(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '01', 0755, true);
 }
 if (!is_dir(IL_IMAGE_PATH)) {
     @mkdir(IL_IMAGE_PATH, 0755, true);
-}
-if (!is_dir(IL_PDF_PATH)) {
-    @mkdir(IL_PDF_PATH, 0755, true);
 }
 if (!is_dir(IL_PDF_PATH . DIRECTORY_SEPARATOR . '01')) {
     @mkdir(IL_PDF_PATH . DIRECTORY_SEPARATOR . '01', 0755, true);

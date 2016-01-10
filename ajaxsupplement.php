@@ -135,9 +135,9 @@ if (!empty($_POST['filename']) && is_writable(IL_TEMP_PATH . DIRECTORY_SEPARATOR
     $uploaded_file_content = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], FILE_BINARY, null, 0, 100);
 
     if (stripos($uploaded_file_content, '%PDF') === 0) {
-        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
+        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
-        $hash = md5_file(IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
+        $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
     } else {
         $error = "This is not a PDF.";
     }

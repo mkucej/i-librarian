@@ -147,9 +147,6 @@ $dbHandle = null;
 if (!is_dir(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '01')) {
     @mkdir(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '01', 0755, true);
 }
-if (!is_dir(IL_PDF_PATH)) {
-    @mkdir(IL_PDF_PATH, 0755, true);
-}
 if (!is_dir(IL_PDF_PATH . DIRECTORY_SEPARATOR . '01')) {
     @mkdir(IL_PDF_PATH . DIRECTORY_SEPARATOR . '01', 0755, true);
 }
