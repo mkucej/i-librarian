@@ -7,25 +7,25 @@
         <div id="duplicate-identical" class="item-sticker ui-widget-content ui-corner-all" style="margin-left:0px;margin-top:4px;width:200px;float:left;text-align:left;cursor:pointer">
             <div class="ui-widget-header ui-dialog-titlebar ui-corner-top" style="border:none;text-align:center"><b>Identical titles</b></div>
             <div class="separator" style="margin:0"></div>
-            <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto;height:50px">
+            <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto">
                 &bull; fast<br>
-                &bull; detection probability low
+                &bull; low detection rate
             </div>
         </div>
         <div id="duplicate-similar" class="item-sticker ui-widget-content ui-corner-all" style="margin-left:40px;margin-top:4px;width:200px;float:left;text-align:left;cursor:pointer">
             <div class="ui-widget-header ui-dialog-titlebar ui-corner-top" style="border:none;text-align:center"><b>Similar titles</b></div>
             <div class="separator" style="margin:0"></div>
-            <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto;height:50px">
+            <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto">
                 &bull; slow<br>
-                &bull; detection probability better
+                &bull; better detection rate
             </div> 
         </div>
         <div id="duplicate-hash" class="item-sticker ui-widget-content ui-corner-all" style="margin-left:40px;margin-top:4px;width:200px;float:left;text-align:left;cursor:pointer">
             <div class="ui-widget-header ui-dialog-titlebar ui-corner-top" style="border:none;text-align:center"><b>Identical PDF files</b></div>
             <div class="separator" style="margin:0"></div>
-            <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto;height:50px">
+            <div class="alternating_row ui-corner-bottom" style="padding:4px 7px;overflow:auto">
                 &bull; fast (slow first run)<br>
-                &bull; detection probability high
+                &bull; high detection rate
             </div> 
         </div>
     </div>
