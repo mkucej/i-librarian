@@ -96,12 +96,8 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 while ($it->valid()) {
                     $backupfile = $it->key();
                     if (is_file($backupfile)) {
-                        echo $backupfile . PHP_EOL;
-                        echo $directory . PHP_EOL;
                         $libfile = str_replace($directory, IL_LIBRARY_PATH, $backupfile);
-                        echo $libfile . PHP_EOL;
                         if (!is_file($libfile)) {
-                            
                             @unlink($backupfile);
                         }
                     }
@@ -173,7 +169,6 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                     exec("rmdir \"" . IL_SUPPLEMENT_PATH . "\" /s/q");
                     exec("rmdir \"" . IL_IMAGE_PATH . "\" /s/q");
                     exec("xcopy \"" . $directory . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y", $a);
-                    var_dump("xcopy \"" . $directory . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y");
                 } else {
                     exec("rm -f \"" . IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . "*.*\"");
                     exec("rm -rf \"" . IL_DATABASE_PATH . "\"");
