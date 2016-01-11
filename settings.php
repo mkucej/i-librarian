@@ -136,6 +136,11 @@ if (isset($_SESSION['auth'])) {
             if (isset($_GET['proxy_password']) && isset($new_settings['global_proxy_name'])) {
                 $new_settings['global_proxy_password'] = $_GET['proxy_password'];
             }
+            
+            $new_settings['global_zone'] = '';
+            if (isset($_GET['zone'])) {
+                $new_settings['global_zone'] = $_GET['zone'];
+            }
         }
 
         $dbHandle = database_connect(IL_USER_DATABASE_PATH, 'users');
@@ -196,6 +201,8 @@ if (isset($_SESSION['auth'])) {
     unset($_SESSION['proxy_username']);
     $proxy_password = '';
     unset($_SESSION['proxy_password']);
+    $zone = '';
+    unset($_SESSION['zone']);
 
     database_connect(IL_USER_DATABASE_PATH, 'users');
 
@@ -327,6 +334,21 @@ if (isset($_SESSION['auth'])) {
                         Custom 2: <input type="text" name="custom2" value="<?php print !empty($custom2) ? $custom2 : ''  ?>"><br>
                         Custom 3: <input type="text" name="custom3" value="<?php print !empty($custom3) ? $custom3 : ''  ?>"><br>
                         Custom 4: <input type="text" name="custom4" value="<?php print !empty($custom4) ? $custom4 : ''  ?>">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="details" STYLE="white-space: nowrap">Time zone:</td>
+                    <td class="details">
+                        <select name="zone">
+                            <option value="UTC">UTC</option>
+                            <?php
+                            $php_zones = timezone_identifiers_list();
+                            array_pop($php_zones);
+                            foreach ($php_zones as $php_zone) {
+                                echo "<option" . (isset($zone) && $zone == $php_zone ? ' selected' : '') . ">$php_zone</option>" . PHP_EOL;
+                            }
+                            ?>
+                        </select>
                     </td>
                 </tr>
                 <?php

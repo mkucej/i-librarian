@@ -10,7 +10,6 @@ ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '512M');
-date_default_timezone_set(@date_default_timezone_get());
 
 $ini_array = parse_ini_file("ilibrarian.ini");
 
@@ -216,6 +215,11 @@ if (isset($_POST['keepsigned']) && $_POST['keepsigned'] == 1) {
 
 // send session cookie
 setcookie(session_name(), session_id(), time() + $cookietimeout);
+
+// Set time zone.
+if (!empty($_SESSION['zone'])) {
+    date_default_timezone_set($_SESSION['zone']);
+}
 
 // create user specific directory for caching
 if (!is_dir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id()))
