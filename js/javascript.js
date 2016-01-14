@@ -87,13 +87,13 @@ var timeId = '';
 var dooverlay = function () {
     if ($('#overlay').length === 1)
         return false;
-    $('body').append('<div id="overlay" class="ui-widget-overlay" style="cursor:wait;width:100%;height:' + $(document).height() + 'px">&nbsp;</div>');
-    $('#overlay').html('<img src="img/ajaxloader2.gif" alt="" style="margin-left:48%;margin-top:' + (-32 + 0.5 * $(document).height()) + 'px">');
+    $('body').append('<div id="overlay" class="ui-widget-overlay"></div>');
+    $('body').append('<i id="overlay-cog" class="fa fa-cog fa-spin" style="font-size: 64px;position: fixed;left:48%;top:' + (-32 + 0.5 * $(document).height()) + 'px"></i>');
     $('#pdf-div').css('visibility', 'hidden');
 };
 var clearoverlay = function () {
     clearTimeout(timeId);
-    $('#overlay').remove();
+    $('#overlay, #overlay-cog').remove();
     $('#pdf-div').css('visibility', '');
 };
 /**
@@ -178,7 +178,7 @@ $.extend($.ui.autocomplete.prototype.options, {
     }
 });
 $(window).load(function () {
-    var h = $(window).height() - 36;
+    var h = $(window).height() - 41;
     $('#top-panel').load('topindex.php', function () {
         topindex.init();
     });
@@ -187,7 +187,7 @@ $(window).load(function () {
     });
     $('#addrecord-panel, #items-container').height(h);
     $(window).resize(function () {
-        var h = $(window).height() - 36;
+        var h = $(window).height() - 41;
         $('#bottom-panel, #addrecord-panel, #items-container').height(h);
     });
     $.extend($.ui.dialog.prototype.options, {
@@ -459,64 +459,64 @@ var details = {
         $.get('checkbinaries.php?binary=pdftotext', function (answer) {
             if (answer === "OK") {
                 $('#details-1').text('working');
-                $('#details-2').text('OK').css('color', 'green');
+                $('#details-2').text('OK');
             } else {
                 $('#details-1').text('not working');
-                $('#details-2').text('!!!').css('color', 'red');
+                $('#details-2').text('!!!');
             }
         });
         $.get('checkbinaries.php?binary=pdfinfo', function (answer) {
             if (answer === "OK") {
                 $('#details-3').text('working');
-                $('#details-4').text('OK').css('color', 'green');
+                $('#details-4').text('OK');
             } else {
                 $('#details-3').text('not working');
-                $('#details-4').text('!!!').css('color', 'red');
+                $('#details-4').text('!!!');
             }
         });
         $.get('checkbinaries.php?binary=pdftohtml', function (answer) {
             if (answer === "OK") {
                 $('#details-5').text('working');
-                $('#details-6').text('OK').css('color', 'green');
+                $('#details-6').text('OK');
             } else {
                 $('#details-5').text('not working');
-                $('#details-6').text('!!!').css('color', 'red');
+                $('#details-6').text('!!!');
             }
         });
         $.get('checkbinaries.php?binary=ghostscript', function (answer) {
             if (answer === "OK") {
                 $('#details-7').text('working');
-                $('#details-8').text('OK').css('color', 'green');
+                $('#details-8').text('OK');
             } else {
                 $('#details-7').text('not working');
-                $('#details-8').text('!!!').css('color', 'red');
+                $('#details-8').text('!!!');
             }
         });
         $.get('checkbinaries.php?binary=pdfdetach', function (answer) {
             if (answer === "OK") {
                 $('#details-11').text('working');
-                $('#details-12').text('OK').css('color', 'green');
+                $('#details-12').text('OK');
             } else {
                 $('#details-11').text('not working');
-                $('#details-12').text('!!!').css('color', 'red');
+                $('#details-12').text('!!!');
             }
         });
         $.get('checkbinaries.php?binary=tesseract', function (answer) {
             if (answer === "OK") {
                 $('#details-13').text('working');
-                $('#details-14').text('OK').css('color', 'green');
+                $('#details-14').text('OK');
             } else {
                 $('#details-13').text('not working');
-                $('#details-14').text('!!!').css('color', 'gray');
+                $('#details-14').text('!!!');
             }
         });
         $.get('checkbinaries.php?binary=soffice', function (answer) {
             if (answer === "OK") {
                 $('#details-15').text('working');
-                $('#details-16').text('OK').css('color', 'green');
+                $('#details-16').text('OK');
             } else {
                 $('#details-15').text('not working');
-                $('#details-16').text('!!!').css('color', 'gray');
+                $('#details-16').text('!!!');
             }
         });
         $("#clear-trash").click(function () {
@@ -732,10 +732,11 @@ var index2 = {
             $('#signinform').show();
         });
         $('#sign-options').click(function () {
-            var pos = $(this).parent().offset();
+            $(this).blur();
+            var pos = $(this).parent().find('label').offset();
             $('#sign-options-list').toggle().offset({
-                top: pos.top + 33,
-                left: pos.left + 224
+                top: pos.top + $(this).parent().height() + 1,
+                left: pos.left
             });
         }).button();
         $('#credits').click(function () {
@@ -813,20 +814,23 @@ var settings = {
 };
 var tools = {
     init: function () {
-        $('td.leftbutton').hover(function () {
-            $(this).stop(true, true).fadeTo(0, '0.8')
-                    .prev().stop(true, true).fadeTo(0, '0.8');
-        },
-                function () {
-                    $(this).stop(true, true).fadeTo(200, '1')
-                            .prev().stop(true, true).fadeTo(200, '1');
+        $('#tools-left').find('button').each(function(){
+            $(this).button()
+                .button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
                 });
+        });
         $('#right-panel').load('rtfscan.php', function () {
             rtfscan.init();
         });
         $('#tools-left').click(function (e) {
             e.preventDefault();
             var $t = $(e.target), ref = '', scrpt = '';
+            if (!$t.hasClass('ui-button')) {
+                $t = $t.parent();
+            }
             if ($t.attr('id') === 'settingslink') {
                 ref = 'settings.php';
                 scrpt = 'settings';
@@ -879,7 +883,8 @@ var tools = {
                 ref = 'about.php';
                 scrpt = '';
             }
-            if ($t.hasClass('leftbutton') || $t.hasClass('select-import')) {
+            if ($t.hasClass('ui-button')) {
+                $(this).blur();
                 $('#right-panel').load(ref, function () {
                     if (typeof window[scrpt] === 'object')
                         window[scrpt].init();
@@ -895,14 +900,14 @@ var addarticle = {
                 upload.init();
             });
         }
-        $('.leftbutton').hover(function () {
-            $(this).stop(true, true).fadeTo(0, '0.85')
-                    .prev().stop(true, true).fadeTo(0, '0.85');
-        },
-                function () {
-                    $(this).stop(true, true).fadeTo(200, '1')
-                            .prev().stop(true, true).fadeTo(200, '1');
+        $('#addarticle-left').find('button').each(function(){
+            $(this).button()
+                .button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
                 });
+        });
         $('#addarticle-left table').click(function () {
             $('.saved-search, .flagged-items, .select-import').removeClass('clicked');
         });
@@ -926,6 +931,9 @@ var addarticle = {
                 ieeelink: 'download_ieee',
                 springerlink: 'download_springer'};
             $.each(assoc, function (key, val) {
+                if ($t.hasClass('ui-button-text')) {
+                    $t = $t.parent();
+                }
                 if ($t.attr('id') === key) {
                     ref = val + '.php';
                     scrpt = val;
@@ -933,13 +941,15 @@ var addarticle = {
                 }
             });
             if ($t.attr('id') === 'importany') {
+                $(this).blur();
                 $.getScript('wpad.php', function () {
                     var proxystr = FindProxyForURL('', 'www.crossref.org');
                     $('#addarticle-right').load('remoteuploader.php?proxystr=' + encodeURIComponent(proxystr), function () {
                         remoteuploader.init();
                     });
                 });
-            } else if ($t.hasClass('leftbutton') || $t.hasClass('select-import')) {
+            } else if ($t.hasClass('ui-button') || $t.hasClass('select-import')) {
+                $(this).blur();
                 $('#addarticle-right').load(ref, function () {
                     if (typeof window[scrpt] === 'object')
                         window[scrpt].init();
@@ -1366,11 +1376,7 @@ var remoteuploader = {
             max_file_size: '200mb',
             url: 'remoteuploader.php',
             file_data_name: 'Filedata',
-            flash_swf_url: 'js/plupload/plupload.flash.swf',
-            filters: [
-                {title: "PDF files", extensions: "pdf,fdf"},
-                {title: "Office files", extensions: "doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp"}
-            ]
+            flash_swf_url: 'js/plupload/plupload.flash.swf'
         });
         $("#select-button").button().click(function (e) {
             e.preventDefault();
@@ -1805,10 +1811,10 @@ var items = {
             $('#items-left').hide();
             $('#items-container .middle-panel i').removeClass('fa-caret-left').addClass('fa-caret-right');
         }
-        $('#file-panel').height($('#items-right').height() - 1);
+        $('#file-panel').height($('#items-right').height());
         $(window).resize(function () {
             $('#items-right iframe').height(0);
-            $('#file-panel').height($('#items-right').height() - 1);
+            $('#file-panel').height($('#items-right').height());
             $('#items-right iframe').height($('iframe').parent().height());
         });
         $("#items-container .middle-panel").click(function () {
@@ -1852,11 +1858,17 @@ var items = {
             }
         });
         $('#list-item-' + selfile).click();
+        $("#nav-prev").button().button('widget').removeClass('ui-corner-all');
+        $("#nav-next").button().button('widget').removeClass('ui-corner-all');
         $('#nav-next,#nav-prev').click(function () {
             var fileid = $(this).data('id');
             $('#items-container').load('items.php?file=' + fileid, function () {
                 items.init(fileid);
             });
+        });
+        $("#items-container .items-nav").button();
+        $("#items-container .items-nav").each(function () {
+            $(this).button('widget').removeClass('ui-corner-all');
         });
         $('.prevrecord').click(function () {
             var file = $('#items-left > .clicked').prevAll('.listleft').first().data('id');
@@ -1872,14 +1884,16 @@ var items = {
             $('.listleft').removeClass('clicked');
             $('#list-item-' + file).click();
             var off = $('#list-item-' + file).offset(), curr = $('#items-left').scrollTop();
+            if (off === undefined) {
+                return;
+            }
             if (off.top < 50 || off.top > $(window).height() - 50) {
                 $('#items-left').stop().animate({
                     scrollTop: off.top + curr - $(window).height() / 3
                 }, 1000);
             }
         }).tipsy({
-            gravity: 's',
-            offset: '4'
+            gravity: 'n'
         });
         $('.nextrecord').click(function () {
             var file = $('#items-left > .clicked').nextAll('.listleft').first().data('id');
@@ -1895,14 +1909,16 @@ var items = {
             $('.listleft').removeClass('clicked');
             $('#list-item-' + file).click();
             var off = $('#list-item-' + file).offset(), curr = $('#items-left').scrollTop();
+            if (off === undefined) {
+                return;
+            }
             if (off.top < 50 || off.top > $(window).height() - 50) {
                 $('#items-left').stop().animate({
                     scrollTop: off.top + curr - $(window).height() / 3
                 }, 1000);
             }
         }).tipsy({
-            gravity: 's',
-            offset: '4'
+            gravity: 'n'
         });
         $('.backbutton').click(function () {
             $(this).mouseout();
@@ -1921,8 +1937,7 @@ var items = {
                     $('.prevpage').click();
             });
         }).tipsy({
-            gravity: 's',
-            offset: '4'
+            gravity: 'nw'
         });
         $("#delete-file").dialog({
             autoOpen: false,
@@ -2299,6 +2314,15 @@ var exportitems = {
             $('input[name="output"][value="inline"]').parent().click();
             $('#exportform').attr('target', 'exportwindow');
         });
+        $('#selectall').click(function () {
+            $('input[name="column\\[\\]"]').prop('checked', true);
+            $('input[name="column\\[\\]"]').next().removeClass('fa-square-o').addClass('fa-check-square');
+        });
+        $('#unselectall').click(function () {
+            $('input[name="column\\[\\]"]').prop('checked', false);
+            $('input[name="column\\[\\]"]').next().removeClass('fa-check-square').addClass('fa-square-o');
+        });
+        $('#export-radio').buttonset();
     }
 };
 var categories = {
@@ -2642,7 +2666,20 @@ var desktop = {
             }
         });
         //////////////////////////////quick search///////////////////////////////////
+        var radioRows = [
+            '#anywhere_separator',
+            '#fulltext_separator',
+            '#pdfnotes_separator',
+            '#notes_separator'];
+        for (var i = 0; i < radioRows.length; i++) {
+            $(radioRows[i]).buttonset()
+                .buttonset('widget')
+                .find('label')
+                .removeClass('ui-corner-left')
+                .removeClass('ui-corner-right');
+        }
         $("#quicksearch #search").button().click(function () {
+            $(this).blur();
             if ($("#quicksearch input:text:visible").val() === '')
                 return false;
             var q = $("#quicksearch").formSerialize();
@@ -2651,12 +2688,19 @@ var desktop = {
                 displaywindow.init('desk', 'search.php?' + q);
             });
             return false;
-        }).tipsy();
+        }).button('widget')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         $("#quicksearch #clear").button().click(function () {
+            $(this).blur();
             $("#quicksearch input:text:visible").val('').focus();
             $("#quicksearch input[value='AND']").parent('td.select_span').click();
             $.get('search.php?newsearch=1');
-        }).tipsy();
+        }).button('widget')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         $("#quicksearch").submit(function () {
             $("#quicksearch #search").click();
             return false;
@@ -2666,10 +2710,12 @@ var desktop = {
             $(this).siblings().removeClass('tabclicked');
             $(this).addClass('tabclicked');
             // show text field and separators
-            $(".quicksearch").find(':text').hide();
-            $(".quicksearch").find(':text').eq(0).show();
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find('table').eq(0).show();
+            $(".quicksearch").find(':text').hide().attr('disabled', true);
+            $(".quicksearch").find(':text').eq(0).show().attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(0).show();
+            $("#quicksearch").find('.separators').eq(0).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('metadata');
             $('#quicksearch input[name="searchmode"]').val('quick');
@@ -2681,10 +2727,12 @@ var desktop = {
             $(this).siblings().removeClass('tabclicked');
             $(this).addClass('tabclicked');
             // show text field and separators
-            $(".quicksearch").find(':text').hide();
-            $(".quicksearch").find(':text').eq(1).show();
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find('table').eq(1).show();
+            $(".quicksearch").find(':text').hide().attr('disabled', true);
+            $(".quicksearch").find(':text').eq(1).show().attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(1).show();
+            $("#quicksearch").find('.separators').eq(1).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('pdf');
             $('#quicksearch input[name="searchmode"]').val('advanced');
@@ -2696,10 +2744,12 @@ var desktop = {
             $(this).siblings().removeClass('tabclicked');
             $(this).addClass('tabclicked');
             // show text field and separators
-            $(".quicksearch").find(':text').hide();
-            $(".quicksearch").find(':text').eq(2).show();
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find('table').eq(2).show();
+            $(".quicksearch").find(':text').hide().attr('disabled', true);
+            $(".quicksearch").find(':text').eq(2).show().attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(2).show();
+            $("#quicksearch").find('.separators').eq(2).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('pdfnotes');
             $('#quicksearch input[name="searchmode"]').val('advanced');
@@ -2711,10 +2761,12 @@ var desktop = {
             $(this).siblings().removeClass('tabclicked');
             $(this).addClass('tabclicked');
             // show text field and separators
-            $(".quicksearch").find(':text').hide();
-            $(".quicksearch").find(':text').eq(3).show();
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find('table').eq(3).show();
+            $(".quicksearch").find(':text').hide().attr('disabled', true);
+            $(".quicksearch").find(':text').eq(3).show().attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(3).show();
+            $("#quicksearch").find('.separators').eq(3).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('notes');
             $('#quicksearch input[name="searchmode"]').val('advanced');
@@ -2728,27 +2780,44 @@ var desktop = {
             clickedTab = 0;
         $('#search-menu div:eq(' + clickedTab + ')').click();
         $("#advancedsearchbutton").click(function () {
+            $(this).blur();
             var proj = $('body').data('proj');
             $("#advancedsearch").load('advancedsearch.php?select=desk&project=' + proj, function () {
                 $("#advancedsearch").dialog('option', 'title', 'Advanced search of Desk').dialog('open');
                 advancedsearch.init();
             });
-        });
+        }).button().button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         $("#expertsearchbutton").click(function () {
+            $(this).blur();
             var proj = $('body').data('proj');
             $("#expertsearch").load('expertsearch.php?select=desk&project=' + proj, function () {
                 $("#expertsearch").dialog('option', 'title', 'Expert search of Desk').dialog('open');
                 expertsearch.init();
             });
-        });
+        }).button().button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         $('#project-' + firstid).show();
-        $('#leftindex-left table.projectheader').click(function () {
+        $('#leftindex-left .projectheader').click(function () {
             $('#leftindex-left div.projectcontainer').hide();
             $(this).next('div.projectcontainer').show();
             var projectID = $(this).next('div.projectcontainer').attr('id').split('-').pop();
-            $('#leftindex-left a.leftbuttonlink').blur();
             $('#quicksearch input[name=project]').val(projectID);
             $('body').data('sel', 'desk').data('proj', projectID);
+        });
+        $('#leftindex-left').find('.projectheader').each(function(){
+            $(this).button()
+                .button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         });
         $("#dialog-confirm").dialog('option', 'buttons', {
             'Yes': function () {
@@ -2957,7 +3026,12 @@ var displaywindow = {
         $('#display-content').click(function (event) {
             var t = event.target;
             if ($(t).hasClass('titles') || $(t).hasClass('thumb-titles')) {
-                var file = $(t).closest('div.items').attr('id').split('-').pop();
+                var file;
+                if ($(t).closest('div.items').length === 1) {
+                    file = $(t).closest('div.items').attr('id').split('-').pop();
+                } else {
+                    file = $(t).closest('div.thumb-items').attr('id').split('-').pop();
+                }
                 $('#bottom-panel').hide();
                 $('#items-container').show().load('items.php', 'file=' + file, function () {
                     items.init(file);
@@ -3153,12 +3227,15 @@ var displaywindow = {
                 $(this).dialog('option', 'title', ttl).dialog('open');
                 omnitool.init();
             });
-        });
+        }).button();
         $('#exportdialog').dialog({
             autoOpen: false,
             width: '60em',
             open: function () {
                 $('#pdf-div').css('visibility', 'hidden');
+                if ($(this).parent().height() > ($(window).height() - 20)) {
+                    $(this).dialog("option","height", $(window).height() - 20);
+                }
             },
             close: function () {
                 $('#pdf-div').css('visibility', '');
@@ -3207,23 +3284,16 @@ var displaywindow = {
                     $(this).dialog('option', 'title', ttl).dialog('open');
                     common.init();
                     exportitems.init();
-                    $('#selectall').click(function () {
-                        $('input[name="column\\[\\]"]').prop('checked', true);
-                        $('input[name="column\\[\\]"]').next().removeClass('fa-square-o').addClass('fa-check-square');
-                    });
-                    $('#unselectall').click(function () {
-                        $('input[name="column\\[\\]"]').prop('checked', false);
-                        $('input[name="column\\[\\]"]').next().removeClass('fa-check-square').addClass('fa-square-o');
-                    });
                 });
             } else {
                 $('#exportform').find('input[name="export_files"]').val('session');
                 $('#exportdialog').dialog('option', 'title', ttl).dialog('open');
             }
-        });
+        }).button();
         $("#printlist").click(function () {
             window.print();
-        });
+        }).button();
+        $("#rss-link").button();
         $("#right-panel .author_expander").unbind().click(function () {
             var $container = $(this).parent();
             if ($(this).hasClass('fa-plus-circle')) {
@@ -4029,30 +4099,36 @@ var advancedsearch = {
             var $t = $(event.target);
             $(this).find('div').removeClass('clicked');
             if ($t.attr('id') === 'advtab-search-ref') {
-                $t.addClass('clicked');
                 $('#advancedsearchform .refrow').show();
                 $('#fulltextrow, #notesrow, #pdfnotesrow').hide();
                 $('#advancedsearchform input[name="searchtype"]').val('metadata');
             } else
             if ($t.attr('id') === 'advtab-search-pdf') {
-                $t.addClass('clicked');
                 $('#advancedsearchform .refrow, #notesrow, #pdfnotesrow').hide();
                 $('#fulltextrow').show();
                 $('#advancedsearchform input[name="searchtype"]').val('pdf');
             } else
             if ($t.attr('id') === 'advtab-search-pdfnotes') {
-                $t.addClass('clicked');
                 $('#advancedsearchform .refrow, #fulltextrow, #notesrow').hide();
                 $('#pdfnotesrow').show();
                 $('#advancedsearchform input[name="searchtype"]').val('pdfnotes');
             } else
             if ($t.attr('id') === 'advtab-search-notes') {
-                $t.addClass('clicked');
                 $('#advancedsearchform .refrow, #fulltextrow, #pdfnotesrow').hide();
                 $('#notesrow').show();
                 $('#advancedsearchform input[name="searchtype"]').val('notes');
             }
         });
+        $('#advancedsearchtabs')
+                .buttonset()
+                .buttonset('widget')
+                .find('.ui-corner-left')
+                .removeClass('ui-corner-left')
+                .addClass('ui-corner-tl')
+                .end()
+                .find('.ui-corner-right')
+                .removeClass('ui-corner-right')
+                .addClass('ui-corner-tr');
         $('#advancedsearchform').submit(function (e) {
             var searchval = $(this).find(':text:visible').map(function () {
                 return $(this).val();
@@ -4107,30 +4183,36 @@ var expertsearch = {
             var $t = $(event.target);
             $(this).find('div').removeClass('clicked');
             if ($t.attr('id') === 'tab-search-ref') {
-                $t.addClass('clicked');
                 $('#expertsearchform textarea').hide().eq(0).show().focus();
                 $('.metadata-buttons').css('visibility', 'visible');
                 $('#expertsearchform input[name="searchtype"]').val('metadata');
             } else
             if ($t.attr('id') === 'tab-search-pdf') {
-                $t.addClass('clicked');
                 $('#expertsearchform textarea').hide().eq(1).show().focus();
                 $('.metadata-buttons').css('visibility', 'hidden');
                 $('#expertsearchform input[name="searchtype"]').val('pdf');
             } else
             if ($t.attr('id') === 'tab-search-pdfnotes') {
-                $t.addClass('clicked');
                 $('#expertsearchform textarea').hide().eq(2).show().focus();
                 $('.metadata-buttons').css('visibility', 'hidden');
                 $('#expertsearchform input[name="searchtype"]').val('pdfnotes');
             } else
             if ($t.attr('id') === 'tab-search-notes') {
-                $t.addClass('clicked');
                 $('#expertsearchform textarea').hide().eq(3).show().focus();
                 $('.metadata-buttons').css('visibility', 'hidden');
                 $('#expertsearchform input[name="searchtype"]').val('notes');
             }
         });
+        $('#expertsearchtabs')
+                .buttonset()
+                .buttonset('widget')
+                .find('.ui-corner-left')
+                .removeClass('ui-corner-left')
+                .addClass('ui-corner-tl')
+                .end()
+                .find('.ui-corner-right')
+                .removeClass('ui-corner-right')
+                .addClass('ui-corner-tr');
         $('#expertsearchform').submit(function (e) {
             var searchval = $(this).find('textarea:visible').val(), sel = $('body').data('sel'), proj = $('body').data('proj');
             if (proj === undefined)
@@ -4428,19 +4510,42 @@ var leftindex = {
             }
         });
         $("#advancedsearchbutton").click(function () {
+            $(this).blur();
             $("#advancedsearch").load('advancedsearch.php?select=' + sel, function () {
                 $("#advancedsearch").dialog('option', 'title', 'Advanced search of ' + sel).dialog('open');
                 advancedsearch.init();
             });
-        });
+        }).button().button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         $("#expertsearchbutton").click(function () {
+            $(this).blur();
             $("#expertsearch").load('expertsearch.php?select=' + sel, function () {
                 $("#expertsearch").dialog('option', 'title', 'Expert search of ' + sel).dialog('open');
                 expertsearch.init();
             });
-        });
+        }).button().button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         //////////////////////////////quick search///////////////////////////////////
+        var radioRows = [
+            '#anywhere_separator',
+            '#fulltext_separator',
+            '#pdfnotes_separator',
+            '#notes_separator'];
+        for (var i = 0; i < radioRows.length; i++) {
+            $(radioRows[i]).buttonset()
+                .buttonset('widget')
+                .find('label')
+                .removeClass('ui-corner-left')
+                .removeClass('ui-corner-right');
+        }
         $("#quicksearch #search").button().click(function () {
+            $(this).blur();
             if ($("#quicksearch input:text:visible").val() === '')
                 return false;
             var q = $("#quicksearch").formSerialize();
@@ -4451,12 +4556,19 @@ var leftindex = {
                 displaywindow.init(sel, 'search.php?' + q);
             });
             return false;
-        }).tipsy();
+        }).button('widget')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         $("#quicksearch #clear").button().click(function () {
+            $(this).blur();
             $("#quicksearch input:text:visible").val('').focus();
             $("#quicksearch input[value='AND']").parent('td.select_span').click();
             $.get('search.php?newsearch=1');
-        }).tipsy();
+        }).button('widget')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
+                });
         $("#quicksearch").submit(function () {
             $("#quicksearch #search").click();
             return false;
@@ -4468,10 +4580,10 @@ var leftindex = {
             // show text field and separators
             $(".quicksearch").find(':text').hide().attr('disabled', true);
             $(".quicksearch").find(':text').eq(0).show().attr('disabled', false);
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find(':radio').attr('disabled', true);
-            $(".quicksearch").find('table').eq(0).show();
-            $(".quicksearch").find('table').eq(0).find(':radio').attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(0).show();
+            $("#quicksearch").find('.separators').eq(0).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('metadata');
             $('#quicksearch input[name="searchmode"]').val('quick');
@@ -4485,10 +4597,10 @@ var leftindex = {
             // show text field and separators
             $(".quicksearch").find(':text').hide().attr('disabled', true);
             $(".quicksearch").find(':text').eq(1).show().attr('disabled', false);
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find(':radio').attr('disabled', true);
-            $(".quicksearch").find('table').eq(1).show();
-            $(".quicksearch").find('table').eq(1).find(':radio').attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(1).show();
+            $("#quicksearch").find('.separators').eq(1).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('pdf');
             $('#quicksearch input[name="searchmode"]').val('advanced');
@@ -4502,10 +4614,10 @@ var leftindex = {
             // show text field and separators
             $(".quicksearch").find(':text').hide().attr('disabled', true);
             $(".quicksearch").find(':text').eq(2).show().attr('disabled', false);
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find(':radio').attr('disabled', true);
-            $(".quicksearch").find('table').eq(2).show();
-            $(".quicksearch").find('table').eq(2).find(':radio').attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(2).show();
+            $("#quicksearch").find('.separators').eq(2).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('pdfnotes');
             $('#quicksearch input[name="searchmode"]').val('advanced');
@@ -4519,10 +4631,10 @@ var leftindex = {
             // show text field and separators
             $(".quicksearch").find(':text').hide().attr('disabled', true);
             $(".quicksearch").find(':text').eq(3).show().attr('disabled', false);
-            $(".quicksearch").find('table').hide();
-            $(".quicksearch").find(':radio').attr('disabled', true);
-            $(".quicksearch").find('table').eq(3).show();
-            $(".quicksearch").find('table').eq(3).find(':radio').attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(3).show();
+            $("#quicksearch").find('.separators').eq(3).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('notes');
             $('#quicksearch input[name="searchmode"]').val('advanced');
@@ -4536,15 +4648,14 @@ var leftindex = {
             clickedTab = 0;
         $('#search-menu div:eq(' + clickedTab + ')').click();
         /////////////////////////////button effects///////////////////////////////////
-
-        $('td.leftbutton').hover(function () {
-            $(this).stop(true, true).fadeTo(0, '0.85')
-                    .prev().stop(true, true).fadeTo(0, '0.85');
-        },
-                function () {
-                    $(this).stop(true, true).fadeTo(200, '1')
-                            .prev().stop(true, true).fadeTo(200, '1');
+        $('#leftindex-left').find('button.menu').each(function(){
+            $(this).button()
+                .button('widget')
+                .removeClass('ui-corner-all')
+                .click(function () {
+                    $(this).removeClass('ui-state-focus');
                 });
+        });
         /////////////////////////////category navigation///////////////////////////////////
 
         $("#categorylink").click(function () {
@@ -5087,7 +5198,7 @@ var leftindex = {
             if ($keywords_top_container.is(':visible')) {
                 $.get('ajaxleftindex.php', 'open[]=keywords&select=' + sel + '&from=0', function (answer) {
                     $keywords_container.html(answer);
-                    if ($(answer).find('.key').length >= 1000) {
+                    if ($keywords_container.find('.key').length >= 1000) {
                         $("#next_keywords").show();
                         $("#prev_keywords").show();
                         $("#prevprev_keywords").show();
@@ -5456,7 +5567,7 @@ var download_pubmed = {
                 },
                 success: function () {
                     if ($('#saved-search-pubmed-' + srchid).length === 0) {
-                        $('#pubmed-container').append('<div class="pubmed"><div class="ui-state-highlight del-saved-search pubmed" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
+                        $('#pubmed-container').append('<div class="pubmed"><div class="ui-state-default del-saved-search pubmed" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
                                 + '<span class="saved-search pubmed" id=""></span><br>&nbsp;<span>Never</span></div><div style="clear:both"></div>');
                         $('span.saved-search').removeClass('clicked');
                         $('#pubmed-container > div.pubmed:last > span.saved-search').attr('id', 'saved-search-pubmed-' + encodeURIComponent(srch)).text(srch).addClass('clicked');
@@ -5559,7 +5670,7 @@ var download_pmc = {
                 },
                 success: function () {
                     if ($('#saved-search-pmc-' + srchid).length === 0) {
-                        $('#pmc-container').append('<div class="pmc"><div class="ui-state-highlight del-saved-search pmc" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
+                        $('#pmc-container').append('<div class="pmc"><div class="ui-state-default del-saved-search pmc" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
                                 + '<span class="saved-search pmc" id=""></span><br>&nbsp;<span>Never</span></div><div style="clear:both"></div>');
                         $('span.saved-search').removeClass('clicked');
                         $('#pmc-container > div.pmc:last > span.saved-search').attr('id', 'saved-search-pmc-' + encodeURIComponent(srch)).text(srch).addClass('clicked');
@@ -5658,7 +5769,7 @@ var download_nasa = {
                 },
                 success: function () {
                     if ($('#saved-search-nasaads-' + srchid).length === 0) {
-                        $('#nasaads-container').append('<div class="nasaads"><div class="ui-state-highlight del-saved-search nasaads"><i class="fa fa-trash-o"></i></div>'
+                        $('#nasaads-container').append('<div class="nasaads"><div class="ui-state-default del-saved-search nasaads"><i class="fa fa-trash-o"></i></div>'
                                 + '<span class="saved-search nasaads" id=""></span><br>&nbsp;<span>Never</span></div><div style="clear:both"></div>');
                         $('span.saved-search').removeClass('clicked');
                         $('#nasaads-container > div.nasaads:last > span.saved-search').attr('id', 'saved-search-nasaads-' + encodeURIComponent(srch)).text(srch).addClass('clicked');
@@ -5721,7 +5832,7 @@ var download_arxiv = {
                 },
                 success: function () {
                     if ($('#saved-search-arxiv-' + srchid).length === 0) {
-                        $('#arxiv-container').append('<div class="arxiv"><div class="ui-state-highlight del-saved-search arxiv" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
+                        $('#arxiv-container').append('<div class="arxiv"><div class="ui-state-default del-saved-search arxiv" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
                                 + '<span class="saved-search arxiv" id=""></span><br>&nbsp;<span>Never</span></div><div style="clear:both"></div>');
                         $('span.saved-search').removeClass('clicked');
                         $('#arxiv-container > div.arxiv:last > span.saved-search').attr('id', 'saved-search-arxiv-' + encodeURIComponent(srch)).text(srch).addClass('clicked');
@@ -5781,7 +5892,7 @@ var download_highwire = {
                 },
                 success: function () {
                     if ($('#saved-search-highwire-' + srchid).length === 0) {
-                        $('#highwire-container').append('<div class="highwire"><div class="ui-state-highlight del-saved-search highwire" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
+                        $('#highwire-container').append('<div class="highwire"><div class="ui-state-default del-saved-search highwire" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
                                 + '<span class="saved-search highwire" id=""></span></div><div style="clear:both"></div>');
                         $('span.saved-search').removeClass('clicked');
                         $('#highwire-container > div.highwire:last > span.saved-search').attr('id', 'saved-search-highwire-' + encodeURIComponent(srch)).text(srch).addClass('clicked');
@@ -5827,7 +5938,7 @@ var download_ieee = {
                 },
                 success: function () {
                     if ($('#saved-search-ieee-' + srchid).length === 0) {
-                        $('#ieee-container').append('<div class="ieee"><div class="ui-state-highlight del-saved-search ieee"><i class="fa fa-trash-o"></i></div>'
+                        $('#ieee-container').append('<div class="ieee"><div class="ui-state-default del-saved-search ieee"><i class="fa fa-trash-o"></i></div>'
                                 + '<span class="saved-search ieee" id=""></span></div><div style="clear:both"></div>');
                         $('span.saved-search').removeClass('clicked');
                         $('#ieee-container > div.ieee:last > span.saved-search').attr('id', 'saved-search-ieee-' + encodeURIComponent(srch)).text(srch).addClass('clicked');
@@ -5885,7 +5996,7 @@ var download_springer = {
                 },
                 success: function () {
                     if ($('#saved-search-springer-' + srchid).length === 0) {
-                        $('#springer-container').append('<div class="springer"><div class="ui-state-highlight del-saved-search springer" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
+                        $('#springer-container').append('<div class="springer"><div class="ui-state-default del-saved-search springer" style="float:right;margin:1px 0;padding:0 4px"><i class="fa fa-trash-o"></i></div>'
                                 + '<span class="saved-search springer" id=""></span></div><div style="clear:both"></div>');
                         $('span.saved-search').removeClass('clicked');
                         $('#springer-container > div.springer:last > span.saved-search').attr('id', 'saved-search-springer-' + encodeURIComponent(srch)).text(srch).addClass('clicked');

@@ -427,7 +427,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $message[] = htmlspecialchars("The PDF file has been recorded.<br>" . $title);
                     unlink($converted_file);
                 }
-                $supplement_filename = sprintf("%06d", intval($new_file)) . $_FILES['form_new_file']['name'];
+                $supplement_filename = sprintf("%05d", intval($new_file)) . $_FILES['form_new_file']['name'];
                 copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
             } else {
                 $error[] = "Error! No PDF was found.<br>" . $title;
@@ -873,7 +873,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <input type="hidden" name="form_sent">
             <br><br>
             <div style="width:80%;margin:auto">
-                <div class="ui-state-highlight ui-corner-all" style="float:left;margin-bottom:4px;padding:1px 4px;cursor:auto">
+                <div class="ui-state-default ui-corner-all" style="float:left;margin-bottom:4px;padding:1px 4px;cursor:auto">
                     <i class="fa fa-signin"></i>
                     Add single items using:
                 </div>
@@ -997,24 +997,24 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             <table cellspacing=0 style="width:100%;margin-top: 4px;margin-bottom: 1px;">
                 <tr>
                     <td>
-                        <div class="ui-state-highlight ui-corner-all" style="float:left;margin-left:4px;padding:1px 4px;cursor:auto">
+                        <div class="ui-state-default ui-corner-all" style="float:left;margin-left:4px;padding:1px 4px;cursor:auto">
                             <i class="fa fa-signin"></i>
                             Add New Item
                         </div>
-                        <div class="ui-state-highlight ui-corner-top open2" style="float:right;margin-left:2px;margin-right:4px;padding:1px 4px">
+                        <div class="ui-state-default ui-corner-top open2" style="float:right;margin-left:2px;margin-right:4px;padding:1px 4px">
                             <i class="fa fa-paperclip"></i> Supplements
                         </div>
-                        <div class="ui-state-highlight ui-corner-top open3" style="float:right;margin-left:2px;padding:1px 4px">
+                        <div class="ui-state-default ui-corner-top open3" style="float:right;margin-left:2px;padding:1px 4px">
                             <i class="fa fa-tags"></i> Categories
                         </div>
-                        <div class="ui-state-highlight ui-corner-top open1 clicked" style="float:right;padding:1px 4px">
+                        <div class="ui-state-default ui-corner-top open1 clicked" style="float:right;padding:1px 4px">
                             <i class="fa fa-file-text-o"></i> Metadata
                         </div>
                     </td>
                 </tr>
             </table>
 
-            <table cellspacing="0" style="width:100%;border-top: solid 1px #D5D6D8" class="test">
+            <table cellspacing="0" style="width:100%;" class="threed">
                 <tr>
                     <td class="threedleft">
                         <button class="uploadsave"><i class="fa fa-save"></i> Save</button>
@@ -1086,7 +1086,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 </tr>
             </table>
 
-            <table cellspacing="0" style="width:100%" class="table1">
+            <table cellspacing="0" style="width:100%" class="table1 threed">
                 <tr>
                     <td class="threedleft">
                         Local file (PDF, Office):
@@ -1543,7 +1543,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     </td>
                 </tr>
             </table>
-            <table cellspacing="0" style="width:100%;display:none" class="table2">
+            <table cellspacing="0" style="width:100%;display:none" class="table2 threed">
                 <tr>
                     <td class="threedleft">
                         Graphical abstract:
@@ -1561,14 +1561,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     </td>
                 </tr>
             </table>
-            <table cellspacing="0" style="width:100%;display:none" class="table3">
+            <table cellspacing="0" style="width:100%;display:none" class="table3 threed">
                 <tr>
                     <td class="threedleft">
                         Choose&nbsp;category:<br>
                     </td>
                     <td class="threedright">
                         <input type="text" id="filtercategories" value="" placeholder="Filter categories" style="width:300px;margin:0.75em 0">
-                        <div class="categorydiv" style="width: 99%;overflow:scroll; height: 400px;background-color: white;color: black;border: 1px solid #C5C6C9">
+                        <div class="categorydiv" style="width: 99%;overflow:scroll; height: 400px;background-color: white;color: black;border: 1px solid rgba(0,0,0,0.15)">
                             <table cellspacing=0 style="float:left;width: 49%">
                                 <?php
                                 $category_string = null;

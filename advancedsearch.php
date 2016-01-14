@@ -964,30 +964,16 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         <table style="width:99.5%">
             <tr>
                 <td style="width:60%">
-                    <table id="advancedsearchtabs">
-                        <tr>
-                            <td>
-                                <div class="ui-state-highlight ui-corner-top clicked" style="margin-left:2px;padding:1px 4px" id="advtab-search-ref">
-                                    <i class="fa fa-search"></i> References
-                                </div>
-                            </td>
-                            <td>
-                                <div class="ui-state-highlight ui-corner-top" style="margin-left:2px;padding:1px 4px" id="advtab-search-pdf">
-                                    <i class="fa fa-search"></i> PDFs
-                                </div>
-                            </td>
-                            <td style="<?php if (!isset($_SESSION['auth'])) print 'display:none'; ?>">
-                                <div class="ui-state-highlight ui-corner-top" style="margin-left:2px;padding:1px 4px" id="advtab-search-pdfnotes">
-                                    <i class="fa fa-search"></i> PDF Notes
-                                </div>
-                            </td>
-                            <td style="<?php if (!isset($_SESSION['auth'])) print 'display:none'; ?>">
-                                <div class="ui-state-highlight ui-corner-top" style="margin-left:2px;padding:1px 4px" id="advtab-search-notes">
-                                    <i class="fa fa-search"></i> Rich-Text Notes
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                  <div id="advancedsearchtabs">
+                    <input type="radio" id="advtab-search-ref" name="radio" checked>
+                    <label for="advtab-search-ref">References</label>
+                    <input type="radio" id="advtab-search-pdf" name="radio">
+                    <label for="advtab-search-pdf">PDFs</label>
+                    <input type="radio" id="advtab-search-pdfnotes" name="radio">
+                    <label for="advtab-search-pdfnotes">PDF Notes</label>
+                    <input type="radio" id="advtab-search-notes" name="radio">
+                    <label for="advtab-search-notes">Rich-Text Notes</label>
+                  </div>
                 </td>
                 <td style="width:40%">
                     <table style="margin-left:1px;margin-right:auto;width:100%">
@@ -1212,7 +1198,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         <table cellspacing=0 class="threed" style="width:40%">
             <tr>
                 <td class="threed" colspan=2>
-                    <div style="height:298px;overflow:auto;border: 1px solid #C5C6C9;background-color:#FFF">
+                    <div style="height:22.3em;overflow:auto;border: 1px solid rgba(0,0,0,0.15);background-color:#FFF">
                         <table cellspacing=0 style="width: 50%;float: left;padding:2px">
                             <tr>
                                 <td class="select_span">

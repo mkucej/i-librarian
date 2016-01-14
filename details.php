@@ -42,7 +42,7 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print "<td class=\"details\">";
 
-        print version_compare(PHP_VERSION, "5.4.0", "<") ? "<span style=\"color: red; font-weight: bold\">!!!</span>" : "<span style=\"color: green; font-weight: bold\">OK</span>";
+        print version_compare(PHP_VERSION, "5.4.0", "<") ? "<span style=\" font-weight: bold\">!!!</span>" : "<span style=\" font-weight: bold\">OK</span>";
 
         print "</td></tr>";
 
@@ -60,7 +60,7 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         print "<td class=\"details\" style=\"\">";
 
-        print version_compare($sqlite_version, "3.7.11", "<") ? "<span style=\"color: red; font-weight: bold\">!!!</span>" : "<span style=\"color: green; font-weight: bold\">OK</span>";
+        print version_compare($sqlite_version, "3.7.11", "<") ? "<span style=\" font-weight: bold\">!!!</span>" : "<span style=\" font-weight: bold\">OK</span>";
 
         print "</td></tr>";
 
@@ -78,9 +78,9 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<tr><td class=\"details\" style=\"white-space: nowrap\">$extension</td><td class=\"details\" style=\"white-space: nowrap\">$feature</td>";
 
             if (extension_loaded($extension)) {
-                print "<td class=\"details\">installed</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+                print "<td class=\"details\">installed</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
             } else {
-                print "<td class=\"details\">not installed</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+                print "<td class=\"details\">not installed</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
             }
         }
 
@@ -93,9 +93,9 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<tr><td class=\"details\" style=\"white-space: nowrap\">$extension</td><td class=\"details\" style=\"white-space: nowrap\">$feature</td>";
 
             if (extension_loaded($extension)) {
-                print "<td class=\"details\">installed</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+                print "<td class=\"details\">installed</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
             } else {
-                print "<td class=\"details\">not installed</td><td class=\"details\" style=\"color: gray; font-weight: bold\">!!!</td></tr>";
+                print "<td class=\"details\">not installed</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
             }
         }
 
@@ -117,12 +117,12 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
                 print "<tr><td class=\"details\" style=\"white-space: nowrap\">$directive</td>";
                 print "<td class=\"details\" style=\"\">recommended $value</td>";
                 print "<td class=\"details\" style=\"\">" . ini_get($directive) . "</td>";
-                print "<td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+                print "<td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
             } else {
                 print "<tr><td class=\"details\" style=\"white-space: nowrap\">$directive</td>";
                 print "<td class=\"details\" style=\"\">recommended $value</td>";
                 print "<td class=\"details\" style=\"\">" . ini_get($directive) . "</td>";
-                print "<td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+                print "<td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
             }
         }
 
@@ -131,12 +131,12 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<tr><td class=\"details\" style=\"white-space: nowrap\">open_basedir</td>";
             print "<td class=\"details\" style=\"\">required disabled</td>";
             print "<td class=\"details\" style=\"\">" . ini_get('open_basedir') . "</td>";
-            print "<td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+            print "<td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         } else {
             print "<tr><td class=\"details\" style=\"white-space: nowrap\">open_basedir</td>";
             print "<td class=\"details\" style=\"\">required disabled</td>";
             print "<td class=\"details\" style=\"\">disabled</td>";
-            print "<td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+            print "<td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
         }
 
         if (ini_get('allow_url_fopen') != true) {
@@ -144,12 +144,12 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<tr><td class=\"details\" style=\"white-space: nowrap\">allow_url_fopen</td>";
             print "<td class=\"details\" style=\"\">required On</td>";
             print "<td class=\"details\" style=\"\">Off</td>";
-            print "<td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+            print "<td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         } else {
             print "<tr><td class=\"details\" style=\"white-space: nowrap\">allow_url_fopen</td>";
             print "<td class=\"details\" style=\"\">required On</td>";
             print "<td class=\"details\" style=\"\">On</td>";
-            print "<td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+            print "<td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
         }
 
         print "<tr><td class=\"details alternating_row\" style=\"width: 100%\" colspan=4>Required binary executables:</td></tr>";
@@ -227,7 +227,7 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             if (!is_executable($soffice_path[0] . DIRECTORY_SEPARATOR . 'soffice.exe')) {
                 echo '<tr><td class="details">LibreOffice Path:</td><td class="details" colspan=3>';
                 echo '<form id="details-form"><input type="text" name="soffice_path" value="' . $soffice_path . '" style="width:30em">';
-                echo ' <span class="ui-state-highlight">&nbsp;Save&nbsp;</span></form>';
+                echo ' <span class="ui-state-default">&nbsp;Save&nbsp;</span></form>';
                 echo '</td></tr>';
             }
         }
@@ -239,50 +239,50 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
         if (is_writable(IL_PDF_PATH) && @file_exists(IL_PDF_PATH . DIRECTORY_SEPARATOR . '.')) {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
         } else {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         }
 
         print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to supplementary files:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_SUPPLEMENT_PATH . "</td>";
 
         if (is_writable(IL_SUPPLEMENT_PATH) && @file_exists(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '.')) {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
         } else {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         }
 
         print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to database files:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_DATABASE_PATH . "</td>";
 
         if (is_writable(IL_DATABASE_PATH) && @file_exists(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . '.')) {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
         } else {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         }
 
         print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to PDF images:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_IMAGE_PATH . "</td>";
 
         if (is_writable(IL_IMAGE_PATH) && @file_exists(IL_IMAGE_PATH . DIRECTORY_SEPARATOR . '.')) {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
         } else {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         }
 
-        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Temporary directory:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_TEMP_PATH . " <span id=\"clear-trash\" class=\"ui-state-highlight\">&nbsp;<i class=\"fa fa-trash-o\"></i> Clear&nbsp;</span></td>";
+        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Temporary directory:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_TEMP_PATH . " <span id=\"clear-trash\" class=\"ui-state-default\">&nbsp;<i class=\"fa fa-trash-o\"></i> Clear&nbsp;</span></td>";
 
         if (is_writable(IL_TEMP_PATH) && @file_exists(IL_TEMP_PATH . DIRECTORY_SEPARATOR . '.')) {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
         } else {
 
-            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         }
     }
 
@@ -299,16 +299,16 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
 
             print "<tr><td class=\"details\">$database_file</td>";
             print "<td class=\"details\"><div class=\"file-size\" style=\"width:7em;float:left\">" . $dbsize . "B</div>";
-            print ' <span class="ui-state-highlight integrity" data-db="' . basename($database_file, '.sq3') . '">&nbsp;Check Integrity&nbsp;</span>';
-            print ' <span class="ui-state-highlight vacuum" data-db="' . basename($database_file, '.sq3') . '">&nbsp;Vacuum&nbsp;</span>';
+            print ' <span class="ui-state-default integrity" data-db="' . basename($database_file, '.sq3') . '">&nbsp;Check Integrity&nbsp;</span>';
+            print ' <span class="ui-state-default vacuum" data-db="' . basename($database_file, '.sq3') . '">&nbsp;Vacuum&nbsp;</span>';
             print '</td>';
 
             if (is_writable(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . $database_file)) {
 
-                print "<td class=\"details\" style=\"white-space: nowrap\">writable</td><td class=\"details\" style=\"color: green; font-weight: bold\">OK</td></tr>";
+                print "<td class=\"details\" style=\"white-space: nowrap\">writable</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
             } else {
 
-                print "<td class=\"details\" style=\"white-space: nowrap\">not writable</td><td class=\"details\" style=\"color: red; font-weight: bold\">!!!</td></tr>";
+                print "<td class=\"details\" style=\"white-space: nowrap\">not writable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
             }
         }
     }

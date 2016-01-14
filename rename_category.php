@@ -94,9 +94,9 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && ($_SESSION['p
         while ($category = $stmt->fetch(PDO::FETCH_NUM)) {
             ?>
             <tr>
-                <td style="padding:4px<?php if ($category[2] == 0) print ';background-color:rgba(0,20,255,0.1)' ?>">
-                    <span class="ui-state-highlight deletebutton" style="padding:1px 3px"><i class="fa fa-trash-o"></i> Delete</span>
-                    <span class="ui-state-highlight renamebutton" style="padding:1px 3px"><i class="fa fa-pencil"></i> Rename</span>
+                <td style="padding:4px" <?php if ($category[2] == 0) echo 'class="ui-state-active"'; ?>>
+                    <span class="ui-state-default deletebutton" style="padding:1px 3px"><i class="fa fa-trash-o"></i> Delete</span>
+                    <span class="ui-state-default renamebutton" style="padding:1px 3px"><i class="fa fa-pencil"></i> Rename</span>
                     <?php
                     print '<input type="text" class="editcategory" style="width:60%;padding:0 4px" data-id="' . htmlspecialchars($category[0]) . '" '
                             . 'data-content="' . htmlspecialchars($category[1]) . '" value="'. htmlspecialchars($category[1]).'"> Items: '. $category[2];

@@ -10,7 +10,7 @@ if (!empty($_GET['intro'])) {
     ?>
 
     <div class="item-sticker ui-widget-content ui-corner-all" style="margin:auto;margin-top:100px;width:340px">
-        <div class="ui-widget-header ui-dialog-titlebar ui-corner-top titles file-title" style="border:0;text-align:center">
+        <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="border:0;text-align:center">
             Batch PDF re-indexing
         </div>
         <div class="separator" style="margin:0"></div>

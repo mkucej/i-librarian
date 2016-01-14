@@ -407,13 +407,13 @@ if (isset($_SESSION['auth'])) {
 
             print '<table class="top" style="margin-bottom:1px"><tr><td style="width: 13em">';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-top' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align: center">'
                     . ($retstart == 0 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_pubmed.php?webenv=' . urlencode($webenv) . '&querykey=' . urlencode($querykey) . '&retstart=0&count=' . $count) . '" style="display:block;width:26px">') .
                     '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                     . ($retstart == 0 ? '' : '</a>') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-top' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align: center">'
                     . ($retstart == 0 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_pubmed.php?webenv=' . urlencode($webenv) . '&querykey=' . urlencode($querykey) . '&retstart=' . ($retstart - 10) . '&count=' . $count) . '" style="color:black;display:block;width:100%">') .
                     '<i class="fa fa-caret-left"></i>&nbsp;Back'
                     . ($retstart == 0 ? '' : '</a>') .
@@ -427,19 +427,19 @@ if (isset($_SESSION['auth'])) {
 
             (($count % 10) == 0) ? $lastpage = $count - 10 : $lastpage = $count - ($count % 10);
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-top' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align: center">'
                     . ($count > $retstart + 10 ? '<a class="navigation" href="' . htmlspecialchars("download_pubmed.php?webenv=" . urlencode($webenv) . "&querykey=" . urlencode($querykey) . "&retstart=$lastpage&count=$count") . '" style="display:block;width:26px">' : '') .
                     '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                     . ($count > $retstart + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-top' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align: center">'
                     . ($count > $retstart + 10 ? '<a class="navigation" href="' . htmlspecialchars("download_pubmed.php?webenv=" . urlencode($webenv) . "&querykey=" . urlencode($querykey) . "&retstart=" . ($retstart + 10) . "&count=$count") . '" style="color:black;display:block;width:100%">' : '') .
                     '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                     . ($count > $retstart + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px">PgDn</div>';
+            print '<div class="ui-state-default ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px;text-align: center">PgDn</div>';
 
             print '</td></tr></table>';
 
@@ -584,13 +584,13 @@ if (isset($_SESSION['auth'])) {
 
             print '<table class="top" style="margin-top:1px"><tr><td class="top" style="width: 50%">';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align: center">'
                     . ($retstart == 0 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_pubmed.php?webenv=' . urlencode($webenv) . '&querykey=' . urlencode($querykey) . '&retstart=0&count=' . $count) . '" style="display:block;width:26px">') .
                     '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                     . ($retstart == 0 ? '' : '</a>') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($retstart == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align: center">'
                     . ($retstart == 0 ? '' : '<a class="navigation prevpage" href="' . htmlspecialchars('download_pubmed.php?webenv=' . urlencode($webenv) . '&querykey=' . urlencode($querykey) . '&retstart=' . ($retstart - 10) . '&count=' . $count) . '" style="color:black;display:block;width:100%">') .
                     '<i class="fa fa-caret-left"></i>&nbsp;Back'
                     . ($retstart == 0 ? '' : '</a>') .
@@ -598,19 +598,19 @@ if (isset($_SESSION['auth'])) {
 
             print '</td><td class="top" style="width: 50%">';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align: center">'
                     . ($count > $retstart + 10 ? '<a class="navigation" href="' . htmlspecialchars("download_pubmed.php?webenv=" . urlencode($webenv) . "&querykey=" . urlencode($querykey) . "&retstart=$lastpage&count=$count") . '" style="display:block;width:26px">' : '') .
                     '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                     . ($count > $retstart + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($count > $retstart + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align: center">'
                     . ($count > $retstart + 10 ? '<a class="navigation nextpage" href="' . htmlspecialchars("download_pubmed.php?webenv=" . urlencode($webenv) . "&querykey=" . urlencode($querykey) . "&retstart=" . ($retstart + 10) . "&count=$count") . '" style="color:black;display:block;width:100%">' : '') .
                     '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                     . ($count > $retstart + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px">PgUp</div>';
+            print '<div class="ui-state-default ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px;text-align: center">PgUp</div>';
 
             print '</td></tr></table><br>';
         } else {
@@ -625,7 +625,7 @@ if (isset($_SESSION['auth'])) {
         <div style="text-align: left">
             <form enctype="application/x-www-form-urlencoded" action="download_pubmed.php" method="GET" id="download-form">
                 <input type="hidden" name="form_submitted" value="">
-                <div class="ui-state-highlight ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
+                <div class="ui-state-default ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
                     <a href="http://www.pubmed.org" target="_blank" style="display:block"><i class="fa fa-external-link"></i> PubMed</a>
                 </div>
                 <div style="clear:both"></div>

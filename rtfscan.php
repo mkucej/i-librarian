@@ -272,7 +272,7 @@ if (!empty($_POST['bibliography']) && count($_POST['cites']) > 0 && !empty($_POS
 }
 ?>
 <div class="item-sticker ui-widget-content ui-corner-all" style="margin: auto;width:50%;margin-top:4em">
-    <div class="ui-widget-header ui-dialog-titlebar ui-corner-top" style="text-align:center;font-size:13px;border:0">Manuscript citation scan</div>
+    <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="text-align:center">Manuscript citation scan</div>
     <form id="rtfscanform" enctype="multipart/form-data" action="rtfscan.php" method="POST">
         <table cellspacing="0" class="alternating_row ui-corner-bottom" style="width:100%;border-spacing:6px;margin:auto">
             <tr>

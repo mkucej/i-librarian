@@ -64,7 +64,7 @@ if (isset($_SESSION['auth'])) {
                                 <?php
                                 echo '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a>';
                                 echo '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . $paper['file']) . '" target="_blank">'
-                                        . '<i class="fa fa-external-link" style="color:initial;margin-left:0.5em"></i></a>';
+                                        . '<i class="fa fa-external-link" style="color:inherit;margin-left:0.5em"></i></a>';
                                 ?>
                             </td>
 
@@ -72,14 +72,14 @@ if (isset($_SESSION['auth'])) {
                             if (!empty($fulltext)) {
                                 ?>
                                 <td style="width:8em">
-                                    <div class="ui-state-highlight" style="float:right;padding:1px 4px">
+                                    <div class="ui-state-default" style="float:right;padding:1px 4px">
                                         <a href="viewindex.php?file=<?php print $_GET['file'] ?>" target="_blank" style="display:block;color:#000000">
                                             <i class="fa fa-file-text-o"></i> See Text
                                         </a>
                                     </div>
                                 </td>
                                 <td style="width:6.5em">
-                                    <div class="ui-state-highlight reindex" id="reindex-<?php print $_GET['file'] ?>" style="float:right;padding:1px 4px">
+                                    <div class="ui-state-default reindex" id="reindex-<?php print $_GET['file'] ?>" style="float:right;padding:1px 4px">
                                         <i class="fa fa-refresh"></i> Reindex
                                     </div>
                                 </td>
@@ -88,10 +88,10 @@ if (isset($_SESSION['auth'])) {
                                 ?>
                                 <td style="width:25em;text-align:right">
                                     No extractable text.
-                                    <div class="ui-state-highlight ocr" style="float:right;padding:1px 4px;margin-left:0.5em">
+                                    <div class="ui-state-default ocr" style="float:right;padding:1px 4px;margin-left:0.5em">
                                         <i class="fa fa-file-text-o"></i> Try OCR
                                     </div>
-                                    <div class="ui-state-highlight reindex" id="reindex-<?php print $_GET['file'] ?>" style="float:right;padding:1px 4px;margin-left:0.5em">
+                                    <div class="ui-state-default reindex" id="reindex-<?php print $_GET['file'] ?>" style="float:right;padding:1px 4px;margin-left:0.5em">
                                         <i class="fa fa-refresh"></i> Reindex
                                     </div>
                                 </td>
@@ -119,10 +119,10 @@ if (isset($_SESSION['auth'])) {
                               <i class="fa fa-image" style="width:1.5em;cursor: pointer"></i> 
                               <a href="' . htmlspecialchars('attachment.php?attachment=' . basename($gr_abs[0])) . '">' . $url_filename . '</a>
                               <a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($gr_abs[0])) . '" target="_blank">
-                              <i class="fa fa-external-link" style="color:initial;margin-left:0.5em"></i></a>
+                              <i class="fa fa-external-link" style="color:inherit;margin-left:0.5em"></i></a>
                               </td>
                               <td style="height:22px;line-height:22px">
-                               <div class="ui-state-highlight file-remove" style="float:right;padding:1px 4px"><i class="fa fa-trash-o"></i> Remove</div>
+                               <div class="ui-state-default file-remove" style="float:right;padding:1px 4px"><i class="fa fa-trash-o"></i> Remove</div>
                               </td>
                              </tr>
                             </table>';
@@ -184,7 +184,7 @@ if (isset($_SESSION['auth'])) {
 
                                         if ($isimage || $isaudio || $isvideo || $extension == 'pdf') {
                                             print '<a href="' . htmlspecialchars('attachment.php?mode=inline&attachment=' . basename($supplementary_file)) . '" target="_blank">';
-                                            print '<i class="fa fa-external-link" style="color:initial;margin-left:0.5em"></i></a>' . PHP_EOL;
+                                            print '<i class="fa fa-external-link" style="color:inherit;margin-left:0.5em"></i></a>' . PHP_EOL;
                                         }
 
                                         print '<input class="rename_container" type="text" size="35" name="rename[' . htmlspecialchars(basename($supplementary_file)) . ']" value="' . htmlspecialchars($url_filename) . '" style="display:none;margin-top:1px;width:90%">' . PHP_EOL;
@@ -193,13 +193,13 @@ if (isset($_SESSION['auth'])) {
 
                                         print '<td style="width:6.5em;height:22px">' . PHP_EOL;
 
-                                        print '<div class="ui-state-highlight file-rename" style="float:right;padding:1px 4px"><i class="fa fa-pencil"></i> Rename</div>' . PHP_EOL;
+                                        print '<div class="ui-state-default file-rename" style="float:right;padding:1px 4px"><i class="fa fa-pencil"></i> Rename</div>' . PHP_EOL;
 
                                         print '</td>' . PHP_EOL;
 
                                         print '<td style="width:6.5em;height:22px">' . PHP_EOL;
 
-                                        print '<div class="ui-state-highlight file-remove" style="float:right;padding:1px 4px"><i class="fa fa-trash-o"></i> Remove</div>' . PHP_EOL;
+                                        print '<div class="ui-state-default file-remove" style="float:right;padding:1px 4px"><i class="fa fa-trash-o"></i> Remove</div>' . PHP_EOL;
 
                                         print '</td></tr>' . PHP_EOL;
 

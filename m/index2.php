@@ -38,14 +38,6 @@ $ini_array = parse_ini_file("../ilibrarian.ini");
  * LDAP settings from ilibrarian.ini.
  */
 $ldap_active = $ini_array['ldap_active'];
-$ldap_version = $ini_array['ldap_version'];
-$ldap_server = $ini_array['ldap_server'];
-$ldap_port = $ini_array['ldap_port'];
-$ldap_basedn = $ini_array['ldap_basedn'];
-$ldap_rdn = $ini_array['ldap_rdn'];
-$ldap_cn = $ini_array['ldap_cn'];
-$ldap_admin_cn = $ini_array['ldap_admin_cn'];
-$ldap_filter = $ini_array['ldap_filter'];
 if (!extension_loaded('ldap'))
     $ldap_active = false;
 
@@ -105,10 +97,10 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
                     <h3>loading</h3>
                 </div>
                 <div data-role="panel" data-position="left" data-display="overlay" data-theme="none"
-                     id="panel-desk" style="background-color:rgba(60,60,70,1);color:#fff;"><div>loading projects...</div>
+                     id="panel-desk" style="background-color:rgba(40,40,50,1);color:#fff;"><div>loading projects...</div>
                 </div>
                 <div data-role="panel" data-position="right" data-display="overlay" data-theme="none"
-                     id="panel-menu" style="background-color:rgba(60,60,70,1);color:#fff;">
+                     id="panel-menu" style="background-color:rgba(40,40,50,1);color:#fff;">
                     <div data-role="collapsible-set" data-content-theme="a" style="margin:0">
                         <div data-role="collapsible">
                             <h3>Search</h3>
@@ -241,7 +233,7 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
             ?>
             <div id="signin-background" data-role="page" data-theme="a">
                 <div data-role="panel" data-position="right" data-display="overlay" data-theme="none"
-                     id="mypanel" style="background-color:rgba(60,60,70,1);color:#fff;padding-top:40px">
+                     id="mypanel" style="background-color:rgba(40,40,50,1);color:#fff;padding-top:40px">
                     <button data-icon="alert" data-iconpos="left">Wrong credentials.</button>
                 </div>
                 <div data-role="header">

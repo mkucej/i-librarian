@@ -24,218 +24,81 @@ $number_of_users = count($users);
 ?>
 <div class="leftindex" id="leftindex-left" style="float:left;width:233px;height:100%;overflow:scroll">
     <form id="quicksearch" action="search.php" method="GET" target="rightpanel">
-        <table class="ui-state-highlight" style="width:100%;border-bottom:1px solid rgba(0,0,0,0.15)">
+        <table class="ui-state-default" style="width:100%;border-bottom:none">
             <tr>
-                <td class="quicksearch">
-                    <input type="text" name="anywhere" placeholder="Quick Search" style="width:99%"
-                           value="<?php print isset($_SESSION['session_anywhere']) ? htmlspecialchars($_SESSION['session_anywhere']) : ''; ?>">
-                    <input type="text" name="fulltext" placeholder="PDF Search" style="width:99%;display:none"
-                           value="<?php print isset($_SESSION['session_fulltext']) ? htmlspecialchars($_SESSION['session_fulltext']) : ''; ?>">
-                    <input type="text" name="pdfnotes" placeholder="PDF Notes Search" style="width:99%;display:none" 
-                           value="<?php print isset($_SESSION['session_pdfnotes']) ? htmlspecialchars($_SESSION['session_pdfnotes']) : ''; ?>">
-                    <input type="text" name="notes" placeholder="Rich-Text Notes Search" style="width:99%;display:none"
-                           value="<?php print isset($_SESSION['session_notes']) ? htmlspecialchars($_SESSION['session_notes']) : ''; ?>">
-                </td>
-            </tr>
-            <tr>
-                <td class="quicksearch">
-                    <table style="float:left;margin-top:0.2em;margin-left:2px">
-                        <tr>
-                            <td class="select_span">
-                                <input type="radio" name="anywhere_separator" value="AND" style="display:none"
-                                <?php
-                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'AND') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'AND') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> and&nbsp;&nbsp;
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="anywhere_separator" value="OR" style="display:none"
-                                <?php
-                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'OR') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'OR') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> or&nbsp;&nbsp;
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="anywhere_separator" value="PHRASE" style="display:none"
-                                <?php
-                                if (!isset($_SESSION['session_anywhere_separator']) || (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'PHRASE')) echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (!isset($_SESSION['session_anywhere_separator']) || (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'PHRASE')) {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> phrase
-                            </td>
-                        </tr>
-                    </table>
-                    <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
-                        <tr>
-                            <td class="select_span">
-                                <input type="radio" name="fulltext_separator" value="AND" style="display:none"
-                                <?php
-                                if (!isset($_SESSION['session_fulltext_separator']) || $_SESSION['session_fulltext_separator'] == 'AND') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (!isset($_SESSION['session_fulltext_separator']) || $_SESSION['session_fulltext_separator'] == 'AND') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> and&nbsp;&nbsp;
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="fulltext_separator" value="OR" style="display:none"
-                                <?php
-                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'OR') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'OR') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> or&nbsp;&nbsp;
-                            </td>
-                        </tr>
-                    </table>
-                    <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
-                        <tr>
-                            <td class="select_span">
-                                <input type="radio" name="pdfnotes_separator" value="AND" style="display:none"
-                                <?php
-                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'AND') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'AND') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> and&nbsp;&nbsp;
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="pdfnotes_separator" value="OR" style="display:none"
-                                <?php
-                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'OR') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'OR') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> or&nbsp;&nbsp;
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="pdfnotes_separator" value="PHRASE" style="display:none"
-                                <?php
-                                if (!isset($_SESSION['session_pdfnotes_separator']) || (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'PHRASE')) echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (!isset($_SESSION['session_pdfnotes_separator']) || (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'PHRASE')) {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> phrase
-                            </td>
-                        </tr>
-                    </table>
-                    <table style="display:none;float:left;margin-top:0.2em;margin-left:2px">
-                        <tr>
-                            <td class="select_span">
-                                <input type="radio" name="notes_separator" value="AND" style="display:none"
-                                <?php
-                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'AND') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'AND') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> and&nbsp;&nbsp;
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="notes_separator" value="OR" style="display:none"
-                                <?php
-                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'OR') echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'OR') {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> or&nbsp;&nbsp;
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="notes_separator" value="PHRASE" style="display:none"
-                                <?php
-                                if (!isset($_SESSION['session_notes_separator']) || (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'PHRASE')) echo 'checked';
-                                ?>
-                                >
-                                <i class="fa
-                                <?php
-                                if (!isset($_SESSION['session_notes_separator']) || (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'PHRASE')) {
-                                    echo 'fa-circle';
-                                } else {
-                                    echo 'fa-circle-o';
-                                }
-                                ?>
-                                "></i> phrase
-                            </td>
-                        </tr>
-                    </table>
-                    <button id="search" style="width:34px;height:24px" title="Search"><i class="fa fa-search"></i></button><button
-                        id="clear" style="width:24px;height:24px" title="Clear"><i class="fa fa-trash-o"></i></button>
+                <td class="quicksearch" style="padding:0">
+                    <input type="text" name="anywhere" placeholder="Quick Search"
+                           value="<?php echo isset($_SESSION['session_anywhere']) ? htmlspecialchars($_SESSION['session_anywhere']) : ''; ?>">
+                    <input type="text" name="fulltext" placeholder="PDF Search" style="display:none"
+                           value="<?php echo isset($_SESSION['session_fulltext']) ? htmlspecialchars($_SESSION['session_fulltext']) : ''; ?>">
+                    <input type="text" name="pdfnotes" placeholder="PDF Notes Search" style="display:none" 
+                           value="<?php echo isset($_SESSION['session_pdfnotes']) ? htmlspecialchars($_SESSION['session_pdfnotes']) : ''; ?>">
+                    <input type="text" name="notes" placeholder="Rich-Text Notes Search" style="display:none"
+                           value="<?php echo isset($_SESSION['session_notes']) ? htmlspecialchars($_SESSION['session_notes']) : ''; ?>">
                 </td>
             </tr>
         </table>
+        <div id="anywhere_separator" class="separators">
+            <input type="radio" id="anywhere-separator1" name="anywhere-separator" value="AND"<?php
+            if (!isset($_SESSION['session_anywhere_separator']) || $_SESSION['session_anywhere_separator'] == 'AND') echo 'checked';
+            ?>>
+            <label for="anywhere-separator1">AND</label>
+            <input type="radio" id="anywhere-separator2" name="anywhere-separator" value="OR"<?php
+            if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'OR') echo 'checked';
+            ?>>
+            <label for="anywhere-separator2">OR</label>
+            <input type="radio" id="anywhere-separator3" name="anywhere-separator" value="PHRASE"<?php
+            if (isset($_SESSION['session_anywhere_separator']) && $_SESSION['session_anywhere_separator'] == 'PHRASE') echo 'checked';
+            ?>>
+            <label for="anywhere-separator3">phrase</label>
+        </div>
+        <div id="fulltext_separator" class="separators" style="display:none">
+            <input type="radio" id="fulltext-separator1" name="fulltext-separator" value="AND"<?php
+            if (!isset($_SESSION['session_fulltext_separator']) || $_SESSION['session_fulltext_separator'] == 'AND') echo 'checked';
+            ?>>
+            <label for="fulltext-separator1">AND</label>
+            <input type="radio" id="fulltext-separator2" name="fulltext-separator" value="OR"<?php
+            if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'OR') echo 'checked';
+            ?>>
+            <label for="fulltext-separator2">OR</label>
+            <input type="radio" id="fulltext-separator3" name="fulltext-separator" value="PHRASE"<?php
+            if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'PHRASE') echo 'checked';
+            ?> disabled>
+            <label for="fulltext-separator3">phrase</label>
+        </div>
+        <div id="pdfnotes_separator" class="separators" style="display:none">
+            <input type="radio" id="pdfnotes-separator1" name="pdfnotes-separator" value="AND"<?php
+            if (!isset($_SESSION['session_pdfnotes_separator']) || $_SESSION['session_pdfnotes_separator'] == 'AND') echo 'checked';
+            ?>>
+            <label for="pdfnotes-separator1">AND</label>
+            <input type="radio" id="pdfnotes-separator2" name="pdfnotes-separator" value="OR"<?php
+            if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'OR') echo 'checked';
+            ?>>
+            <label for="pdfnotes-separator2">OR</label>
+            <input type="radio" id="pdfnotes-separator3" name="pdfnotes-separator" value="PHRASE"<?php
+            if (isset($_SESSION['session_pdfnotes_separator']) && $_SESSION['session_pdfnotes_separator'] == 'PHRASE') echo 'checked';
+            ?>>
+            <label for="pdfnotes-separator3">phrase</label>
+        </div>
+        <div id="notes_separator" class="separators" style="display:none">
+            <input type="radio" id="notes-separator1" name="notes-separator" value="AND"<?php
+            if (!isset($_SESSION['session_notes_separator']) || $_SESSION['session_notes_separator'] == 'AND') echo 'checked';
+            ?>>
+            <label for="notes-separator1">AND</label>
+            <input type="radio" id="notes-separator2" name="notes-separator" value="OR"<?php
+            if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'OR') echo 'checked';
+            ?>>
+            <label for="notes-separator2">OR</label>
+            <input type="radio" id="notes-separator3" name="notes-separator" value="PHRASE"<?php
+            if (isset($_SESSION['session_notes_separator']) && $_SESSION['session_notes_separator'] == 'PHRASE') echo 'checked';
+            ?>>
+            <label for="notes-separator3">phrase</label>
+        </div>
+        <div style="clear:both"></div>
+        <div style="padding:0.5em 0;text-align:center">
+        <button id="search" style="width:42%;margin:auto"><i class="fa fa-search"></i> </button>
+        <button id="clear" style="width:42%;margin:auto"><i class="fa fa-trash-o"></i> </button>
+        </div>
         <input type="hidden" name="select" value="desk">
         <input type="hidden" name="project" value="<?php print htmlspecialchars($firstproject); ?>">
         <input type="hidden" name="searchtype" value="metadata">
@@ -245,25 +108,22 @@ $number_of_users = count($users);
         <input type="hidden" name="rating[]" value="3">
     </form>
     <div id="search-menu" style="width:100%">
-        <div class="tabclicked" title="Search metadata"><i class="fa fa-list"></i></div>
-        <div class="" title="Search PDFs"><i class="fa fa-file-pdf-o"></i></div>
-        <div class="" title="Search PDF notes"><i class="fa fa-comment"></i></div>
-        <div class="" title="Search rich-text notes"><i class="fa fa-pencil"></i></div>
+        <div class="ui-state-default tabclicked" title="Search metadata"><i class="fa fa-list"></i></div>
+        <div class="ui-state-default" title="Search PDFs"><i class="fa fa-file-pdf-o"></i></div>
+        <div class="ui-state-default" title="Search PDF notes"><i class="fa fa-comment"></i></div>
+        <div class="ui-state-default" title="Search rich-text notes"><i class="fa fa-pencil"></i></div>
     </div>
     <div style="clear:both"></div>
-    <div class="ui-state-highlight">
-        <div id="advancedsearchbutton" style="width:50%;float:left;padding:4px 0">
-            Advanced <i class="fa fa-search"></i>
-        </div>
-        <div id="expertsearchbutton" style="width:50%;float:left;padding:4px 0">
-            Expert <i class="fa fa-search"></i>
-        </div>
-        <div style="clear:both"></div>
-    </div>
+    <button id="advancedsearchbutton" style="display:block;float:left;width:50%;margin:0;border-left:none;border-right:none">
+        Advanced
+    </button>
+    <button id="expertsearchbutton" style="display:block;width:50%;margin:0;border-left:none;border-right:none">
+        Expert
+    </button>
     <br>
     <form action="ajaxdesk.php" method="GET">
         <input type="hidden" name="create" value="create">
-        <input type="text" size="10" name="project" value="" style="width:125px;margin-left:3px" placeholder="Create project">
+        <input type="text" size="10" name="project" value="" style="width:120px;margin-left:3px;" placeholder="Create project">
         <button id="createproject">Create</button>
     </form>
     <h4 style="margin-left:0.5em">Active</h4>
@@ -272,15 +132,8 @@ $number_of_users = count($users);
         
         if ($project['active'] === '1') {
         ?>
-        <table cellspacing=0 width="210px" style="margin:6px 0px" class="projectheader">
-            <tr>
-                <td class="leftleftbutton">&nbsp;</td>
-                <td class="leftbutton ui-widget-header ui-corner-right">
-                    <div style="width:200px;white-space:nowrap;overflow:hidden"><?php print htmlspecialchars($project['project']) ?></div>
-                </td>
-            </tr>
-        </table>
-        <div class="projectcontainer" id="project-<?php print intval($project['projectID']); ?>" style="display: none;width:200px;margin-left: 10px">
+        <button class="projectheader"><?php print htmlspecialchars($project['project']) ?></button>
+        <div class="projectcontainer" id="project-<?php print intval($project['projectID']); ?>" style="display: none;width:200px;margin-left: 10px;margin-top:0.5em">
             <table style="width:98%">
                 <tr>
                     <td class="select_span desk-active" style="width:50%">
@@ -344,12 +197,12 @@ $number_of_users = count($users);
                     </tr>
                     <tr>
                         <td style="text-align:center;padding-top:2px">
-                            <span class="ui-state-highlight ui-corner-bottom adduser">
+                            <span class="ui-state-default ui-corner-bottom adduser">
                                 &nbsp;Add <i class="fa fa-angle-right"></i>&nbsp;
                             </span>
                         </td>
                         <td style="text-align:center;padding-top:2px">
-                            <span class="ui-state-highlight ui-corner-bottom removeuser">
+                            <span class="ui-state-default ui-corner-bottom removeuser">
                                 &nbsp;<i class="fa fa-angle-left"></i> Remove&nbsp;
                             </span>
                         </td>
@@ -385,15 +238,8 @@ $number_of_users = count($users);
         
         if ($project['active'] === '0') {
         ?>
-        <table cellspacing=0 width="210px" style="margin:6px 0px" class="projectheader">
-            <tr>
-                <td class="leftleftbutton">&nbsp;</td>
-                <td class="leftbutton ui-widget-header ui-corner-right">
-                    <div style="width:200px;white-space:nowrap;overflow:hidden"><?php print htmlspecialchars($project['project']) ?></div>
-                </td>
-            </tr>
-        </table>
-        <div class="projectcontainer" id="project-<?php print intval($project['projectID']); ?>" style="display: none;width:200px;margin-left: 10px">
+        <button class="projectheader"><?php print htmlspecialchars($project['project']) ?></button>
+        <div class="projectcontainer" id="project-<?php print intval($project['projectID']); ?>" style="display: none;width:200px;margin-left: 10px;margin-top:0.5em">
             <table style="width:98%">
                 <tr>
                     <td class="select_span desk-active" style="width:50%">
@@ -457,12 +303,12 @@ $number_of_users = count($users);
                     </tr>
                     <tr>
                         <td style="text-align:center;padding-top:2px">
-                            <span class="ui-state-highlight ui-corner-bottom adduser">
+                            <span class="ui-state-default ui-corner-bottom adduser">
                                 &nbsp;Add <i class="fa fa-angle-right"></i>&nbsp;
                             </span>
                         </td>
                         <td style="text-align:center;padding-top:2px">
-                            <span class="ui-state-highlight ui-corner-bottom removeuser">
+                            <span class="ui-state-default ui-corner-bottom removeuser">
                                 &nbsp;<i class="fa fa-angle-left"></i> Remove&nbsp;
                             </span>
                         </td>

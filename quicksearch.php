@@ -58,5 +58,7 @@ if (!empty($_GET['anywhere']) && $_GET['searchtype'] == 'metadata') {
         $search_string = join(' OR ', $anywhere_regexp);
     if ($_GET['anywhere_separator'] == 'PHRASE')
         $search_string = join('', $anywhere_regexp);
+    
+    $search_string = "($search_string)";
 }
 ?>

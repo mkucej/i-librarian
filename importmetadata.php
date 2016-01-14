@@ -1601,14 +1601,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
     } else {
 
         ?>
-        <div class="ui-state-highlight ui-corner-all" style="float:left;margin:4px;padding:1px 4px;cursor:auto">
+        <div class="ui-state-default ui-corner-all" style="float:left;margin:4px;padding:1px 4px;cursor:auto">
             <i class="fa fa-signin"></i>
             Import one or multiple items from a metadata file
         </div>
         <div style="clear:both"></div>
         <form enctype="multipart/form-data" action="importmetadata.php" method="POST" id="importform">
             <input type="hidden" name="form_sent">
-            <table style="width: 100%;border-top: solid 1px #D5D6D9">
+            <table class="threed" style="width: 100%">
                 <tr>
                     <td valign="top" class="threedleft">
                         <button id="importbutton"><i class="fa fa-save"></i> Save</button>

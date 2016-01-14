@@ -197,6 +197,24 @@ if (empty($_GET['select']) ||
 }
 
 if (!empty($_GET['searchmode'])) {
+    
+    // Rename separators due to a bug in jQuery buttonset()
+    if (isset($_GET['anywhere-separator'])) {
+        $_GET['anywhere_separator'] = $_GET['anywhere-separator'];
+        unset($_GET['anywhere-separator']);
+    }
+    if (isset($_GET['fulltext-separator'])) {
+        $_GET['fulltext_separator'] = $_GET['fulltext-separator'];
+        unset($_GET['fulltext-separator']);
+    }
+    if (isset($_GET['pdfnotes-separator'])) {
+        $_GET['pdfnotes_separator'] = $_GET['pdfnotes-separator'];
+        unset($_GET['pdfnotes-separator']);
+    }
+    if (isset($_GET['notes-separator'])) {
+        $_GET['notes_separator'] = $_GET['notes-separator'];
+        unset($_GET['notes-separator']);
+    }
 
 ######## REGISTER SESSION VARIABLES ##############
 
@@ -478,36 +496,18 @@ if (!empty($_GET['searchmode'])) {
 
     } elseif ($_GET['searchtype'] == 'pdf') {
 
-        $dbHandle = null;
-
-        $fulltext_in = str_replace("id IN", "fileID IN", $in);
-        $fulltext_category_search = str_replace("id IN", "fileID IN", $category_search);
-
-        database_connect(IL_DATABASE_PATH, 'fulltext');
-
         $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
 
         if ($case == 1)
             $dbHandle->exec("PRAGMA case_sensitive_like = 1");
-
-        ###no index search
+        
+        $fulltext_query = "SELECT fileID FROM fulltextdatabase.full_text WHERE $search_string";
+        
         if ($_GET['select'] == 'shelf') {
-            $result = $dbHandle->query("SELECT fileID FROM full_text WHERE fileID IN (" . join(',', $shelf_files) . ") AND $fulltext_category_search $search_string");
+            perform_search("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search id IN ($fulltext_query) $ordering");
         } else {
-            $result = $dbHandle->query("SELECT fileID FROM full_text WHERE $fulltext_in $fulltext_category_search $search_string");
+            perform_search("SELECT id FROM library WHERE $in $rating_search $type_search $category_search id IN ($fulltext_query) $ordering");
         }
-
-        $result_ids = array();
-        if ($result)
-            $result_ids = $result->fetchAll(PDO::FETCH_COLUMN);
-        $result = null;
-        $dbHandle = null;
-
-        $result_string = join(",", $result_ids);
-        $result_string = "id IN ($result_string)";
-
-        database_connect(IL_DATABASE_PATH, 'library');
-        perform_search("SELECT id FROM library WHERE $rating_search $type_search $result_string ORDER BY $orderby COLLATE NOCASE $ordering");
 
     }
 
@@ -578,45 +578,43 @@ if (!empty($_GET['searchmode'])) {
 
         print '<div id="display-content">';
         ?>
-        <div class="alternating_row" style="padding:0.35em;padding-bottom: 0;border-bottom:1px solid #c5c6c8">
-            <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;padding:0.2em 0.4em">
-                &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
-            </div>
-            <div id="omnitoolbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
-                &nbsp;<i class="fa fa-wrench"></i> Omnitool&nbsp;</div>
-            <div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em" id="printlist">
-                &nbsp;<i class="fa fa-print"></i> Print&nbsp;
-            </div>
-            <div style="float:right;margin: 2px;margin-top: 0">
-                <span style="position:relative;top:-7px">
-                    Display
-                </span>
-                <select id="select-display" style="width:9em">
-                    <option value="brief" <?php print $display == 'brief' ? 'selected' : ''; ?>>Title</option>
-                    <option value="summary" <?php print $display == 'summary' ? 'selected' : ''; ?>>Summary</option>
-                    <option value="abstract" <?php print $display == 'abstract' ? 'selected' : ''; ?>>Abstract</option>
-                    <option value="icons" <?php print $display == 'icons' ? 'selected' : ''; ?>>Icons</option>
+        <div class="alternating_row" style="padding: 4px 6px 2px 6px;border-bottom:1px solid rgba(0,0,0,0.15)">
+            <button id="exportbutton" style="display:inline">
+                <i class="fa fa-briefcase"></i> Export
+            </button>
+            <button id="omnitoolbutton" class="ui-state-default ui-corner-all">
+                <i class="fa fa-wrench"></i> Omnitool
+            </button>
+            <button class="ui-state-default ui-corner-all" id="printlist">
+                <i class="fa fa-print"></i> Print
+            </button>
+            <div style="float:right;margin-top: 2px;">
+                <select id="select-display" style="width:8.5em">
+                    <optgroup label="Display">
+                        <option value="brief" <?php print $display == 'brief' ? 'selected' : ''; ?>>Title</option>
+                        <option value="summary" <?php print $display == 'summary' ? 'selected' : ''; ?>>Summary</option>
+                        <option value="abstract" <?php print $display == 'abstract' ? 'selected' : ''; ?>>Abstract</option>
+                        <option value="icons" <?php print $display == 'icons' ? 'selected' : ''; ?>>Icons</option>
+                    </optgroup>
                 </select>
-                <span style="position:relative;top:-7px">
-                    Order
-                </span>
                 <select id="select-order" style="width:11em">
-                    <option value="id" <?php print $orderby == 'id' ? 'selected' : ''; ?>>Date Added</option>
-                    <option value="year" <?php print $orderby == 'year' ? 'selected' : ''; ?>>Date Published</option>
-                    <option value="journal" <?php print $orderby == 'journal' ? 'selected' : ''; ?>>Journal</option>
-                    <option value="rating" <?php print $orderby == 'rating' ? 'selected' : ''; ?>>Rating</option>
-                    <option value="title" <?php print $orderby == 'title' ? 'selected' : ''; ?>>Title</option>
+                    <optgroup label="Order by">
+                        <option value="id" <?php print $orderby == 'id' ? 'selected' : ''; ?>>Date Added</option>
+                        <option value="year" <?php print $orderby == 'year' ? 'selected' : ''; ?>>Date Published</option>
+                        <option value="journal" <?php print $orderby == 'journal' ? 'selected' : ''; ?>>Journal</option>
+                        <option value="rating" <?php print $orderby == 'rating' ? 'selected' : ''; ?>>Rating</option>
+                        <option value="title" <?php print $orderby == 'title' ? 'selected' : ''; ?>>Title</option>
+                    </optgroup>
                 </select>
-                <span style="position:relative;top:-7px">
-                    Show
-                </span>
-                <select id="select-number" style="width:6em">
-                    <option value="5" <?php print $limit == 5 ? 'selected' : ''; ?>>5</option>
-                    <option value="10" <?php print $limit == 10 ? 'selected' : ''; ?>>10</option>
-                    <option value="15" <?php print $limit == 15 ? 'selected' : ''; ?>>15</option>
-                    <option value="20" <?php print $limit == 20 ? 'selected' : ''; ?>>20</option>
-                    <option value="50" <?php print $limit == 50 ? 'selected' : ''; ?>>50</option>
-                    <option value="100" <?php print $limit == 100 ? 'selected' : ''; ?>>100</option>
+                <select id="select-number" style="width:5.5em">
+                    <optgroup label="Show">
+                        <option value="5" <?php print $limit == 5 ? 'selected' : ''; ?>>5</option>
+                        <option value="10" <?php print $limit == 10 ? 'selected' : ''; ?>>10</option>
+                        <option value="15" <?php print $limit == 15 ? 'selected' : ''; ?>>15</option>
+                        <option value="20" <?php print $limit == 20 ? 'selected' : ''; ?>>20</option>
+                        <option value="50" <?php print $limit == 50 ? 'selected' : ''; ?>>50</option>
+                        <option value="100" <?php print $limit == 100 ? 'selected' : ''; ?>>100</option>
+                    </optgroup>
                 </select>
             </div>
             <div style="clear:both"></div>
@@ -659,13 +657,13 @@ if (!empty($_GET['searchmode'])) {
 
         print '<table cellspacing="0" class="top" style="margin-bottom:1px"><tr><td style="width: 18em">';
 
-        print '<div class="ui-state-highlight ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align:center">'
                 . ($from == 0 ? '' : '<a href="' . htmlspecialchars("search.php?$url_string&from=0") . '" class="navigation" style="display:block;width:26px">') .
                 '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                 . ($from == 0 ? '' : '</a>') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+        print '<div class="ui-state-default ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align:center">'
                 . ($from == 0 ? '' : '<a title="Shortcut: A" class="prevpage navigation" href="' . htmlspecialchars("search.php?$url_string&from=" . ($from - $limit)) . '" style="color:black;display:block;width:100%">') .
                 '<i class="fa fa-caret-left"></i>&nbsp;Back'
                 . ($from == 0 ? '' : '</a>') .
@@ -677,19 +675,19 @@ if (!empty($_GET['searchmode'])) {
 
         (($rows % $limit) == 0) ? $lastpage = $rows - $limit - ($rows % $limit) : $lastpage = $rows - ($rows % $limit);
 
-        print '<div class="ui-state-highlight ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align:center">'
                 . (($rows > ($from + $limit)) ? '<a class="navigation" href="' . htmlspecialchars("search.php?$url_string&from=$lastpage") . '" style="display:block;width:26px">' : '') .
                 '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                 . (($rows > ($from + $limit)) ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width: 4em">'
+        print '<div class="ui-state-default ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width: 4em;text-align:center">'
                 . (($rows > ($from + $limit)) ? '<a title="Shortcut: D" class="nextpage navigation" href="' . htmlspecialchars("search.php?$url_string&from=" . ($from + $limit)) . '" style="color:black;display:block;width:100%">' : '') .
                 '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                 . (($rows > ($from + $limit)) ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px">PgDn</div>';
+        print '<div class="ui-state-default ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px;text-align:center">PgDn</div>';
 
         print '</td></tr></table>';
 
@@ -697,13 +695,13 @@ if (!empty($_GET['searchmode'])) {
 
         print '<table cellspacing="0" class="top" style="margin:1px 0px 2px 0px"><tr><td style="width:50%">';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align:center">'
                 . ($from == 0 ? '' : '<a href="' . htmlspecialchars("search.php?$url_string&from=0") . '" class="navigation" style="display:block;width:26px">') .
                 '<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>'
                 . ($from == 0 ? '' : '</a>') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+        print '<div class="ui-state-default ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align:center">'
                 . ($from == 0 ? '' : '<a title="Shortcut: A" class="navigation" href="' . htmlspecialchars("search.php?$url_string&from=" . ($from - $limit)) . '" style="color:black;display:block;width:100%">') .
                 '<i class="fa fa-caret-left"></i> Back'
                 . ($from == 0 ? '' : '</a>') .
@@ -711,19 +709,19 @@ if (!empty($_GET['searchmode'])) {
 
         print '</td><td style="width:50%">';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align:center">'
                 . (($rows > ($from + $limit)) ? '<a class="navigation" href="' . htmlspecialchars("search.php?$url_string&from=$lastpage") . '" style="display:block;width:26px">' : '') .
                 '<i class="fa fa-caret-right"></i> <i class="fa fa-caret-right"></i>'
                 . (($rows > ($from + $limit)) ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+        print '<div class="ui-state-default ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align:center">'
                 . (($rows > ($from + $limit)) ? '<a title="Shortcut: D" class="navigation" href="' . htmlspecialchars("search.php?$url_string&from=" . ($from + $limit)) . '" style="color:black;display:block;width:100%">' : '') .
                 'Next <i class="fa fa-caret-right"></i>'
                 . (($rows > ($from + $limit)) ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px">PgUp</div>';
+        print '<div class="ui-state-default ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px;text-align:center">PgUp</div>';
 
         print "\n  </td>\n </tr>\n</table>";
     } else {

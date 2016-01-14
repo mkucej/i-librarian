@@ -900,8 +900,12 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                     <input type="hidden" name="export_files" value="<?php print $get_post_export_files ?>">
                     <input type="hidden" name="export" value="1">
                     <b>Include:</b><br><br>
-                    <span id="selectall" class="ui-state-highlight ui-corner-all">&nbsp;Select All&nbsp;</span> 
-                    <span id="unselectall" class="ui-state-highlight ui-corner-all">&nbsp;Unselect All&nbsp;</span>
+                    <div id="export-radio">
+                        <input type="radio" id="selectall" name="radio">
+                        <label for="selectall">Select All</label>
+                        <input type="radio" id="unselectall" name="radio">
+                        <label for="unselectall">Unselect All</label>
+                    </div>
                     <table style="margin-top:6px">
                         <tr>
                             <td class="select_span">

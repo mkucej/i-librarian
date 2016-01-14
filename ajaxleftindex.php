@@ -205,6 +205,11 @@ if (isset($_GET['open']) && in_array("dates", $_GET['open'])) {
 
     $date_array = array();
     $phpdate_number = array();
+    $json = array(
+        'mindate' => '',
+        'maxdate' => '',
+        'datecount' => array()
+    );
 
     $result = $dbHandle->query("SELECT addition_date,count(*) FROM library $in GROUP BY addition_date ORDER BY addition_date DESC LIMIT 60");
 
@@ -215,10 +220,12 @@ if (isset($_GET['open']) && in_array("dates", $_GET['open'])) {
 
     $dbHandle = null;
 
-    $json['mindate'] = end($date_array);
-    $json['maxdate'] = reset($date_array);
-    $json['datecount'] = $phpdate_number;
-
+    if (!empty($date_array)) {
+        $json['mindate'] = end($date_array);
+        $json['maxdate'] = reset($date_array);
+        $json['datecount'] = $phpdate_number;
+    }
+    
     print json_encode($json);
     die();
 }

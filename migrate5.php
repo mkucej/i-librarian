@@ -47,9 +47,11 @@ while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
     extract($row);
 
     $bibtex_author = 'unknown';
-    $bibtex_author = substr($authors, 3);
-    $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ',') - 1);
-    $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
+    if (!empty($authors)) {
+        $bibtex_author = substr($authors, 3);
+        $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ',') - 1);
+        $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
+    }
 
     $bibtex_year = '0000';
     $bibtex_year_array = explode('-', $year);

@@ -54,7 +54,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
 
     <table style="width: 100%"><tr><td class="details alternating_row"><b>Synchronize library with a backup copy</b></td></tr></table>
     <div class="item-sticker ui-widget-content ui-corner-all" style="margin:auto;margin-top:100px;width:500px">
-        <div class="ui-widget-header ui-dialog-titlebar items ui-corner-top" style="border:0">
+        <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="border:0;padding-left:1em">
             Enter the directory path, where the backup copy is stored:<br>
         </div>
         <div class="separator" style="margin:0"></div>

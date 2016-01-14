@@ -82,9 +82,9 @@ print "\n<td class=\"details\" style=\"width:25%\">Font:";
 print "\n<input type=\"text\" size=15 name=\"main_window_font_family\" value=\"$main_window_font_family\"></td>";
 print "\n<td class=\"details\" style=\"\">Text Size:";
 print "\n<input type=\"text\" size=2 maxlength=2 name=\"main_window_font_size\" value=\"$main_window_font_size\"> px (11-14)</td>";
-print "\n<td class=\"details\" style=\"\">Text Color:";
+print "\n<td class=\"details\" style=\"\">Text Color: ";
 print "RGB# <input type=\"text\" size=6 maxlength=6 name=\"main_window_color\" value=\"$main_window_color\" title=\"hexadecimal code\"></td>";
-print "\n<td class=\"details\" style=\"\">Line spacing:";
+print "\n<td class=\"details\" style=\"\">Line spacing: ";
 print "\n<input type=\"text\" size=3 name=\"main_window_line_height\" value=\"$main_window_line_height\"></td>";
 
 print "\n</tr>";
@@ -95,10 +95,11 @@ print "\n<tr><td class=\"details alternating_row\" style=\"width: 100%\" colspan
 print "\n</tr>";
 print "\n<tr>";
 
-print "\n<td class=\"details\" style=\"\">Text Color:";
+print "\n<td class=\"details\" style=\"\">Link Color: ";
 print "RGB# <input type=\"text\" size=6 maxlength=6 name=\"main_window_link_color\" value=\"$main_window_link_color\" title=\"hexadecimal code\"></td>";
 
-print "\n<td class=\"details\" style=\"\" colspan=3>&nbsp;";
+print "\n<td class=\"details\" style=\"\" colspan=3>Highlight Color: ";
+print "RGB# <input type=\"text\" size=6 maxlength=6 name=\"main_window_highlight_color\" value=\"$main_window_highlight_color\" title=\"hexadecimal code\"></td>";
 print "</td>";
 
 print "\n</tr>";
@@ -167,16 +168,6 @@ print "\n<td class=\"details\" style=\"width: 25%\">Page Color: ";
 print "RGB#<input type=\"text\" size=6 maxlength=6 name=\"top_window_background_color\" value=\"$top_window_background_color\" title=\"hexadecimal code\"></td>";
 print "\n<td class=\"details\">Text Color: ";
 print "RGB#<input type=\"text\" size=6 maxlength=6 name=\"top_window_color\" value=\"$top_window_color\" title=\"hexadecimal code\"></td>";
-print "\n</tr>";
-print '</table>';
-
-print '<table cellspacing="0" style="width:100%">';
-print "\n<tr>";
-print "\n<td class=\"details alternating_row\" style=\"width: 100%\"><b>Left Panel:</b></td>";
-print "\n</tr>";
-print "\n<tr>";
-print "\n<td class=\"details\">Page Color: ";
-print "RGB#<input type=\"text\" size=6 maxlength=6 name=\"left_window_background_color\" value=\"$left_window_background_color\" title=\"hexadecimal code\"></td>";
 print "\n</tr>";
 print '</table>';
 

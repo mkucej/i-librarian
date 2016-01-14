@@ -323,55 +323,51 @@ if (isset($_GET['browse'])) {
 
         ?>
         <div id="display-content" style="width:100%;height:100%">
-            <div class="alternating_row" style="padding:0.35em;padding-bottom: 0;border-bottom:1px solid #c5c6c8">
-                <div id="exportbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;padding:0.2em 0.4em">
-                    &nbsp;<i class="fa fa-briefcase"></i> Export&nbsp;
-                </div>
-                <div id="omnitoolbutton" class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
-                    &nbsp;<i class="fa fa-wrench"></i> Omnitool&nbsp;</div>
+            <div class="alternating_row" style="padding: 4px 6px 2px 6px;border-bottom:1px solid rgba(0,0,0,0.15)">
+                <button id="exportbutton" style="display:inline">
+                    <i class="fa fa-briefcase"></i> Export
+                </button>
+                <button id="omnitoolbutton" class="ui-state-default ui-corner-all">
+                    <i class="fa fa-wrench"></i> Omnitool
+                </button>
                 <?php
                 if ($_GET['select'] == 'desk') {
-                    print '<div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
-                <a href="rss.php?project=' . $project . '" target="_blank" style="display:block">&nbsp;<i class="fa fa-rss"></i> Project RSS</a></div>';
+                    print '<a href="rss.php?project=' . $project . '" target="_blank" id="rss-link">&nbsp;<i class="fa fa-rss"></i> Project RSS</a>';
                 } else {
 
-                    print '<div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em">
-                <a href="rss.php" target="_blank" style="display:block">&nbsp;<i class="fa fa-rss"></i> RSS</a></div>';
+                    print '<a href="rss.php" target="_blank" id="rss-link">&nbsp;<i class="fa fa-rss"></i> RSS</a>';
                 }
                 ?>
-                <div class="ui-state-highlight ui-corner-all" style="display:inline-block;margin-left:2px;padding:0.2em 0.4em" id="printlist">
-                    &nbsp;<i class="fa fa-print"></i> Print&nbsp;
-                </div>
-                <div style="float:right;margin: 2px;margin-top: 0">
-                    <span style="position:relative;top:-7px">
-                        Display
-                    </span>
-                    <select id="select-display" style="width:9em">
-                        <option value="brief" <?php print $display == 'brief' ? 'selected' : ''; ?>>Title</option>
-                        <option value="summary" <?php print $display == 'summary' ? 'selected' : ''; ?>>Summary</option>
-                        <option value="abstract" <?php print $display == 'abstract' ? 'selected' : ''; ?>>Abstract</option>
-                        <option value="icons" <?php print $display == 'icons' ? 'selected' : ''; ?>>Icons</option>
+                <button class="ui-state-default ui-corner-all" id="printlist">
+                    <i class="fa fa-print"></i> Print
+                </button>
+                <div style="float:right;margin-top: 2px;">
+                    <select id="select-display" style="width:8.5em">
+                        <optgroup label="Display">
+                            <option value="brief" <?php print $display == 'brief' ? 'selected' : ''; ?>>Title</option>
+                            <option value="summary" <?php print $display == 'summary' ? 'selected' : ''; ?>>Summary</option>
+                            <option value="abstract" <?php print $display == 'abstract' ? 'selected' : ''; ?>>Abstract</option>
+                            <option value="icons" <?php print $display == 'icons' ? 'selected' : ''; ?>>Icons</option>
+                        </optgroup>
                     </select>
-                    <span style="position:relative;top:-7px">
-                        Order
-                    </span>
                     <select id="select-order" style="width:11em">
-                        <option value="id" <?php print $orderby == 'id' ? 'selected' : ''; ?>>Date Added</option>
-                        <option value="year" <?php print $orderby == 'year' ? 'selected' : ''; ?>>Date Published</option>
-                        <option value="journal" <?php print $orderby == 'journal' ? 'selected' : ''; ?>>Journal</option>
-                        <option value="rating" <?php print $orderby == 'rating' ? 'selected' : ''; ?>>Rating</option>
-                        <option value="title" <?php print $orderby == 'title' ? 'selected' : ''; ?>>Title</option>
+                        <optgroup label="Order by">
+                            <option value="id" <?php print $orderby == 'id' ? 'selected' : ''; ?>>Date Added</option>
+                            <option value="year" <?php print $orderby == 'year' ? 'selected' : ''; ?>>Date Published</option>
+                            <option value="journal" <?php print $orderby == 'journal' ? 'selected' : ''; ?>>Journal</option>
+                            <option value="rating" <?php print $orderby == 'rating' ? 'selected' : ''; ?>>Rating</option>
+                            <option value="title" <?php print $orderby == 'title' ? 'selected' : ''; ?>>Title</option>
+                        </optgroup>
                     </select>
-                    <span style="position:relative;top:-7px">
-                        Show
-                    </span>
-                    <select id="select-number" style="width:6em">
-                        <option value="5" <?php print $limit == 5 ? 'selected' : ''; ?>>5</option>
-                        <option value="10" <?php print $limit == 10 ? 'selected' : ''; ?>>10</option>
-                        <option value="15" <?php print $limit == 15 ? 'selected' : ''; ?>>15</option>
-                        <option value="20" <?php print $limit == 20 ? 'selected' : ''; ?>>20</option>
-                        <option value="50" <?php print $limit == 50 ? 'selected' : ''; ?>>50</option>
-                        <option value="100" <?php print $limit == 100 ? 'selected' : ''; ?>>100</option>
+                    <select id="select-number" style="width:5.5em">
+                        <optgroup label="Show">
+                            <option value="5" <?php print $limit == 5 ? 'selected' : ''; ?>>5</option>
+                            <option value="10" <?php print $limit == 10 ? 'selected' : ''; ?>>10</option>
+                            <option value="15" <?php print $limit == 15 ? 'selected' : ''; ?>>15</option>
+                            <option value="20" <?php print $limit == 20 ? 'selected' : ''; ?>>20</option>
+                            <option value="50" <?php print $limit == 50 ? 'selected' : ''; ?>>50</option>
+                            <option value="100" <?php print $limit == 100 ? 'selected' : ''; ?>>100</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div style="clear:both"></div>
@@ -394,7 +390,7 @@ if (isset($_GET['browse'])) {
             print ' &raquo; ' . htmlspecialchars($query_display_string);
 
         print '</div>';
-
+        
         if ($rows > 0) {
 
             $items_from = $from + 1;
@@ -402,13 +398,13 @@ if (isset($_GET['browse'])) {
 
             print '<table cellspacing="0" class="top" style="margin-bottom:1px"><tr><td style="width: 18em">';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align:center">'
                     . ($from == 0 ? '' : '<a href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=0&$browse_url_string") . '" class="navigation" style="display:block;width:26px">') .
                     '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                     . ($from == 0 ? '' : '</a>') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-top' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align:center">'
                     . ($from == 0 ? '' : '<a title="Shortcut: A" class="navigation prevpage" href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=" . ($from - $limit) . "&$browse_url_string") . '" style="color:black;display:block;width:100%">') .
                     '<i class="fa fa-caret-left"></i>&nbsp;Back'
                     . ($from == 0 ? '' : '</a>') .
@@ -418,19 +414,19 @@ if (isset($_GET['browse'])) {
 
             (($rows % $limit) == 0) ? $lastpage = $rows - $limit : $lastpage = $rows - ($rows % $limit);
 
-            print '<div class="ui-state-highlight ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align:center">'
                     . (($rows > ($from + $limit)) ? '<a class="navigation" href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=$lastpage&$browse_url_string") . '" style="display:block;width:26px">' : '') .
                     '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                     . (($rows > ($from + $limit)) ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width: 4em">'
+            print '<div class="ui-state-default ui-corner-top' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width: 4em;text-align:center">'
                     . (($rows > ($from + $limit)) ? '<a title="Shortcut: D" class="navigation nextpage" href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=" . ($from + $limit) . "&$browse_url_string") . '" style="color:black;display:block;width:100%">' : '') .
                     '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                     . (($rows > ($from + $limit)) ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px">PgDn</div>';
+            print '<div class="ui-state-default ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px;text-align:center">PgDn</div>';
 
             print '</td></tr></table>';
 
@@ -438,13 +434,13 @@ if (isset($_GET['browse'])) {
 
             print '<table cellspacing="0" class="top" style="margin:1px 0px 2px 0px"><tr><td style="width: 50%">';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align:center">'
                     . ($from == 0 ? '' : '<a href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=0&$browse_url_string") . '" class="navigation" style="display:block;width:26px">') .
                     '<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>'
                     . ($from == 0 ? '' : '</a>') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($from == 0 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align:center">'
                     . ($from == 0 ? '' : '<a title="Shortcut: A" class="navigation" href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=" . ($from - $limit) . "&$browse_url_string") . '" style="color:black;display:block;width:100%">') .
                     '<i class="fa fa-caret-left"></i> Back'
                     . ($from == 0 ? '' : '</a>') .
@@ -452,19 +448,19 @@ if (isset($_GET['browse'])) {
 
             print '</td><td style="width:50%">';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align:center">'
                     . (($rows > ($from + $limit)) ? '<a class="navigation" href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=$lastpage&$browse_url_string") . '" style="display:block;width:26px">' : '') .
                     '<i class="fa fa-caret-right"></i> <i class="fa fa-caret-right"></i>'
                     . (($rows > ($from + $limit)) ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-bottom' . (($rows > ($from + $limit)) ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align:center">'
                     . (($rows > ($from + $limit)) ? '<a title="Shortcut: D" class="navigation" href="' . htmlspecialchars("display.php?select=$_GET[select]&project=$project&from=" . ($from + $limit) . "&$browse_url_string") . '" style="color:black;display:block;width:100%">' : '') .
                     'Next <i class="fa fa-caret-right"></i>'
                     . (($rows > ($from + $limit)) ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px">PgUp</div>';
+            print '<div class="ui-state-default ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px;text-align:center">PgUp</div>';
 
             print '</td></tr></table><br>';
         } else {

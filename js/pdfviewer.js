@@ -265,13 +265,13 @@ var scrollHandling = {
     },
     loadPage: function () {
         // Scroll thumbs.
-        $('#thumbs > div').css('background-color', '');
+        $('#thumbs > div').removeClass('ui-state-active');
         if ($('#thumbs > div').length > 0) {
             var $thumb = $('#thumbs > div:eq(' + (this.page - 1) + ')'),
                     thtop = $thumb.position().top,
                     thbottom = thtop + $thumb.height(),
                     parbottom = $('#navpane').height();
-            $thumb.css('background-color', '#999fdd');
+            $thumb.addClass('ui-state-active');
             if ($('#thumbs').is(':visible') && (thtop < 0 || parbottom - thbottom < 0)) {
                 $('#navpane').stop(true, false).animate({
                     scrollTop: $('#navpane').scrollTop() + thtop + ($thumb.height() / 2) - (parbottom / 2)
@@ -507,7 +507,7 @@ var thumbHandler = {
             var thumbpos = $thumb.position().top + $('#navpane').scrollTop();
             $('#navpane').scrollTop(thumbpos - $('#navpane').height() / 2 + $thumb.height() / 2);
             // Colorize current page.
-            $thumb.css('background-color', '#999fdd');
+            $thumb.addClass('ui-state-active');
         } else {
             // When scrolling the left (navigation) panel.
             var $thumb = $('#thumbs > div:eq(' + (page - 1) + ')');
@@ -588,8 +588,8 @@ var getBookmarks = {
             });
             // Navigation: click bookmarks.
             $('#bookmarks .bookmark').click(function () {
-                $('.bookmark').css('background-color', '');
-                $(this).css('background-color', '#aaafe6');
+                $('.bookmark').removeClass('ui-state-active');
+                $(this).addClass('ui-state-active');
                 if ($(this).data('page') !== scrollHandling.page) {
                     var pgpos = $('#pdf-viewer-img-' + $(this).data('page')).position().top + $('#pdf-viewer-img-div').scrollTop();
                     $('#pdf-viewer-img-div').animate(
@@ -706,8 +706,8 @@ var searchresults = {
             }
             $('.highlight-container .pdfviewer-highlight').css('box-shadow', '');
             $target.css('box-shadow', '0 0 10px 10px rgba(0,0,155,0.33)');
-            $('#search-results .search-result').removeClass('shown').css('background-color', '');
-            $t.addClass('shown').css('background-color', '#aaafe6');
+            $('#search-results .search-result').removeClass('shown').removeClass('ui-state-active');
+            $t.addClass('shown').addClass('ui-state-active');
         });
     },
     // If search result out of view, scroll.
@@ -750,6 +750,7 @@ $(window).resize(function () {
  */
 // Download PDF button.
 $('#save').button().click(function () {
+    $(this).blur();
     $('#save-container').dialog({
         autoOpen: true,
         modal: true,
@@ -769,12 +770,15 @@ $('#save').button().click(function () {
     });
 }).tipsy({
     gravity: 'nw'
+}).button('widget').click(function () {
+        $(this).removeClass('ui-state-focus');
 });
 /**
  * Page zooming.
  */
 // Zoom to 100%.
 $('#size1').click(function () {
+    $(this).blur();
     var page = scrollHandling.page,
             imgtop = $('#pdf-viewer-img-' + page).position().top;
     $('.pdf-viewer-img').each(function () {
@@ -788,9 +792,12 @@ $('#size1').click(function () {
     //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
     var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
     $('#pdf-viewer-img-div').scrollTop($('#pdf-viewer-img-div').scrollTop() + imgtop2 - imgtop);
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Zoom to screen width.
 $('#size2').click(function (e, f) {
+    $(this).blur();
     var piw, page = scrollHandling.page,
             parentw = $('#pdf-viewer-img-div').width(),
             imgtop = $('#pdf-viewer-img-' + page).position().top;
@@ -816,7 +823,9 @@ $('#size2').click(function (e, f) {
         var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
         $('#pdf-viewer-img-div').scrollTop($('#pdf-viewer-img-div').scrollTop() + imgtop2 - imgtop);
     }
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Zoom slider.
 $('#zoom').slider({
     min: 50,
@@ -846,6 +855,7 @@ $('#zoom').slider({
  */
 // Go to first page.
 $('#control-first').click(function () {
+    $(this).blur();
     scrollHandling.page = 1;
     $('#pdf-viewer-img-div').animate(
             {scrollTop: 0},
@@ -859,9 +869,12 @@ $('#control-first').click(function () {
                 }
             }
     );
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Go to previous page.
 $('#control-prev').click(function () {
+    $(this).blur();
     if ($('body').data('lock') === 1) {
         return false;
     }
@@ -884,7 +897,9 @@ $('#control-prev').click(function () {
                 }
             }
     );
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Go to page number.
 $('#control-page').keydown(function (e) {
     if (e.which !== 13) {
@@ -915,6 +930,7 @@ $('#control-page').keydown(function (e) {
 });
 // Go to next page.
 $('#control-next').click(function () {
+    $(this).blur();
     if ($('body').data('lock') === 1) {
         return false;
     }
@@ -937,9 +953,12 @@ $('#control-next').click(function () {
                 }
             }
     );
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Go to last page.
 $('#control-last').click(function () {
+    $(this).blur();
     if (scrollHandling.page === totalPages) {
         return false;
     }
@@ -957,9 +976,12 @@ $('#control-last').click(function () {
                 }
             }
     );
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Copy image.
 $('#pdf-viewer-copy-image').click(function () {
+    $(this).blur();
     var page = scrollHandling.page,
             img = $('#pdf-viewer-img-' + page).css('background-image').match('http://.*jpg');
     $('#image-to-copy').attr('src', img);
@@ -1007,14 +1029,17 @@ $('#pdf-viewer-copy-image').click(function () {
             $(this).dialog('destroy');
         }
     });
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Add text layer.
 $('#pdf-viewer-copy-text').change(function () {
+    $(this).blur();
     if ($(this).is(':checked')) {
         // Remove drag-scroll.
         $('#pdf-viewer-img-div').unbind('mouseup mousedown mouseout');
-        // HIDE ANNOTATIONS, EXCEPT WHEN MARKER IS ON.
-        if ($('#pdf-viewer-annotations').prop('checked') === true && $('#pdf-viewer-marker').prop('checked') === false) {
+        // Hide annotations.
+        if ($('#pdf-viewer-annotations').prop('checked') === true) {
             $('#pdf-viewer-annotations').prop('checked', false).trigger('change').button("refresh");
         }
         // Fetch text from server.
@@ -1083,12 +1108,15 @@ $('#pdf-viewer-copy-text').change(function () {
         // Re-enable drag-scrolling.
         $('#pdf-viewer-img-div').clickNScroll();
     }
-}).button().next().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).next().tipsy();
 /**
  * Second row. Left navigation pane.
  */
 // Page previews. Left navigation pane.
 $('#pageprev-button').change(function () {
+    $(this).blur();
     // Button group management.
     if ($(this).prop('checked')) {
         localStorage.setItem('pageprev-button', 'On');
@@ -1111,11 +1139,14 @@ $('#pageprev-button').change(function () {
         thumbHandler.init();
         thumbHandler.addBookmarks();
     }
-}).button().next().tipsy({
+}).button().button('widget').on('click', function (e) {
+    $(this).removeClass('ui-state-focus');
+}).next().tipsy({
     gravity: 'nw'
 });
 // Navigate: Click on page preview.
 $('#thumbs').click(function (e) {
+    $(this).blur();
     var $t = $(e.target), pg = $t.data('page'),
             currpg = scrollHandling.page,
             pgpos = $('#pdf-viewer-img-' + pg).position().top + $('#pdf-viewer-img-div').scrollTop();
@@ -1138,6 +1169,7 @@ $('#thumbs').click(function (e) {
 });
 // Bookmarks. Left navigation pane.
 $('#bookmarks-button').change(function () {
+    $(this).blur();
     // Button group management.
     if ($(this).prop('checked')) {
         localStorage.setItem('pageprev-button', 'Off');
@@ -1161,9 +1193,12 @@ $('#bookmarks-button').change(function () {
         $('#bookmarks').append('<div id="reading-bookmarks" style="padding:12px">Reading bookmarks.</div>');
         getBookmarks.init();
     }
-}).button().next().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).next().tipsy();
 // Annotations. Left navigation pane.
 $('#notes-button').change(function (e, target) {
+    $(this).blur();
     // Button group management.
     if ($('#pageprev-button').prop('checked') || $('#bookmarks-button').prop('checked') || $('#search-results-button').prop('checked')) {
         $('#pageprev-button, #bookmarks-button, #search-results-button').prop('checked', false).button('refresh');
@@ -1188,11 +1223,11 @@ $('#notes-button').change(function (e, target) {
                 var annot = rows.annotation, noteid = 'note-' + rows.page + '-' + 10 * rows.top + '-' + 10 * rows.left;
                 $('#annotations-left').append('<div class="annotation" id="nav-' + noteid + '" data-linksto="'
                         + noteid + '" data-page="' + rows.page + '" data-dbid="' + rows.id
-                        + '"><div class="ui-state-highlight">Page ' + rows.page + ', note ' + rows.id
-                        + ':</div><div class="alternating_row" style="white-space:pre-wrap;padding:0.25em;word-wrap:break-word">' + annot
-                        + '</div><textarea style="width:180px;height:10em;resize:vertical;display:none"></textarea>'
-                        + '<div class="ui-state-highlight note-edit"><i class="fa fa-pencil"></i> Edit</div>'
-                        + '<div class="ui-state-highlight note-save" style="display:none"><i class="fa fa-save"></i> Save</div></div>');
+                        + '"><div class="ui-state-default">Page ' + rows.page + ', note ' + rows.id
+                        + ':</div><div class="alternating_row">' + annot
+                        + '</div><textarea></textarea>'
+                        + '<div class="ui-state-default note-edit"><i class="fa fa-pencil"></i> Edit</div>'
+                        + '<div class="ui-state-default note-save" style="display:none"><i class="fa fa-save"></i> Save</div></div>');
             });
             // Bind events to annotations.
             // Click on an annotation note.
@@ -1208,8 +1243,8 @@ $('#notes-button').change(function (e, target) {
                     $('#' + $(this).data('linksto')).addClass('marker-edit');
                 }
                 // Add background color.
-                $('.annotation').css('background-color', '');
-                $(this).css('background-color', '#aaafe6');
+                $('.annotation').removeClass('ui-state-active');
+                $(this).addClass('ui-state-active');
                 // Navigate to correct page.
                 if (!target && parseInt($(this).data('page')) !== parseInt(scrollHandling.page)) {
                     var pgpos = $('#pdf-viewer-img-' + $(this).data('page')).position().top + $('#pdf-viewer-img-div').scrollTop();
@@ -1259,11 +1294,14 @@ $('#notes-button').change(function (e, target) {
     } else {
         localStorage.setItem('notes-button', 'Off');
     }
-}).button().next().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).next().tipsy();
 // Print annotations button.
 $('#print-notes').click(function () {
+    $(this).blur();
     if ($('#annotations-left').html() !== '') {
-        $('.annotation').css('background-color', '');
+        $('.annotation').removeClass('ui-state-active');
         var w = window.open('', '', 'width=800,height=400');
         w.document.write('<html><head><style type="text/css">#print-notes,.pdf_filter,.note-save,.note-edit {display:none}</style></head><body>');
         w.document.write($('#annotations-left').html());
@@ -1274,9 +1312,12 @@ $('#print-notes').click(function () {
         //FOR OTHER BROWSERS
         w.close();
     }
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Search results. This button only toggles the search results, which are populated by the search routine.
 $('#search-results-button').change(function () {
+    $(this).blur();
     // Button group management.
     if ($('#pageprev-button').prop('checked') || $('#bookmarks-button').prop('checked') || $('#notes-button').prop('checked')) {
         $('#pageprev-button, #bookmarks-button, #notes-button').prop('checked', false).button('refresh');
@@ -1295,6 +1336,7 @@ $('#search-results-button').change(function () {
  */
 // PDF annotations main button.
 $('#pdf-viewer-annotations').change(function (e, noteTarget) {
+    $(this).blur();
     if ($(this).is(':checked')) {
         // Uncheck Copy text button. UI selectable must be removed.
         if ($('#pdf-viewer-copy-text').prop('checked') === true)
@@ -1411,9 +1453,12 @@ $('#pdf-viewer-annotations').change(function (e, noteTarget) {
             $('#pdf-viewer-others-annotations').prop('checked', false).change().button('refresh');
         $('#pdf-viewer-marker,#pdf-viewer-note,#pdf-viewer-marker-erase,#pdf-viewer-others-annotations').button('disable');
     }
-}).button().next().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).next().tipsy();
 // BLUE MARKER PEN.
 $('#pdf-viewer-marker').change(function () {
+    $(this).blur();
     if ($(this).is(':checked')) {
         // UNCHECK OTHER BUTTONS.
         if ($('#pdf-viewer-note').is(':checked'))
@@ -1569,6 +1614,7 @@ $('#pdf-viewer-marker').change(function () {
 }).next().tipsy();
 //PINNED NOTES
 $('#pdf-viewer-note').change(function () {
+    $(this).blur();
     if ($(this).is(':checked')) {
         //UNCHECK OTHER BUTTONS
         if ($('#pdf-viewer-marker').is(':checked'))
@@ -1590,6 +1636,7 @@ $('#pdf-viewer-note').change(function () {
 }).next().tipsy();
 //ERASE ANNOTATIONS
 $('#pdf-viewer-marker-erase').change(function () {
+    $(this).blur();
     //HIDE TIPSY, OVERLAPS WITH MENU
     $(this).next().tipsy('hide');
     if ($(this).is(':checked')) {
@@ -1718,6 +1765,7 @@ $('#confirm-container').dialog({
 });
 //OTHERS' ANNOTATIONS
 $('#pdf-viewer-others-annotations').change(function () {
+    $(this).blur();
     if ($(this).is(':checked')) {
         annotations.get('getpdfmarkers', true, function (answer) {
             $.each(answer, function (key, rows) {
@@ -1807,6 +1855,7 @@ $('#pdf-viewer-search').keydown(function (e) {
 }).tipsy();
 // Clear search button.
 $('#pdf-viewer-clear').click(function () {
+    $(this).blur();
     // If results are open in left panel, close it.
     if ($('#navpane').is(':visible') && $('#search-results').is(':visible'))
         $('#search-results-button').prop('checked', false).trigger('change').button('refresh');
@@ -1817,15 +1866,23 @@ $('#pdf-viewer-clear').click(function () {
     $('#search-results-button').button('disable');
     $('#search-results .search-result, #search-results .search-result-page').remove();
     $('#search-results').hide();
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Previous search result button.
 $('#pdf-viewer-search-prev').click(function () {
+    $(this).blur();
     $('.search-result.shown').prevAll('.search-result').eq(0).click();
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 // Next search result button.
 $('#pdf-viewer-search-next').click(function () {
+    $(this).blur();
     $('.search-result.shown').nextAll('.search-result').eq(0).click();
-}).button().tipsy();
+}).button().button('widget').click(function () {
+    $(this).removeClass('ui-state-focus');
+}).tipsy();
 /**
  * Initial window set up.
  */

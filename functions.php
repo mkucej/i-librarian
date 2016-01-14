@@ -551,8 +551,10 @@ function database_connect($database_path, $database_name) {
     $result = null;
     if (version_compare($sqlite_version, "3.5.9", ">")) {
         $journal_mode = 'DELETE';
-        if (version_compare($sqlite_version, "3.7.0", ">"))
+        // There are read-only databases!
+        if (version_compare($sqlite_version, "3.7.0", ">") && $database_name != 'journals' && $database_name != 'styles') {
             $journal_mode = 'WAL';
+        }
         $dbHandle->query('PRAGMA journal_mode=' . $journal_mode);
     }
     $dbHandle->exec("PRAGMA cache_size = 1000000");
@@ -567,9 +569,9 @@ function database_connect($database_path, $database_name) {
 function sqlite_regexp($string1, $string2, $case) {
 
     if ($case == 1) {
-        $pattern = '/([^a-zA-Z0-9]|^)' . preg_quote($string2) . '([^a-zA-Z0-9]|$)/u';
+        $pattern = '/([^a-zA-Z0-9]|^)' . $string2 . '([^a-zA-Z0-9]|$)/u';
     } else {
-        $pattern = '/([^a-zA-Z0-9]|^)' . preg_quote($string2) . '([^a-zA-Z0-9]|$)/ui';
+        $pattern = '/([^a-zA-Z0-9]|^)' . $string2 . '([^a-zA-Z0-9]|$)/ui';
     }
 
     if (preg_match($pattern, $string1) > 0) {
@@ -1980,7 +1982,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     //record office file into supplement
     if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
         //record original file into supplement
-        $supplement_filename = sprintf("%06d", intval($new_file)) . $title;
+        $supplement_filename = sprintf("%05d", intval($new_file)) . $title;
         copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title);
     }
@@ -2033,7 +2035,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
     if ($display == 'icons')
         print '<table cellspacing=0 id="icon-container" style="border:0;width:100%">
-        <tr><td class="alternating_row" style="width:100%;border-bottom:1px #c5c6c8 solid;border-top:1px #c5c6c8 solid;padding-bottom:11px">';
+        <tr><td class="alternating_row" style="width:100%;border-bottom:1px rgba(0,0,0,0.15) solid;border-top:1px rgba(0,0,0,0.15) solid;padding-bottom:11px">';
 
     while (list($key, $paper) = each($result)) {
 
@@ -2172,15 +2174,17 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
             if (count($auth_arr) > 1)
                 $etal = ', et al.';
 
-            print '<div class="item-container thumb-items" id="display-item-' . $paper['id'] . '" data-file="' . $paper['file'] . '"><div>';
+            print '<div class="item-container thumb-items" id="display-item-' . $paper['id'] . '" data-file="' . $paper['file'] . '">'
+                    . '<div>';
 
-            print '<div class="thumb-titles"><div><b>' . $paper['title'] . '</b><br>';
+            print '<div class="thumb-titles">'
+            . '<div>' . $paper['title'] . '</div>';
 
             print $first_author . $etal;
             if (!empty($paper['year']))
                 print ' (' . substr($paper['year'], 0, 4) . ')';
 
-            print '</div></div>';
+            print '</div>';
 
             if (date('Y-m-d') == $paper['addition_date'])
                 print '<div class="new-item ui-state-error-text">New!</div>';
@@ -2200,7 +2204,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
             print '</div>';
 
-            print PHP_EOL . '<table class="item-sticker" style="width:100%;border:1px solid #c5c6c8"><tr><td class="noprint ui-corner-all" style="padding:0.5em 0.75em">';
+            print PHP_EOL . '<table class="item-sticker" style="width:100%;border:1px solid rgba(0,0,0,0.15)"><tr><td class="noprint ui-corner-all" style="padding:0.5em 0.75em">';
 
             print '<i class="fa fa-info-circle quick-view" style="font-size:1.25em"></i>&nbsp;&nbsp;&nbsp;';
             print '<i class="fa fa-external-link-square quick-view-external" style="font-size:1.25em"></i>&nbsp;&nbsp;&nbsp;';
@@ -2278,7 +2282,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                         <a class="ui-state-error-text" href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="display:block">
                                 PDF</a></div>';
             } else {
-                print PHP_EOL . '<div class="ui-state-error-text noprint titles-pdf" style="float:left;color:rgba(0,0,0,0.3);cursor:auto">PDF</div>';
+                print PHP_EOL . '<div class="noprint titles-pdf" style="float:left;color:rgba(0,0,0,0.3);cursor:auto">PDF</div>';
             }
 
             print PHP_EOL . '<div class="titles brief">&nbsp;' . $paper['title'] . '</div>';

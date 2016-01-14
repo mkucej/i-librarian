@@ -379,13 +379,13 @@ if (isset($_SESSION['auth'])) {
 
             print '<table class="top" style="margin-bottom:1px"><tr><td class="top" style="width: 13em">';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align: center">'
                     . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_arxiv.php?' . $url_string . '&from=1') . '" style="display:block;width:26px">') .
                     '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                     . ($from == 1 ? '' : '</a>') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align: center">'
                     . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_arxiv.php?' . $url_string . '&from=' . ($from - 10)) . '" style="color:black;display:block;width:100%">') .
                     '<i class="fa fa-caret-left"></i>&nbsp;Back'
                     . ($from == 1 ? '' : '</a>') .
@@ -399,19 +399,19 @@ if (isset($_SESSION['auth'])) {
 
             (($count % 10) == 0) ? $lastpage = 1 + $count - 10 : $lastpage = 1 + $count - ($count % 10);
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-top' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align: center">'
                     . ($count >= $from + 10 ? '<a class="navigation" href="' . htmlspecialchars('download_arxiv.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
                     '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                     . ($count >= $from + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-top' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align: center">'
                     . ($count >= $from + 10 ? '<a class="navigation" href="' . htmlspecialchars("download_arxiv.php?$url_string&from=" . ($from + 10)) . '" style="color:black;display:block;width:100%">' : '') .
                     '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                     . ($count >= $from + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px">PgDn</div>';
+            print '<div class="ui-state-default ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px;text-align: center">PgDn</div>';
 
             print '</td></tr></table>';
 
@@ -616,13 +616,13 @@ if (isset($_SESSION['auth'])) {
 
             print '<table class="top" style="margin-top:1px"><tr><td class="top" style="width: 50%">';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align: center">'
                     . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_arxiv.php?' . $url_string . '&from=1') . '" style="display:block;width:26px">') .
                     '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                     . ($from == 1 ? '' : '</a>') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align: center">'
                     . ($from == 1 ? '' : '<a class="navigation prevpage" href="' . htmlspecialchars('download_arxiv.php?' . $url_string . '&from=' . ($from - 10)) . '" style="color:black;display:block;width:100%">') .
                     '<i class="fa fa-caret-left"></i>&nbsp;Back'
                     . ($from == 1 ? '' : '</a>') .
@@ -630,19 +630,19 @@ if (isset($_SESSION['auth'])) {
 
             print '</td><td class="top" style="width: 50%">';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align: center">'
                     . ($count >= $from + 10 ? '<a class="navigation" href="' . htmlspecialchars('download_arxiv.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
                     '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                     . ($count >= $from + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+            print '<div class="ui-state-default ui-corner-bottom' . ($count >= $from + 10 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align: center">'
                     . ($count >= $from + 10 ? '<a class="navigation nextpage" href="' . htmlspecialchars("download_arxiv.php?$url_string&from=" . ($from + 10)) . '" style="color:black;display:block;width:100%">' : '') .
                     '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                     . ($count >= $from + 10 ? '</a>' : '') .
                     '</div>';
 
-            print '<div class="ui-state-highlight ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px">PgUp</div>';
+            print '<div class="ui-state-default ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px;text-align: center">PgUp</div>';
 
             print '</td></tr></table>';
         } else {
@@ -657,7 +657,7 @@ if (isset($_SESSION['auth'])) {
         ?>
         <div style="text-align: left">
             <form enctype="application/x-www-form-urlencoded" action="download_arxiv.php" method="GET" id="download-form">
-                <div class="ui-state-highlight ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
+                <div class="ui-state-default ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
                     <a href="http://arxiv.org/find" target="_blank" style="display:block"><i class="fa fa-external-link"></i> arXiv</a>
                 </div>
                 <div style="clear:both"></div>

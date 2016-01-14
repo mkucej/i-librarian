@@ -153,7 +153,7 @@ if (!isset($_GET['inline'])) {
                             <input type="checkbox" id="pdf-viewer-others-annotations">
                             <label for="pdf-viewer-others-annotations" title="Others' annotations"><i class="fa fa-user"></i></label>
                             <div class="arrow-top"></div>
-                            <div id="pdf-viewer-delete-menu" class="ui-corner-all alternating_row" style="display:none">
+                            <div id="pdf-viewer-delete-menu" class="alternating_row" style="display:none">
                                 <div>
                                     Erase selected
                                 </div>

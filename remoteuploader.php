@@ -496,7 +496,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         <input type="hidden" name="proxy_port" value="<?php print htmlspecialchars($proxy_port); ?>">
         <input type="hidden" name="proxy_username" value="<?php print htmlspecialchars($proxy_username); ?>">
         <input type="hidden" name="proxy_password" value="<?php print htmlspecialchars($proxy_password); ?>">
-        <table cellspacing="0" style="width: 100%;border-top: solid 1px #D5D6D9">
+        <table cellspacing="0" style="width: 100%" class="threed">
             <tr>
                 <td valign="top" class="threedleft">
                     <div id="uploaderOverlay">
@@ -547,7 +547,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 </td>
             </tr>
         </table>
-        <table cellspacing="0" style="width: 100%" id="table1">
+        <table cellspacing="0" style="width: 100%" id="table1" class="threed">
             <tr><td class="threedleft">Select database:</td>
                 <td class="threedright">
                     <table cellspacing="0">
@@ -585,7 +585,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     </table>
                 </td>
             </tr></table>
-        <table cellspacing="0" style="width:100%" id="table2">
+        <table cellspacing="0" style="width:100%" id="table2" class="threed">
             <tr>
                 <td class="threedleft">
                     Choose&nbsp;category:<br>

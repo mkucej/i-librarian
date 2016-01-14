@@ -1,4 +1,4 @@
-# I, Librarian 3 Instructions
+# I, Librarian Instructions
 ## Contents
   - Automated installation using installers
   - Windows manual installation

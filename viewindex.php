@@ -22,8 +22,8 @@ if (!empty($text)) {
 }
 include_once 'index.inc.php';
 ?>
-<body class="ui-state-highlight" style="padding:20px;text-align:left">
-    <h2>Extracted text from the file <?php print $filename; ?>:</h2>
+<body style="padding:20px">
+    <h3>Extracted text from the file <?php print $filename; ?>:</h3>
     <div class="ui-corner-all alternating_row" style="float:left;width:75%;text-align:justify;padding:10px;text-shadow:none">
         <?php print htmlspecialchars($text); ?>
     </div>
@@ -34,5 +34,6 @@ include_once 'index.inc.php';
             <tr><td><b>Ratio:&nbsp;</b></td><td><?php print round(100 * (1 - ($text_size / $pdf_size)), 1) . '%'; ?></td></tr>
         </table>
     </div>
+    <div style='clear:both'></div>
 </body>
 </html>

@@ -319,13 +319,13 @@ if (!empty($_GET['action'])) {
 
         print '<table class="top" style="margin-bottom:1px"><tr><td style="width: 13em">';
 
-        print '<div class="ui-state-highlight ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align: center">'
                 . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_springer.php?' . $url_string . '&from=1') . '" style="display:block;width:26px">') .
                 '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                 . ($from == 1 ? '' : '</a>') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+        print '<div class="ui-state-default ui-corner-top' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align: center">'
                 . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_springer.php?' . $url_string . '&from=' . ($from - 10)) . '" style="color:black;display:block;width:100%">') .
                 '<i class="fa fa-caret-left"></i>&nbsp;Back'
                 . ($from == 1 ? '' : '</a>') .
@@ -339,19 +339,19 @@ if (!empty($_GET['action'])) {
 
         (($count % 10) == 0) ? $lastpage = $count - 9 : $lastpage = $count - ($count % 10) + 1;
 
-        print '<div class="ui-state-highlight ui-corner-top' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-top' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align: center">'
                 . ($count > $from + 9 ? '<a class="navigation" href="' . htmlspecialchars('download_springer.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
                 '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                 . ($count > $from + 9 ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-top' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+        print '<div class="ui-state-default ui-corner-top' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align: center">'
                 . ($count > $from + 9 ? '<a class="navigation" href="' . htmlspecialchars("download_springer.php?$url_string&from=" . ($from + 10)) . '" style="color:black;display:block;width:100%">' : '') .
                 '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                 . ($count > $from + 9 ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px">PgDn</div>';
+        print '<div class="ui-state-default ui-corner-top pgdown" style="float: right;width: 4em;margin-right:2px;text-align: center">PgDn</div>';
 
         print '</td></tr></table>';
 
@@ -414,13 +414,13 @@ if (!empty($_GET['action'])) {
 
         print '<table class="top" style="margin-top:1px"><tr><td class="top" style="width: 50%">';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:26px;text-align: center">'
                 . ($from == 1 ? '' : '<a class="navigation" href="' . htmlspecialchars('download_springer.php?' . $url_string . '&from=1') . '" style="display:block;width:26px">') .
                 '&nbsp;<i class="fa fa-caret-left"></i> <i class="fa fa-caret-left"></i>&nbsp;'
                 . ($from == 1 ? '' : '</a>') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em">'
+        print '<div class="ui-state-default ui-corner-bottom' . ($from == 1 ? ' ui-state-disabled' : '') . '" style="float:left;margin-left:2px;width:4em;text-align: center">'
                 . ($from == 1 ? '' : '<a class="navigation prevpage" href="' . htmlspecialchars('download_springer.php?' . $url_string . '&from=' . ($from - 10)) . '" style="color:black;display:block;width:100%">') .
                 '<i class="fa fa-caret-left"></i>&nbsp;Back'
                 . ($from == 1 ? '' : '</a>') .
@@ -428,19 +428,19 @@ if (!empty($_GET['action'])) {
 
         print '</td><td class="top" style="width: 50%">';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px">'
+        print '<div class="ui-state-default ui-corner-bottom' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:26px;text-align: center">'
                 . ($count > $from + 9 ? '<a class="navigation" href="' . htmlspecialchars('download_springer.php?' . $url_string . '&from=' . $lastpage) . '" style="display:block;width:26px">' : '') .
                 '<i class="fa fa-caret-right"></i>&nbsp;<i class="fa fa-caret-right"></i>'
                 . ($count > $from + 9 ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-bottom' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em">'
+        print '<div class="ui-state-default ui-corner-bottom' . ($count > $from + 9 ? '' : ' ui-state-disabled') . '" style="float:right;margin-right:2px;width:4em;text-align: center">'
                 . ($count > $from + 9 ? '<a class="navigation nextpage" href="' . htmlspecialchars("download_springer.php?$url_string&from=" . ($from + 10)) . '" style="color:black;display:block;width:100%">' : '') .
                 '&nbsp;Next <i class="fa fa-caret-right"></i>&nbsp;'
                 . ($count > $from + 9 ? '</a>' : '') .
                 '</div>';
 
-        print '<div class="ui-state-highlight ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px">PgUp</div>';
+        print '<div class="ui-state-default ui-corner-bottom pgup" style="float:right;width:4em;margin-right:2px;text-align: center">PgUp</div>';
 
         print '</td></tr></table><br>';
     } else {
@@ -448,7 +448,7 @@ if (!empty($_GET['action'])) {
     }
 } else {
     ?>
-    <div class="ui-state-highlight ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
+    <div class="ui-state-default ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
         <a href="http://link.springer.com/" target="_blank" style="display:block"><span class="fa fa-external-link"></span> Springer</a>
     </div>
     <div style="clear:both"></div>

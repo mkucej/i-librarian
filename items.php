@@ -69,19 +69,10 @@ if (empty($export_files))
 ?>
 <div id="items-left" class="noprint alternating_row" style="position:relative;float:left;width:233px;height:100%;overflow:scroll;border:0;margin:0">
 
-    <div style="padding:4px 0;border:0;background-color:rgba(0,0,0,0.75);color:white;position:fixed;bottom:40px;left:60px;width:100px;text-align: center;border-radius: 16px;cursor:pointer">
-        <div class="backbutton" title="Back to list view (Q)" style="float:left;width:calc(33% - 4px);padding:2px">
-            <i class="fa fa-times-circle"></i>
-        </div>
-        <div title="Previous Item (W)" style="float:left;width:calc(33% - 4px);padding:2px" class="prevrecord">
-            <i class="fa fa-chevron-circle-up"></i>
-        </div>
-        <div title="Next Item (S)"  style="float:left;width:calc(33% - 4px);padding:2px" class="nextrecord">
-            <i class="fa fa-chevron-circle-down"></i>
-        </div>
-        <div style="clear:both"></div>
-    </div>
-
+    <button class="items-nav backbutton" title="Back to list view (Q)"><i class="fa fa-times-circle"></i></button>
+    <button class="items-nav prevrecord" title="Previous Item (W)"><i class="fa fa-chevron-circle-up"></i></button>
+    <button class="items-nav nextrecord" title="Next Item (S)"><i class="fa fa-chevron-circle-down"></i></button>
+    <div style="clear:both"></div>
     <?php
     if (empty($_GET['file']))
         $_GET['file'] = $export_files[0];
@@ -89,11 +80,9 @@ if (empty($export_files))
     $offset = max($key - 9, 0);
     $display_files = array_slice($export_files, $offset, 20);
     if ($offset > 0) {
-        print '<div class="ui-state-highlight lib-shadow-bottom" style="margin-bottom:4px;height:17px" id="nav-prev" data-id="' . $export_files[$offset - 1] . '">';
-        print '<i class="fa fa-caret-up"></i>';
-        print '</div>';
+        print '<button id="nav-prev" data-id="' . $export_files[$offset - 1] . '"><i class="fa fa-caret-up"></i></button>';
     }
-    print '<div id="list-title-copy" class="items" style="font-weight:bold"></div><div class="separator"></div>';
+    print '<div id="list-title-copy" style="padding:0.75em;font-weight:bold"></div><div class="separator"></div>';
 
     $divs = array();
 
@@ -125,12 +114,8 @@ if (empty($export_files))
 
     print join($hr, $divs);
 
-    echo '<div style="margin-top:24px" ></div>';
-
     if ($offset < count($export_files) - 20) {
-        print '<div class="ui-state-highlight lib-shadow-top" id="nav-next" data-id="' . $export_files[$offset + 20] . '">';
-        print '<i class="fa fa-caret-down"></i>';
-        print '</div>';
+        print '<button id="nav-next" data-id="' . $export_files[$offset + 20] . '"><i class="fa fa-caret-down"></i></button>';
     }
 
     ?>
@@ -144,7 +129,7 @@ if (empty($export_files))
     if (!empty($_GET['file'])) {
 
         ?>
-        <div class="noprint ui-state-highlight" id="items-menu">
+        <div class="noprint ui-state-default" id="items-menu">
             <div class="tab" id="file-item" style="position:relative">
                 <i class="fa fa-home"></i><br>Item
                 <i class="fa fa-caret-right" style="position:absolute;top:0.5em;right:3px;opacity:0.5"></i>
@@ -236,7 +221,7 @@ if (empty($export_files))
             </div>
             <div style="clear:both"></div>
         </div>
-        <div id="file-panel" style="width:auto;height:48%;border-top:1px solid #c6c8cc;overflow:auto">
+        <div id="file-panel" style="width:auto;height:48%;overflow:auto">
         </div>
         <?php
     } else {

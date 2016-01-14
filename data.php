@@ -1,12 +1,12 @@
 <?php
 
 // I, Librarian version
-$version = '3.6';
+$version = '4.0';
 
 // initial PHP settings
 ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
 ini_set('default_charset', 'UTF-8');
-ini_set('error_reporting', E_ALL);
+ini_set('error_reporting', E_ERROR);
 ini_set('display_errors', true);
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '512M');
@@ -219,6 +219,8 @@ setcookie(session_name(), session_id(), time() + $cookietimeout);
 // Set time zone.
 if (!empty($_SESSION['zone'])) {
     date_default_timezone_set($_SESSION['zone']);
+} else {
+    date_default_timezone_set('UTC');
 }
 
 // create user specific directory for caching

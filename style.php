@@ -105,8 +105,7 @@ div.authors {
 td.threed {
     padding: 0.25em;
     background-color: #" . $alternating_row_background_color . ";
-    border-right: 1px #C6C8CC solid;
-    border-bottom: 1px #C6C8CC solid;
+    border: 1px solid rgba(0,0,0,0.1);
     vertical-align: middle !important
 }
 
@@ -114,18 +113,14 @@ td.threedleft {
     width: 12em;
     padding:0.25em 0.25em 0.25em 0.5em;
     background-color: #" . $alternating_row_background_color . ";
-    border-top: 1px #FFFFFF solid;
-    border-right: 1px #C6C8CC solid;
-    border-bottom: 1px #C6C8CC solid;
+    border: 1px solid rgba(0,0,0,0.1);
     vertical-align: middle !important
 }
 
 td.threedright {
     padding:0.25em;
     background-color: #" . $alternating_row_background_color . ";
-    border-top: 1px #FFFFFF solid;
-    border-left: 1px #FFFFFF solid;
-    border-bottom: 1px #C6C8CC solid;
+    border: 1px solid rgba(0,0,0,0.1);
     vertical-align: middle !important
 }
 
@@ -136,14 +131,13 @@ td.threedright {
 #top-panel, #top-panel-form {
     background-color: #" . $top_window_background_color . ";
     padding: 0px;
-    border-bottom: 1px solid rgba(0,0,0,0.5)
+    border-bottom: 1px solid rgba(0,0,0,0.25)
 }
 
 #top-panel-form {
     padding:12px 12px;
     font-size:22px;
     text-align:center;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
 }
 
 td.topindex, div.topindex {
@@ -151,19 +145,16 @@ td.topindex, div.topindex {
 }
 
 a.topindex {
-    display: inline-block;
-    padding:2px 6px;
-    font-size: 15px;
-    font-weight: bold;
+    padding:4px 8px;
+    font-size: 17px;
     color: #" . $top_window_color . ";
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+    border: 1px solid transparent;
 }
 
 a.topindex:hover,
 a.topindex:focus,
 a.topindex_clicked {
-    box-shadow: rgba(0,0,0,0.7) 0 0 2px 0 inset, rgba(255,255,255,0.3) 0 1px 2px 0;
-    background-color: rgba(0,0,0,0.15);
+    border: 1px solid #" . $top_window_color . ";
 }
 
 #search-menu > div:hover,
@@ -175,33 +166,31 @@ a.topindex_clicked {
 #items-item-menu,
 #items-notes-menu,
 #items-pdf-menu-a,
-#items-pdf-menu-b {
-    background-color: #" . $top_window_background_color . ";
-    color: #" . $top_window_color . ";
+#items-pdf-menu-b,
+.ui-state-active,
+.ui-state-hover,
+.ui-state-focus,
+#items-left .items:hover{
+    background-color: #" . $top_window_background_color . " !important;
+    color: #" . $top_window_color . " !important;
+    border-color: #" . $top_window_background_color . " !important;
     text-shadow: none;
 }
 
+#items-item-menu,
 #items-notes-menu,
 #items-pdf-menu-a,
 #items-pdf-menu-b {
     box-shadow: 1px 1px 3px rgba(0,0,0,0.33)
 }
 
-#keyboardswitch {
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
-}
-
 a.navigation {
     color: #" . $main_window_color . "
 }
 
-body.leftindex, div.leftindex {
-    background-color: #" . $left_window_background_color . ";
-    margin: 0px;
-}
-                
-.alternating_row {
-    background-color: #" . $alternating_row_background_color . "
+.alternating_row, .leftindex {
+    background-color: #" . $alternating_row_background_color . ";
+    color: #" . $main_window_color . "
 }
 
 body.discussion {
@@ -235,19 +224,28 @@ input.bibtex {
     cursor:pointer
 }
 
-.ui-widget {
-    font-family: '" . $main_window_font_family . "',sans-serif;
-    font-size: " . $main_window_font_size . "px
-}
-
-.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
-    font-family: '" . $main_window_font_family . "',sans-serif
-}
-
 body#notes_ifr {
     font-family: '" . $main_window_font_family . "',sans-serif;
     font-size: " . $main_window_font_size . "px;
     margin:8px;
+}
+
+.ui-state-error-text {
+color: #" . $main_window_highlight_color . " !important;
+}
+
+.ui-widget-content {
+color: #" . $main_window_color . ";
+background-color: #" . $main_window_background_color . ";
+}
+
+.ui-widget-content a {
+color: #" . $main_window_color . ";
+}
+
+.ui-widget-header {
+color: #" . $main_window_color . ";
+background-color: #" . $alternating_row_background_color . ";
 }
 ";
 
@@ -259,23 +257,18 @@ font-size: 1em
 }
 
 .tipsy-inner {
-box-shadow: #222 0 0 3px;
--moz-box-shadow: #222 0 0 3px;
--webkit-box-shadow: #222 0 0 3px;
+box-shadow: rgba(0,0,0,0.15) 0 0 3px;
 padding: 4px 7px;
-background: rgba(0,0,0,0.85);
+background: rgba(20,20,20,0.9);
 max-width: 220px
 }
 
 /* jQuery UI Tooltip */
 
-.ui-tooltip {
-background: rgba(60,60,70,1);
+.ui-tooltip.ui-widget.ui-widget-content {
+background-color: rgba(60,60,70,1);
 border: none;
 max-width: 250px;
-}
-
-.ui-tooltip {
 padding: 0.75em 1.25em;
 color: white;
 border-radius: 0px;
@@ -288,36 +281,30 @@ border: 0 !important
 }
 
 /*jquery ui*/
-.ui-button-text {text-shadow:1px 1px 0px rgba(255,255,255,0.8)}
-.ui-button {border-color:rgba(0,0,0,0.07) !important;border-bottom :1px solid rgba(0,0,0,0.15) !important}
 
-.ui-state-highlight {
+.ui-state-default {
 cursor: pointer;
-padding:2px 1px;
-text-align: center;
-text-shadow:1px 1px 0px rgba(255,255,255,0.8)
 }
 
-.ui-dialog	{
+.ui-dialog {
 padding: 0;
 box-shadow: 0 0 16px rgba(0,0,0,0.6);
 }
 
 .ui-dialog-titlebar, .ui-datepicker-header {
-text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
-border-radius: 3px 3px 0 0;
+font-size:1.1em;
 border-top: 0;
 border-left: 0;
 border-right: 0;
 }
 
 .ui-dialog-titlebar {
-padding-top: 6px !important;
-padding-bottom: 6px !important;
+padding-top: 0.6em !important;
+padding-bottom: 0.6em !important;
 }
 
 .ui-dialog > .ui-dialog-buttonpane	{
-padding: 2px 6px;
+padding: 0.25em 1em;
 margin-top: 0
 }
 
@@ -342,8 +329,24 @@ margin:0
 }
 
 .ui-selectmenu-button span.ui-selectmenu-text {
-padding: 0.25em 2.1em 0.25em 1.6em;
+padding-top: 0.25em;
+padding-bottom: 0.25em;
 line-height:1.3
+}
+
+.ui-button-text-only .ui-button-text {
+line-height:1.3
+}
+
+#leftindex-left .menu,
+#leftindex-left .projectheader,
+#addarticle-left button,
+#tools-left button {
+    width: 100%;
+    border-left: none;
+    border-right: none;
+    margin: 0.5em 0 0 0;
+    display: block
 }
 
 #overlay {
@@ -434,14 +437,28 @@ padding: 8px 12px;
 overflow: hidden
 }
 
-td.quicksearch
+td.quicksearch input
 {
-text-align: right;
-padding: 2px 4px 2px 4px;
+width: calc(100% - 0.8em);
+border:0;
+padding:0.4em 0.4em
 }
 
-.fa {
-font-size: 1.1em
+.separators {
+width:100%;
+}
+
+.separators > label {
+float:left;
+border-left: none;
+border-right: none;
+width: 33.333%;
+margin: 0 !important
+}
+
+.separators > label > span {
+padding-left: 0;
+padding-right: 0
 }
 
 .fa-circle, .fa-circle-o {
@@ -452,31 +469,6 @@ bottom:0.1em
 
 .fa-check-square, .fa-square-o {
 width: 1em;
-}
-
-#search > span, #clear > span {
-padding:0
-}
-
-.leftbutton	{
-height:28px;
-line-height:28px;
-text-align: center;
-cursor: pointer;
-text-shadow:1px 1px 0 rgba(255,255,255,0.5);
-font-weight: normal;
-border-bottom:1px solid rgba(0,0,0,0.15);
-border-left:0
-}
-
-.leftleftbutton
-{
-width: 6px;
-height: 28px;
-background-color: #b6b8bc;
-padding-bottom: 1px;
-border-bottom:1px solid rgba(0,0,0,0.15);
-text-shadow:1px 1px 0 rgba(255,255,255,0.4);
 }
 
 .del-saved-search, .empty-flagged {
@@ -490,8 +482,8 @@ resize: vertical
 }
 
 table.threed	{
-border-spacing: 1px;
 margin: 0px;
+border-collapse: collapse;
 }
 
 .details	{
@@ -525,6 +517,22 @@ margin:2px 0;
 width:180px;
 }
 
+#nav-prev, #nav-next {
+width:100%;
+border-left:none;
+border-right:none;
+display:block
+}
+
+.items-nav {
+width:33.33%;
+border-left:none;
+border-right:none;
+display:block;
+float: left;
+margin:0;
+}
+
 #items-menu {
 float:left;
 width:4em;
@@ -551,6 +559,9 @@ font-size: 16px
     text-align:center;
     padding: 5px 0;
     cursor: pointer;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
 }
 
 div.file-title  {
@@ -617,7 +628,7 @@ font-weight:bold;
 iframe {display:block}
 
 #signin-background {
-background-color: #eeeeef;
+background-color: #eeeeee;
 background: url('img/gridme.png');
 }
 
@@ -650,18 +661,22 @@ width:360px;
 height:240px;
 background-color:white;
 overflow:hidden;
-box-shadow:0 0 3px #888;
+box-shadow:0 0 3px rgba(0,0,0,0.5);
 }
 
 .thumb-titles {
 position:absolute;
 bottom:0;
 left:0;
-background-color:rgba(0,0,0,0.8);
+background-color:rgba(20,20,20,0.85);
 color:white;
 width:348px;
 padding:2px 6px 4px 6px;
-cursor:pointer
+cursor:pointer;
+}
+
+.thumb-titles > div {
+font-size:1.1em;
 }
 
 .thumb-titles > div {
@@ -675,7 +690,7 @@ padding:10px;
 cursor:pointer;
 width:120px;
 position:absolute;
-box-shadow:#333 0 0 5px;
+box-shadow:rgba(0,0,0,0.15) 0 0 5px;
 }
 
 #menuwrapper {
@@ -758,17 +773,9 @@ cursor:pointer
 width:100%;
 }
 
-#pdf-viewer-controls .ui-button {
-border:0 !important;
-background: none;
-}
-
-#pdf-viewer-controls .ui-button:hover {
-background: rgba(0,0,0,0.1);
-}
-
-#pdf-viewer-controls .ui-button-text {
-text-shadow: none
+#pdf-viewer-controls .ui-button.ui-state-default {
+border: none !important;
+background-color:  transparent;
 }
 
 .pdf-viewer-control-row {
@@ -941,9 +948,28 @@ margin:0;
 margin-top:4px;
 }
 
-.save-note {
-width:18px;
-margin-top:2px
+.annotation, .search-result, .bookmark {
+border: 1px solid transparent
+}
+
+.annotation > div {
+padding: 0.25em 0.5em
+}
+
+.annotation > div:nth-child(2) {
+white-space:pre-wrap;
+word-wrap:break-word
+}
+
+.annotation > textarea {
+width:175px;
+height:10em;
+resize:vertical;
+display:none
+}
+
+.note-save, .note-edit {
+text-align: center
 }
 
 #zoom   {
@@ -982,9 +1008,9 @@ z-index:100;
 width:160px;
 padding:0;
 border:1px solid #b6b8bc;
-box-shadow: #aaa 0 0 6px;
--moz-box-shadow: #aaa 0 0 6px;
--webkit-box-shadow: #aaa 0 0 6px
+box-shadow: rgba(0,0,0,0.15) 0 0 6px;
+-moz-box-shadow: rgba(0,0,0,0.15) 0 0 6px;
+-webkit-box-shadow: rgba(0,0,0,0.15) 0 0 6px
 }
 
 #pdf-viewer-delete-menu > div  {
@@ -1029,26 +1055,26 @@ a,
 
 /*Ubuntu fonts*/
 @font-face {
-font-family: Ubuntu;
+font-family: 'Liberation Sans';
 font-weight: normal;
-src: url('fonts/Ubuntu-R.ttf');
+src: url('fonts/LiberationSans-Regular.ttf');
 }
 
 @font-face {
-font-family: Ubuntu;
+font-family: 'Liberation Sans';
 font-weight: bold;
-src: url('fonts/Ubuntu-B.ttf');
+src: url('fonts/LiberationSans-Bold.ttf');
 }
 
 @font-face {
-font-family: Ubuntu;
-src: url('fonts/Ubuntu-RI.ttf');
+font-family: 'Liberation Sans';
+src: url('fonts/LiberationSans-Italic.ttf');
 font-style: italic;
 }
 
 @font-face {
-font-family: Ubuntu;
-src: url('fonts/Ubuntu-BI.ttf');
+font-family: 'Liberation Sans';
+src: url('fonts/LiberationSans-BoldItalic.ttf');
 font-weight: bold;
 font-style: italic;
 }

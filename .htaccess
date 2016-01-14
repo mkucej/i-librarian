@@ -9,6 +9,6 @@
 </IfModule>
 <IfModule !mod_authz_core.c>
     <FilesMatch "\.(ini|conf)$">
-        Order allow, deny
+        Order allow,deny
     </FilesMatch>
 </IfModule>

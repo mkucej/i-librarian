@@ -534,7 +534,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
     <form id="metadataform" enctype="multipart/form-data" action="edit.php" method="POST">
         <input type="hidden" name="form_sent" value="1">
         <input type="hidden" name="file" value="<?php print htmlspecialchars($paper['id']) ?>">
-        <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;margin-top: 0px;margin-bottom:1px">
+        <table class="threed" style="width: 100%;margin-top: 0px;margin-bottom:1px">
             <tr>
                 <td class="threedleft">
                     <button id="savemetadata"><i class="fa fa-save"></i> Save</button>

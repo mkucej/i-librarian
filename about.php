@@ -1,6 +1,6 @@
 <div style="text-align:center">
     <div class="item-sticker ui-widget-content ui-corner-all" style="margin:auto;margin-top:100px;width:340px">
-        <div class="ui-widget-header ui-dialog-titlebar ui-corner-top" style="border:0;font-size:1.25em">
+        <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="border:0;font-size:1.25em">
             I, Librarian 
             <?php
             include_once 'data.php';
@@ -16,9 +16,7 @@
                 I, Librarian is licensed under GPLv3. The program is provided "as is"
                 without warranty of any kind. In no event can the author be liable to
                 you for damages arising out of the use or inability to use this software.
-            </p>
-            <p>
-                <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">Read the full license.</a>
+                <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">ENTIRE LICENSE</a>
             </p>
         </div>
         <div class="separator" style="margin:0"></div>

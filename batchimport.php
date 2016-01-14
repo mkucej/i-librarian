@@ -62,7 +62,7 @@ if (!isset($_GET['commence'])) {
             <br>
             <br>
             <div style="width:600px;margin:auto">
-                <div class="ui-state-highlight ui-corner-all" style="float:left;margin-bottom:4px;padding:1px 4px;cursor:auto">
+                <div class="ui-state-default ui-corner-all" style="float:left;margin-bottom:4px;padding:1px 4px;cursor:auto">
                     <i class="fa fa-signin"></i>
                     PDF Batch Import
                 </div>
@@ -129,7 +129,7 @@ if (!isset($_GET['commence'])) {
 
             $pdf_count = count($pdf_files);
             ?>
-            <div class="ui-state-highlight ui-corner-all" style="float:left;margin:4px;padding:1px 4px;cursor:auto">
+            <div class="ui-state-default ui-corner-all" style="float:left;margin:4px;padding:1px 4px;cursor:auto">
                 <i class="fa fa-signin"></i>
                 PDF Batch Import
             </div>
@@ -144,7 +144,7 @@ if (!isset($_GET['commence'])) {
                 <input type="hidden" name="proxy_port" value="<?php print htmlspecialchars($proxy_port); ?>">
                 <input type="hidden" name="proxy_username" value="<?php print htmlspecialchars($proxy_username); ?>">
                 <input type="hidden" name="proxy_password" value="<?php print htmlspecialchars($proxy_password); ?>">
-                <table cellspacing="0" style="width: 100%;border-top: solid 1px #D5D6D9">
+                <table style="width: 100%;" class="threed">
                     <tr>
                         <td valign="top" class="threedleft">
                             <button id="batchimportbutton2" <?php
@@ -186,7 +186,7 @@ if (!isset($_GET['commence'])) {
                         </td>
                     </tr>
                 </table>
-                <table cellspacing="0" style="width: 100%" id="table1">
+                <table style="width: 100%" id="table1" class="threed">
                     <tr><td class="threedleft">Info:</td>
                         <td class="threedright" style="padding-left: 18px">
                             Found <?php print $pdf_count; ?> file<?php print ($pdf_count == 1) ? '' : 's'; ?>.

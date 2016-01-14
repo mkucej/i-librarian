@@ -23,7 +23,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             $like_query_esc = str_replace("<*>", "%", $like_query_esc);
             $like_query_esc = str_replace("<?>", "_", $like_query_esc);
 
-            $regexp_query_esc = addcslashes(trim($matches[2]), "\044\050..\053\056\057\074\076\077\133\134\136\173\174");
+            $regexp_query_esc = preg_quote(trim($matches[2]));
             $regexp_query_esc = str_replace('\<\*\>', '.*', $regexp_query_esc);
             $regexp_query_esc = str_replace('\<\?\>', '.?', $regexp_query_esc);
 
@@ -37,12 +37,12 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             if (strtolower($matches[3]) == '[au]') {
 
                 $like_query = $dbHandle->quote("%L:\"$like_query_esc%");
-                $regexp_query = str_replace("'", "''", "%L:\"" . $regexp_query);
+                $regexp_query = str_replace("'", "''", "L:\"" . $regexp_query);
 
                 if ($translation != $like_query_esc) {
                     $translation_regexp = utf8_deaccent($regexp_query_esc);
                     $like_query_translated = $dbHandle->quote("%L:\"$translation%");
-                    $regexp_query_translated = str_replace("'", "''", "%L:\"" . $translation_regexp);
+                    $regexp_query_translated = str_replace("'", "''", "L:\"" . $translation_regexp);
                     $like_sql = "authors LIKE $like_query ESCAPE '\' OR"
                             . " editor LIKE $like_query ESCAPE '\' OR"
                             . " authors_ascii LIKE $like_query_translated ESCAPE '\'";
@@ -60,7 +60,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -80,7 +80,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -100,7 +100,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -120,7 +120,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -140,7 +140,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -160,7 +160,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -180,7 +180,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -202,7 +202,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -222,7 +222,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -242,7 +242,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -262,7 +262,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -282,7 +282,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
                 $final = $like_sql;
                 if ($whole_words == 1)
-                    $final = $final . ' AND ' . $regexp_sql;
+                    $final = "(($final) AND ($regexp_sql))";
 
                 $input = str_replace($matches[0], $matches[1] . " $final ", $input);
 
@@ -323,7 +323,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             $like_query = str_replace("<*>", "%", $like_query);
             $like_query = str_replace("<?>", "_", $like_query);
 
-            $regexp_query = addcslashes(trim($matches[2]), "\044\050..\053\056\057\074\076\077\133\134\136\173\174");
+            $regexp_query = preg_quote(trim($matches[2]));
             $regexp_query = str_replace('\<\*\>', '.*', $regexp_query);
             $regexp_query = str_replace('\<\?\>', '.?', $regexp_query);
 
@@ -346,7 +346,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
             $final = $like_sql;
             if ($whole_words == 1)
-                $final = $final . ' AND ' . $regexp_sql;
+                $final = "(($final) AND ($regexp_sql))";
 
             $input = str_replace($matches[0], $matches[1] . " $final " . $matches[3], $input);
         } else {
@@ -378,7 +378,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
             $like_query = str_replace("<*>", "%", $like_query);
             $like_query = str_replace("<?>", "_", $like_query);
 
-            $regexp_query = addcslashes(trim($matches[2]), "\044\050..\053\056\057\074\076\077\133\134\136\173\174");
+            $regexp_query = preg_quote(trim($matches[2]));
             $regexp_query = str_replace('\<\*\>', '.*', $regexp_query);
             $regexp_query = str_replace('\<\?\>', '.?', $regexp_query);
 
@@ -390,7 +390,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
             $final = $like_sql;
             if ($whole_words == 1)
-                $final = $final . ' AND ' . $regexp_sql;
+                $final = "(($final) AND ($regexp_sql))";
 
             $input = str_replace($matches[0], $matches[1] . " $final " . $matches[3], $input);
         } else {
@@ -434,7 +434,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 
             $final = $like_sql;
             if ($whole_words == 1)
-                $final = $final . ' AND ' . $regexp_sql;
+                $final = "(($final) AND ($regexp_sql))";
 
             $input = str_replace($matches[0], $matches[1] . " $final " . $matches[3], $input);
         } else {
@@ -454,30 +454,16 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         <table style="width:100%">
             <tr>
                 <td style="width:50%">
-                    <table style="margin-left:1px;margin-right:auto" id="expertsearchtabs">
-                        <tr>
-                            <td>
-                                <div class="ui-state-highlight ui-corner-top clicked" style="margin-left:2px;padding:1px 4px" id="tab-search-ref">
-                                    <i class="fa fa-search"></i> References
-                                </div>
-                            </td>
-                            <td>
-                                <div class="ui-state-highlight ui-corner-top" style="margin-left:2px;padding:1px 4px" id="tab-search-pdf">
-                                    <i class="fa fa-search"></i> PDFs
-                                </div>
-                            </td>
-                            <td>
-                                <div class="ui-state-highlight ui-corner-top" style="margin-left:2px;padding:1px 4px" id="tab-search-pdfnotes">
-                                    <i class="fa fa-search"></i> PDF Notes
-                                </div>
-                            </td>
-                            <td style="<?php if (!isset($_SESSION['auth'])) print 'display:none'; ?>">
-                                <div class="ui-state-highlight ui-corner-top" style="margin-left:2px;padding:1px 4px" id="tab-search-notes">
-                                    <i class="fa fa-search"></i> Rich-Text Notes
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                    <div id="expertsearchtabs">
+                    <input type="radio" id="tab-search-ref" name="radio" checked>
+                    <label for="tab-search-ref">References</label>
+                    <input type="radio" id="tab-search-pdf" name="radio">
+                    <label for="tab-search-pdf">PDFs</label>
+                    <input type="radio" id="tab-search-pdfnotes" name="radio">
+                    <label for="tab-search-pdfnotes">PDF Notes</label>
+                    <input type="radio" id="tab-search-notes" name="radio">
+                    <label for="tab-search-notes">Rich-Text Notes</label>
+                  </div>
                 </td>
                 <td style="width:50%" colspan=2>
                     <table style="margin-left:1px;margin-right:auto;width:100%">
@@ -501,7 +487,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
                                                 print ' checked'
                                                 ?>>
                                             &nbsp;<i class="fa fa-circle<?php print (isset($_SESSION['session_include-categories']) && $_SESSION['session_include-categories'] == 2) ? '' : '-o'  ?>">
-                                            </i> Exclude these categories:&nbsp;
+                                            </i> Exclude categories:&nbsp;
                                         </td>
                                     </tr>
                                 </table>

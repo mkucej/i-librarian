@@ -147,7 +147,7 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
             include 'keyboard.php';
 
             ?>
-            <div style="height:35px;width:100%" id="top-panel"></div>
+            <div style="height:40px;width:100%" id="top-panel"></div>
             <div style="height:100%;overflow:hidden" id="bottom-panel"></div>
             <div style="display:none;height:100%;overflow:hidden" id="items-container"></div>
             <div style="height:100%;overflow:hidden;display:none" id="addrecord-panel"></div>

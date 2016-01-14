@@ -203,7 +203,7 @@ div.center div.jGrowl-notification, div.center div.jGrowl-closer {
 }
 
 div.jGrowl div.jGrowl-notification, div.jGrowl div.jGrowl-closer {
-	background: 		rgba(0,0,0,0.8);
+	background: 		rgba(20,20,20,0.9);
 	zoom: 					1;
 	width: 					235px;
 	padding: 				10px;
@@ -213,9 +213,6 @@ div.jGrowl div.jGrowl-notification, div.jGrowl div.jGrowl-closer {
 	font-size: 				1em;
 	text-align: 			left;
 	display: 				none;
-	-moz-border-radius: 	5px;
-	-webkit-border-radius:	5px;
-        border-radius:	5px;
 }
 
 div.jGrowl div.jGrowl-notification {
@@ -278,7 +275,6 @@ ul.jqueryFileTree li {
 }
 
 ul.jqueryFileTree a {
-	color: #000;
 	text-decoration: none;
 	display: block;
 	padding: 0px 2px;

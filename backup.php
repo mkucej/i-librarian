@@ -115,7 +115,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
 
         <table style="width: 100%"><tr><td class="details alternating_row"><b>Backup</b></td></tr></table>
         <div class="item-sticker ui-widget-content ui-corner-all" style="margin:auto;margin-top:100px;width:500px">
-            <div class="ui-widget-header ui-dialog-titlebar items ui-corner-top" style="border:0">
+            <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="border:0;padding-left:1em">
                 Enter the directory path, where the backup copy should be created:
             </div>
             <div class="separator" style="margin:0"></div>
@@ -187,7 +187,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
 
         <table style="width: 100%"><tr><td class="details alternating_row"><b>Restore</b></td></tr></table>
         <div class="item-sticker ui-widget-content ui-corner-all" style="margin:auto;margin-top:100px;width:500px">
-            <div class="ui-widget-header ui-dialog-titlebar items ui-corner-top" style="border:0">
+            <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="border:0;padding-left:1em">
                 Enter the directory path, where the backup copy is stored:<br>
             </div>
             <div class="separator" style="margin:0"></div>
@@ -213,7 +213,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 </div>
                 <div style="clear:both"></div>
                 <div id="select-backup" class="item-sticker ui-widget-content ui-corner-all" style="margin-left:4px;margin-top:4px;width:100px;float:left;text-align:left;cursor:pointer">
-                    <div class="ui-widget-header ui-dialog-titlebar items ui-corner-top" style="text-align:center;font-size:13px;border:0">Backup</div>
+                    <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="text-align:center;border:0">Backup</div>
                     <div class="separator" style="margin:0"></div>
                     <div class="alternating_row ui-corner-bottom" style="padding:1em;overflow:auto;height:1.4em;text-align:center">
                         <span class="fa fa-file-o"></span>
@@ -222,7 +222,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                     </div>
                 </div>
                 <div id="select-restore" class="item-sticker ui-widget-content ui-corner-all ui-state-disabled" style="margin-left:4px;margin-top:4px;width:100px;float:right;text-align:left;cursor:pointer">
-                    <div class="ui-widget-header ui-dialog-titlebar items ui-corner-top" style="text-align:center;font-size:13px;border:0">Restore</div>
+                    <div class="ui-dialog-titlebar ui-state-default ui-corner-top" style="text-align:center;border:0">Restore</div>
                     <div class="separator" style="margin:0"></div>
                     <div class="alternating_row ui-corner-bottom" style="padding:1em;overflow:auto;height:1.4em;text-align:center">
                         <span class="fa fa-save"></span>

@@ -240,7 +240,7 @@ var index2 = {
             return false;
         });
         $("#quicksearch #clear").click(function () {
-            $("#quicksearch input[name='global_query']").val('').focus();
+            $("#quicksearch input[name='anywhere']").val('').focus();
             $.get('search.php?newsearch=1');
             return false;
         });
