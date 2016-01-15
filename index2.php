@@ -195,7 +195,7 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
             <div id="signin-background" style="height:100%;overflow:hidden;position:relative">
                 <img src="img/bg.svg" style="position:fixed;top:0;left:0;width:100%">
                 <div class="topindex" id="top-panel-form">
-                    <?php echo htmlspecialchars($ini_array['greeting']); ?>
+    <?php echo htmlspecialchars($ini_array['greeting'], ENT_COMPAT, 'UTF-8', FALSE); ?>
                 </div>
                 <div class="ui-corner-all item-sticker" style="position:absolute;top:0;left:0;width:26em" id="signin-container">
                     <div class="alternating_row ui-corner-all" style="padding:20px 26px;overflow:auto;height:12.5em;border:1px solid rgba(0,0,0,0.15)">

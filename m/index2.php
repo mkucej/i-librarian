@@ -38,6 +38,8 @@ if (file_exists('../ilibrarian.ini')) {
     $ini_array = parse_ini_file("../ilibrarian-default.ini");
 }
 
+$greeting = isset($ini_array['greeting']) ? htmlspecialchars($ini_array['greeting'], ENT_COMPAT, 'UTF-8', FALSE) : 'I, Librarian';
+
 /**
  * LDAP settings from ilibrarian.ini.
  */
@@ -97,7 +99,7 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
             ?>
             <div id="top-page" data-role="page" data-theme="a">
                 <div id="splash2">
-                    <h1>I, Librarian</h1>
+                    <h1><?php echo $greeting; ?></h1>
                     <h3>loading</h3>
                 </div>
                 <div data-role="panel" data-position="left" data-display="overlay" data-theme="none"
@@ -241,11 +243,11 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
                     <button data-icon="alert" data-iconpos="left">Wrong credentials.</button>
                 </div>
                 <div data-role="header">
-                    <div style="text-align:center;padding: 12px 0;font-size:1.2em">I, Librarian Mobile</div>
+                    <div style="text-align:center;padding: 12px 0;font-size:1.2em"><?php echo $greeting; ?></div>
                 </div>
                 <div data-role="content">
                     <div id="splash">
-                        <h1>I, Librarian</h1>
+                        <h1><?php echo $greeting; ?></h1>
                     </div>
                     <form action="index2.php" method="POST" id="signinform">
                         <input type="hidden" name="form" value="signin">
