@@ -12,8 +12,14 @@ $result = $dbHandle->query("SELECT DISTINCT projects.projectID as projectID,proj
         WHERE projects.userID=$id_query OR projectsusers.userID=$id_query ORDER BY project COLLATE NOCASE ASC");
 $projects = $result->fetchAll(PDO::FETCH_ASSOC);
 $firstproject = '';
-if (!empty($projects))
-    $firstproject = $projects[0]['projectID'];
+if (!empty($projects)) {
+    foreach ($projects as $row) {
+        if ($row['active'] === '1') {
+            $firstproject = $row['projectID'];
+            break;
+        }
+    }
+}
 
 $dbHandle->exec("ATTACH DATABASE '" . IL_DATABASE_PATH . DIRECTORY_SEPARATOR . "users.sq3' AS usersdatabase");
 $result2 = $dbHandle->query("SELECT userID,username FROM users ORDER BY username COLLATE NOCASE ASC");
