@@ -1110,7 +1110,7 @@ $('#pdf-viewer-copy-text').change(function () {
     }
 }).button().button('widget').click(function () {
     $(this).removeClass('ui-state-focus');
-}).next().tipsy();
+}).tipsy();
 /**
  * Second row. Left navigation pane.
  */
@@ -1141,7 +1141,7 @@ $('#pageprev-button').change(function () {
     }
 }).button().button('widget').on('click', function (e) {
     $(this).removeClass('ui-state-focus');
-}).next().tipsy({
+}).tipsy({
     gravity: 'nw'
 });
 // Navigate: Click on page preview.
@@ -1195,7 +1195,7 @@ $('#bookmarks-button').change(function () {
     }
 }).button().button('widget').click(function () {
     $(this).removeClass('ui-state-focus');
-}).next().tipsy();
+}).tipsy();
 // Annotations. Left navigation pane.
 $('#notes-button').change(function (e, target) {
     $(this).blur();
@@ -1296,7 +1296,7 @@ $('#notes-button').change(function (e, target) {
     }
 }).button().button('widget').click(function () {
     $(this).removeClass('ui-state-focus');
-}).next().tipsy();
+}).tipsy();
 // Print annotations button.
 $('#print-notes').click(function () {
     $(this).blur();
@@ -1455,7 +1455,7 @@ $('#pdf-viewer-annotations').change(function (e, noteTarget) {
     }
 }).button().button('widget').click(function () {
     $(this).removeClass('ui-state-focus');
-}).next().tipsy();
+}).tipsy();
 // BLUE MARKER PEN.
 $('#pdf-viewer-marker').change(function () {
     $(this).blur();
