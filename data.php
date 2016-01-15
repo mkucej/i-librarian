@@ -11,7 +11,11 @@ ini_set('display_errors', true);
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '512M');
 
-$ini_array = parse_ini_file("ilibrarian.ini");
+if (file_exists('ilibrarian.ini')) {
+    $ini_array = parse_ini_file("ilibrarian.ini");
+} else {
+    $ini_array = parse_ini_file("ilibrarian-default.ini");
+}
 
 // find out what the url string is
 $protocol = 'http';

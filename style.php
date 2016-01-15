@@ -3,7 +3,11 @@ include_once 'data.php';
 include_once 'functions.php';
 session_write_close();
 
-$default_settings = parse_ini_file("ilibrarian.ini");
+if (file_exists('ilibrarian.ini')) {
+    $ini_array = parse_ini_file("ilibrarian.ini");
+} else {
+    $ini_array = parse_ini_file("ilibrarian-default.ini");
+}
 
 if (isset($_SESSION['auth'])) {
 
@@ -21,10 +25,10 @@ if (isset($_SESSION['auth'])) {
 
 if (!empty($custom_setting)) {
 
-    $user_settings = array_merge($default_settings, $custom_setting);
+    $user_settings = array_merge($ini_array, $custom_setting);
 } else {
 
-    $user_settings = $default_settings;
+    $user_settings = $ini_array;
 }
 
 while (list($setting_name, $setting_value) = each($user_settings)) {

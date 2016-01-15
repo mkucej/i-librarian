@@ -6,7 +6,11 @@ include_once 'functions.php';
 /**
  * Parse ilibrarian.ini.
  */
-$ini_array = parse_ini_file("ilibrarian.ini");
+if (file_exists('ilibrarian.ini')) {
+    $ini_array = parse_ini_file("ilibrarian.ini");
+} else {
+    $ini_array = parse_ini_file("ilibrarian-default.ini");
+}
 
 /**
  * LDAP settings from ilibrarian.ini.

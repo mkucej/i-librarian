@@ -4,7 +4,11 @@ include_once 'functions.php';
 
 if (isset($_SESSION['auth'])) {
 
-$ini_settings = parse_ini_file("ilibrarian.ini", true);
+if (file_exists('ilibrarian.ini')) {
+    $ini_array = parse_ini_file("ilibrarian.ini", true);
+} else {
+    $ini_array = parse_ini_file("ilibrarian-default.ini", true);
+}
 $default_settings = $ini_settings['fonts and appearance'];
 
 database_connect(IL_USER_DATABASE_PATH, 'users');

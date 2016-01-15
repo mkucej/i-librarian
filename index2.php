@@ -92,7 +92,11 @@ if (mt_rand(1, 100) == 50) {
 /**
  * Parse ilibrarian.ini.
  */
-$ini_array = parse_ini_file("ilibrarian.ini");
+if (file_exists('ilibrarian.ini')) {
+    $ini_array = parse_ini_file("ilibrarian.ini");
+} else {
+    $ini_array = parse_ini_file("ilibrarian-default.ini");
+}
 
 /**
  * Auto-sign in.

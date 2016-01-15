@@ -32,7 +32,11 @@ if (is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
         die('Error! Obsolete database version.');
 }
 
-$ini_array = parse_ini_file("../ilibrarian.ini");
+if (file_exists('../ilibrarian.ini')) {
+    $ini_array = parse_ini_file("../ilibrarian.ini");
+} else {
+    $ini_array = parse_ini_file("../ilibrarian-default.ini");
+}
 
 /**
  * LDAP settings from ilibrarian.ini.

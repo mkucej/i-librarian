@@ -1,5 +1,9 @@
 <?php
-$ini_array = parse_ini_file("ilibrarian.ini");
+if (file_exists('ilibrarian.ini')) {
+    $ini_array = parse_ini_file("ilibrarian.ini");
+} else {
+    $ini_array = parse_ini_file("ilibrarian-default.ini");
+}
 
 if ($ini_array['reset_password'] == 0) die('<p style="padding:0 4px">Contact the database administrator. If none is available, edit ilibrarian.ini to enable the password reset.
     <br><br><span style="cursor:pointer" id="backtologin">Back</span><br><br><br></p>');
