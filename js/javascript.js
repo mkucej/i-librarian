@@ -2683,7 +2683,9 @@ var desktop = {
             if ($("#quicksearch input:text:visible").val() === '')
                 return false;
             var q = $("#quicksearch").formSerialize();
+            timeId = setTimeout(dooverlay, 500);
             $('#right-panel').load('search.php?' + q, function () {
+                clearoverlay();
                 $("#right-panel").scrollTop(0);
                 displaywindow.init('desk', 'search.php?' + q);
             });
