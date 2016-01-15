@@ -27,7 +27,7 @@ $dbHandle = database_connect(IL_DATABASE_PATH, 'library');
 $dbHandle->exec("PRAGMA user_version = 36");
 
 // Create library tables.
-$dbHandle->exec("CREATE TABLE library (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS library (
                 id integer PRIMARY KEY,
                 file text NOT NULL DEFAULT '',
                 authors text NOT NULL DEFAULT '',
@@ -66,50 +66,50 @@ $dbHandle->exec("CREATE TABLE library (
                 bibtex_type text NOT NULL DEFAULT ''
                 )");
 
-$dbHandle->exec("CREATE TABLE shelves (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS shelves (
                 fileID integer NOT NULL DEFAULT '',
                 userID integer NOT NULL DEFAULT '',
                 UNIQUE (fileID, userID)
                 )");
 
-$dbHandle->exec("CREATE TABLE categories (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS categories (
                 categoryID integer PRIMARY KEY,
                 category text NOT NULL DEFAULT ''
                 )");
 
-$dbHandle->exec("CREATE TABLE filescategories (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS filescategories (
                 fileID integer NOT NULL,
                 categoryID integer NOT NULL,
                 UNIQUE(fileID, categoryID)
 		  )");
 
-$dbHandle->exec("CREATE TABLE projects (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS projects (
                 projectID integer PRIMARY KEY,
                 userID integer NOT NULL,
                 project text NOT NULL,
                 active text NOT NULL
                 )");
 
-$dbHandle->exec("CREATE TABLE projectsfiles (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS projectsfiles (
                 projectID integer NOT NULL,
                 fileID integer NOT NULL,
                 UNIQUE (projectID, fileID)
                 )");
 
-$dbHandle->exec("CREATE TABLE projectsusers (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS projectsusers (
                 projectID integer NOT NULL,
                 userID integer NOT NULL,
                 UNIQUE (projectID, userID)
                 )");
 
-$dbHandle->exec("CREATE TABLE notes (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS notes (
                 notesID integer PRIMARY KEY,
                 userID integer NOT NULL,
                 fileID integer NOT NULL,
                 notes text NOT NULL DEFAULT ''
                 )");
 
-$dbHandle->exec("CREATE TABLE searches (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS searches (
                 searchID integer PRIMARY KEY,
                 userID integer NOT NULL,
                 searchname text NOT NULL DEFAULT '',
@@ -117,7 +117,7 @@ $dbHandle->exec("CREATE TABLE searches (
                 searchvalue text NOT NULL DEFAULT ''
                 )");
 
-$dbHandle->exec("CREATE TABLE yellowmarkers (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS yellowmarkers (
                 id INTEGER PRIMARY KEY,
                 userID INTEGER NOT NULL,
                 filename TEXT NOT NULL,
@@ -128,7 +128,7 @@ $dbHandle->exec("CREATE TABLE yellowmarkers (
                 UNIQUE (userID, filename, page, top, left)
                 )");
 
-$dbHandle->exec("CREATE TABLE annotations (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS annotations (
                 id INTEGER PRIMARY KEY,
                 userID INTEGER NOT NULL,
                 filename TEXT NOT NULL,
@@ -147,7 +147,7 @@ $dbHandle->exec("CREATE TABLE IF NOT EXISTS flagged ("
         . " UNIQUE (userID,database,uid))");
 
 
-$dbHandle->exec("CREATE TABLE library_log (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS library_log (
                 id integer PRIMARY KEY,
                 ch_table text NOT NULL DEFAULT '',
                 ch_time text NOT NULL DEFAULT ''
@@ -182,17 +182,17 @@ foreach ($tables as $table) {
     $dbHandle->exec("INSERT INTO library_log (ch_table, ch_time)
                             VALUES('" . $table . "', strftime('%s', 'now'))");
 
-    $dbHandle->exec("CREATE TRIGGER trigger_" . $table . "_delete AFTER DELETE ON " . $table . " 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_delete AFTER DELETE ON " . $table . " 
                             BEGIN
                                 UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
 
-    $dbHandle->exec("CREATE TRIGGER trigger_" . $table . "_insert AFTER INSERT ON " . $table . " 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_insert AFTER INSERT ON " . $table . " 
                             BEGIN
                                 UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
 
-    $dbHandle->exec("CREATE TRIGGER trigger_" . $table . "_update AFTER UPDATE ON " . $table . " 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_update AFTER UPDATE ON " . $table . " 
                             BEGIN
                                 UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
@@ -203,12 +203,12 @@ $dbHandle = null;
 $dbHandle = database_connect(IL_DATABASE_PATH, 'fulltext');
 
 // Create fulltext tables.
-$dbHandle->exec("CREATE TABLE full_text (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS full_text (
                     fileID integer PRIMARY KEY,
                     full_text text NOT NULL DEFAULT ''
                     )");
 
-$dbHandle->exec("CREATE TABLE fulltext_log (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS fulltext_log (
                 id integer PRIMARY KEY,
                 ch_table text NOT NULL DEFAULT '',
                 ch_time text NOT NULL DEFAULT ''
@@ -218,17 +218,17 @@ $dbHandle->exec("CREATE TABLE fulltext_log (
 $dbHandle->exec("INSERT INTO fulltext_log (ch_table, ch_time)
                         VALUES('full_text', strftime('%s', 'now'))");
 
-$dbHandle->exec("CREATE TRIGGER trigger_fulltext_delete AFTER DELETE ON full_text
+$dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_fulltext_delete AFTER DELETE ON full_text
                         BEGIN
                             UPDATE fulltext_log SET ch_time = strftime('%s', 'now') WHERE ch_table = 'full_text';
                         END;");
 
-$dbHandle->exec("CREATE TRIGGER trigger_fulltext_insert AFTER INSERT ON full_text
+$dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_fulltext_insert AFTER INSERT ON full_text
                         BEGIN
                             UPDATE fulltext_log SET ch_time = strftime('%s', 'now') WHERE ch_table = 'full_text';
                         END;");
 
-$dbHandle->exec("CREATE TRIGGER trigger_fulltext_update AFTER UPDATE ON full_text
+$dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_fulltext_update AFTER UPDATE ON full_text
                         BEGIN
                             UPDATE fulltext_log SET ch_time = strftime('%s', 'now') WHERE ch_table = 'full_text';
                         END;");
@@ -238,14 +238,14 @@ $dbHandle = null;
 // Create user tables.
 $dbHandle = database_connect(IL_USER_DATABASE_PATH, 'users');
 
-$dbHandle->exec("CREATE TABLE users (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS users (
                 userID integer PRIMARY KEY,
                 username text UNIQUE NOT NULL DEFAULT '',
                 password text NOT NULL DEFAULT '',
                 permissions text NOT NULL DEFAULT 'U'
                 )");
 
-$dbHandle->exec("CREATE TABLE settings (
+$dbHandle->exec("CREATE TABLE IF NOT EXISTS settings (
                 userID integer NOT NULL DEFAULT '',
                 setting_name text NOT NULL DEFAULT '',
                 setting_value text NOT NULL DEFAULT ''

@@ -5,6 +5,9 @@ ignore_user_abort();
 include_once 'data.php';
 include_once 'functions.php';
 
+// Install every non existing table and folder, to be sure.
+include 'install.php';
+
 // Upgrade library table.
 $dbHandle = database_connect(IL_DATABASE_PATH, 'library');
 
