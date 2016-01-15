@@ -9,7 +9,7 @@ if (file_exists('ilibrarian.ini')) {
 } else {
     $ini_array = parse_ini_file("ilibrarian-default.ini", true);
 }
-$default_settings = $ini_settings['fonts and appearance'];
+$default_settings = $ini_array['fonts and appearance'];
 
 database_connect(IL_USER_DATABASE_PATH, 'users');
 

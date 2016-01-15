@@ -183,3 +183,8 @@ foreach ($dir as $file) {
         }
     }
 }
+
+// Delete obsolete ilibrarian.ini.
+if (is_writeable('ilibrarian.ini')) {
+    @unlink('ilibrarian.ini');
+}

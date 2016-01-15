@@ -238,6 +238,10 @@ body#notes_ifr {
 color: #" . $main_window_highlight_color . " !important;
 }
 
+.ui-widget, .ui-widget button {
+    font-family: '" . $main_window_font_family . "', sans-serif;
+}
+
 .ui-widget-content {
 color: #" . $main_window_color . ";
 background-color: #" . $main_window_background_color . ";

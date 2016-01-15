@@ -2,6 +2,23 @@
 include_once 'data.php';
 include_once 'functions.php';
 
+// Check for an obsolete INI.
+if (isset($_SESSION['permissions']) && $_SESSION['permissions'] === 'A') {
+    
+    if (file_exists('ilibrarian.ini')) {
+        $ini_array = parse_ini_file("ilibrarian.ini");
+    } else {
+        $ini_array = parse_ini_file("ilibrarian-default.ini");
+    }
+    if (!isset($ini_array['library_path'])) {
+        echo '<div class="ui-state-error" style="position:fixed;margin:1em;padding:1em;z-index:10000">'
+            . 'This installation has an obsolete INI file. Please delete the file <b>'
+            . __DIR__ . DIRECTORY_SEPARATOR . 'ilibrarian.ini</b>. Read <b>'
+            . __DIR__ . DIRECTORY_SEPARATOR . 'ilibrarian-default.ini</b> for instructions'
+            . ' on how to have custom INI settings.</div>';
+    }
+}
+
 // Install or upgrade.
 if (!is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
     
