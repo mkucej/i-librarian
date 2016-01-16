@@ -278,9 +278,6 @@ $(window).load(function () {
                 $(this).dialog('close');
                 var dir = $('#filetree-input').val();
                 dir = dir.substr(0, ($('#filetree-input').val().length - 1));
-                if (navigator.platform === 'Win32' && dir.substr(1,1) !== ':') {
-                    dir = 'C:' + dir;
-                }
                 $('input[name="directory"]:visible').val(dir);
             },
             Cancel: function () {
@@ -397,7 +394,12 @@ var browsedirs = {
         $('#filetree').fileTree({
             root: $('#filetree').data('root')
         }, function (file) {
-            $('#filetree-input').val(file);
+            if ($('#win-drive').length === 1 && $('#win-drive').length !== '') {
+                $('#filetree-input').val($('#win-drive').val() + ':' + file);
+                
+            } else {
+                $('#filetree-input').val(file);
+            }
         });
         $('#win-drive').keyup(function () {
             $('#filetree').fileTree({
