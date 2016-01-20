@@ -44,6 +44,9 @@ Alias /librarian "C:\I, Librarian"
     Require all denied
 </Directory>
 ```
+
+You may wish to alter who has access (e.g. to allow access from more IP numbers or domain names) - see the Apache [Authentication and Authorization HOWTO](https://httpd.apache.org/docs/2.4/howto/auth.html) for details.
+
   * You may change `C:\I, Librarian` to any directory where you want to have *I, Librarian*,
     including an external drive. For a groupware use, you need to allow access to more IP
     numbers or domain names.
@@ -99,7 +102,8 @@ Alias /librarian "C:\I, Librarian"
     Require all denied
 </Directory>
 ```
-* To enable access from the Network, you need to allow access to more IP numbers or domain names.
+You may wish to alter who has access (e.g. to allow access from more IP numbers or domain names) - see the Apache [Authentication and Authorization HOWTO](https://httpd.apache.org/docs/2.4/howto/auth.html) for details.
+
 * Restart the server.
 
 ### Mac OS X manual installation
@@ -143,6 +147,8 @@ Alias /librarian /Users/yourusername/Sites/librarian
 </Directory>
 ```
 *Don't forget to change "yourusername" to your actual user name. You can find out your user name by typing `whoami` in Terminal.*
+
+You may wish to alter who has access (e.g. to allow access from more IP numbers or domain names) - see the Apache [Authentication and Authorization HOWTO](https://httpd.apache.org/docs/2.4/howto/auth.html) for details.
 
 * Restart Apache, by typing `sudo apachectl restart` in Terminal
 * Install LibreOffice, Tesseract OCR, Ghostscript, and Poppler.
