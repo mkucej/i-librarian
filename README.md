@@ -44,6 +44,9 @@ Alias /librarian "C:\I, Librarian"
     Require all denied
 </Directory>
 ```
+
+You may wish to alter who has access (e.g. to allow access from more IP numbers or domain names) - see the Apache [Authentication and Authorization HOWTO](https://httpd.apache.org/docs/2.4/howto/auth.html) for details.
+
   * You may change `C:\I, Librarian` to any directory where you want to have *I, Librarian*,
     including an external drive. For a groupware use, you need to allow access to more IP
     numbers or domain names.
@@ -99,13 +102,23 @@ Alias /librarian "C:\I, Librarian"
     Require all denied
 </Directory>
 ```
-* To enable access from the Network, you need to allow access to more IP numbers or domain names.
+You may wish to alter who has access (e.g. to allow access from more IP numbers or domain names) - see the Apache [Authentication and Authorization HOWTO](https://httpd.apache.org/docs/2.4/howto/auth.html) for details.
+
 * Restart the server.
 
 ### Mac OS X manual installation
-* Download and install an Apache + PHP stack. These instructions are generic. Details may vary
-  depending on which PHP stack you are using.
-* Edit httpd.conf using TextEdit:
+
+You will need to have an Apache + PHP stack installed. Details may vary depending on which PHP stack you are using.
+
+Prior to Mac OS 10.10.1 (Yosemite), the default install of Mac OS included Apache and PHP built with the GD library. However, the PHP installed with     Yosemite does not include GD, so you will need to install one that does:     it is simplest to use the one line installation instructions at [http://php-osx.liip.ch/](http://php-osx.liip.ch/.).
+
+Edit  /etc/apache2/httpd.conf using a text editor (e.g. TextEdit). You must make two changes:
+
+* Enabling php, by removing the initial hash symbol from the line beginning "#LoadModule php5_module" (pre-yosemite), or adding a similar line with the path to wherever you installed PHP, eg:
+    
+    LoadModule php5_module    /usr/local/php5-5.3.29-20141019-211753/libphp5.so
+
+* Adding a new Directory directive, by inserting: 
 
 ```apache_conf
 Alias /librarian /Users/yourusername/Sites/librarian
@@ -133,17 +146,15 @@ Alias /librarian /Users/yourusername/Sites/librarian
     Require all denied
 </Directory>
 ```
-*Don't forget to change "yourusername" to your actual user name. You can find out your user
- name by typing `whoami` in Terminal.*
+*Don't forget to change "yourusername" to your actual user name. You can find out your user name by typing `whoami` in Terminal.*
 
-* Restart Apache.
+You may wish to alter who has access (e.g. to allow access from more IP numbers or domain names) - see the Apache [Authentication and Authorization HOWTO](https://httpd.apache.org/docs/2.4/howto/auth.html) for details.
+
+* Restart Apache, by typing `sudo apachectl restart` in Terminal
 * Install LibreOffice, Tesseract OCR, Ghostscript, and Poppler.
-* Download *I, Librarian* for Mac OSX and double-click the file to extract its contents.
-* Rename the extracted directory to 'librarian' and move it to your *Sites* folder.
-* Make sure that your *Sites* directory is accessible to *Others*. Use the `Get Info` dialog
-  of the *Sites* directory to change permissions for *Everyone* to access and read. You also
-  need to make sure *Everyone* has **Execute** permissions for your home directory.
-* Change the owner of the 'library' sub-folder to Apache.
+* Download *I, Librarian* for Mac OSX and double-click the file to extract its contents. Rename the extracted directory to 'librarian' and move it to your *Sites* folder. (alternatively, you could `git clone` this repository).
+* Make sure that your *Sites* directory is accessible to *Others*. Use the `Get Info` dialog of the *Sites* directory to change permissions for *Everyone* to access and read (alternatively, run `chmod o+r ~/Sites/` at the terminal). You also need to make sure *Everyone* has **Execute** permissions for your home directory.
+* Change the owner of the 'library' sub-folder to the Apache user (_www for the default install). You can do this at the Terminal: `chown -R _www ~/Sites/librarian/library/`.)
 * Open your web browser and go to [http://127.0.0.1/librarian](http://127.0.0.1/librarian).
 
 ### First use
