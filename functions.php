@@ -136,14 +136,8 @@ function perform_search($sql) {
         $dbHandle->commit();
     }
 
-    if ($orderby == 'id') {
-        $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-            FROM library WHERE id IN (SELECT itemID FROM history.`$table_name_hash` ORDER BY id DESC LIMIT $limit OFFSET $from) ORDER BY id DESC");
-    } else {
-
-        $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-            FROM library WHERE id IN (SELECT itemID FROM history.`$table_name_hash` LIMIT $limit OFFSET $from) $ordering");
-    }
+    $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
+        FROM library WHERE id IN (SELECT itemID FROM history.`$table_name_hash` LIMIT $limit OFFSET $from) $ordering");
 
     $result2 = $dbHandle->query("SELECT total_rows FROM history.search_tables WHERE table_name='$table_name_hash'");
     $rows = $result2->fetchColumn();

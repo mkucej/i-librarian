@@ -411,8 +411,6 @@ if (!empty($_GET['searchmode'])) {
     $ordering = 'ORDER BY ' . $orderby . ' COLLATE NOCASE ASC';
     if ($orderby == 'year' || $orderby == 'addition_date' || $orderby == 'rating' || $orderby == 'id')
         $ordering = 'ORDER BY ' . $orderby . ' DESC';
-    if ($orderby == 'id')
-        $ordering = '';
 
     $anywhere_array = array();
     $authors_array = array();

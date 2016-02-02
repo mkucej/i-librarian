@@ -103,8 +103,6 @@ if (isset($_GET['browse'])) {
     $ordering = 'ORDER BY ' . $orderby . ' COLLATE NOCASE ASC';
     if ($orderby == 'year' || $orderby == 'addition_date' || $orderby == 'rating' || $orderby == 'id')
         $ordering = 'ORDER BY ' . $orderby . ' DESC';
-    if ($orderby == 'id')
-        $ordering = '';
 
     perform_search("SELECT id FROM library $all_in $ordering");
         

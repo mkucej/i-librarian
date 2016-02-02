@@ -178,26 +178,17 @@ if (isset($_GET['browse'])) {
     $ordering = 'ORDER BY ' . $orderby . ' COLLATE NOCASE ASC';
     if ($orderby == 'year' || $orderby == 'addition_date' || $orderby == 'rating' || $orderby == 'id')
         $ordering = 'ORDER BY ' . $orderby . ' DESC';
-    if ($orderby == 'id')
-        $ordering = '';
 
     $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
 
     if ($column_string == 'all') {
 
-        if ($orderby == 'id') {
-            if ($_GET['select'] == 'library') {
-                perform_search("SELECT id FROM library");
-            } else {
-                perform_search("SELECT id FROM library $all_in");
-            }
-        } else {
             if ($_GET['select'] == 'library') {
                 perform_search("SELECT id FROM library $ordering");
             } else {
                 perform_search("SELECT id FROM library $all_in $ordering");
             }
-        }
+
     } elseif ($column_string == 'miscellaneous') {
 
         if (array_key_exists('No PDF', $_GET['browse'])) {
