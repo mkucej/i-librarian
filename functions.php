@@ -138,7 +138,7 @@ function perform_search($sql) {
 
     if ($orderby == 'id') {
         $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
-            FROM library WHERE id IN (SELECT itemID FROM history.`$table_name_hash` ORDER BY id DESC LIMIT $limit OFFSET $from) ORDER BY id DESC");
+            FROM library WHERE id IN (SELECT itemID FROM history.`$table_name_hash` ORDER BY itemID DESC LIMIT $limit OFFSET $from) ORDER BY id DESC");
     } else {
 
         $result = $dbHandle->query("SELECT id,file,authors,title,journal,secondary_title,year,volume,pages,abstract,uid,doi,url,addition_date,rating,bibtex
