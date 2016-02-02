@@ -71,7 +71,7 @@ if (!is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
 /**
  * Garbage collection.
  */
-if (mt_rand(1, 10) == 5) {
+if (mt_rand(1, 20) == 10) {
     // REMOVE EMPTY USER CACHE DIRS
     $clean_dirs = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_*', GLOB_NOSORT);
     if (is_array($clean_dirs)) {
@@ -84,8 +84,8 @@ if (mt_rand(1, 10) == 5) {
     $pngs = glob(IL_IMAGE_PATH . DIRECTORY_SEPARATOR . "*.jpg", GLOB_NOSORT);
     if (is_array($pngs)) {
         if (count($pngs) > 10000) {
-            foreach ($pngs as $png) {
-                $arr[$png] = filemtime($png);
+            foreach ($pngs as $item) {
+                $arr[$item] = filemtime($item);
             }
             asort($arr);
             reset($arr);
@@ -95,14 +95,34 @@ if (mt_rand(1, 10) == 5) {
             }
         }
     }
+    unset($pngs);
+    unset($arr);
+    // Clean PDF cache.
+    $pdfs = glob(IL_PDF_CACHE_PATH . DIRECTORY_SEPARATOR . "*.sq3", GLOB_NOSORT);
+    if (is_array($pdfs)) {
+        if (count($pdfs) > 10000) {
+            foreach ($pdfs as $item) {
+                $arr[$item] = filemtime($item);
+            }
+            asort($arr);
+            reset($arr);
+            for ($i = 0; $i <= 1000; $i++) {
+                @unlink(key($arr));
+                next($arr);
+            }
+        }
+    }
+    unset($pdfs);
+    unset($arr);
 }
 if (mt_rand(1, 100) == 50) {
     // CLEAN GLOBAL TEMP CACHE
     $clean_files = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . '*', GLOB_NOSORT);
     if (is_array($clean_files)) {
         foreach ($clean_files as $clean_file) {
-            if (is_file($clean_file) && is_writable($clean_file))
-                @unlink($clean_file);
+            if (is_file($clean_file) && is_writable($clean_file)) {
+                unlink($clean_file);
+            }
         }
     }
 }
