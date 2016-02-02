@@ -10,7 +10,7 @@ $result = $dbHandle->query("SELECT file FROM library WHERE id=$file_query LIMIT 
 $file = $result->fetchColumn();
 $dbHandle = null;
 
-if (is_file(IL_PDF_PATH . get_subfolder($file) . DIRECTORY_SEPARATOR . $file)) {
+if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file)) {
 
     exec(select_ghostscript() . ' -dSAFER -dBATCH -dNOPAUSE -sDEVICE=bmp16m -r300 -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE -o "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.%03d.bmp" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file . '"');
 
