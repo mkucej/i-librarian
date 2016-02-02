@@ -19,15 +19,8 @@ if (isset($_GET['file'])) {
     // Fetch ids from cache in history.
     database_connect(IL_DATABASE_PATH, 'history');
 
-    if ($_SESSION['orderby'] == 'id') {
-
-        $result = $dbHandle->query("SELECT itemID FROM `" . $_SESSION['display_files'] .
-                "` WHERE id<=(SELECT id FROM `" . $_SESSION['display_files'] . "` WHERE itemID=" . $_GET['file'] . ")+10 ORDER BY id DESC LIMIT 22");
-    } else {
-
-        $result = $dbHandle->query("SELECT itemID FROM `" . $_SESSION['display_files'] .
-                "` WHERE id>=(SELECT id FROM `" . $_SESSION['display_files'] . "` WHERE itemID=" . $_GET['file'] . ")-10 LIMIT 22");
-    }
+    $result = $dbHandle->query("SELECT itemID FROM `" . $_SESSION['display_files'] .
+            "` WHERE id>=(SELECT id FROM `" . $_SESSION['display_files'] . "` WHERE itemID=" . $_GET['file'] . ")-10 LIMIT 22");
 
     $export_files = array();
 
