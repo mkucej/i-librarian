@@ -689,7 +689,7 @@ if (!empty($_GET['searchmode'])) {
 
         print '</td></tr></table>';
 
-        show_search_results($result, $_GET['select'], $shelf_files, $desktop_projects, $clip_files, $tempdbHandle);
+        show_search_results($result, $_GET['select'], $shelf_files, $desktop_projects, $clip_files, $tempdbHandle, $search_query);
 
         print '<table cellspacing="0" class="top" style="margin:1px 0px 2px 0px"><tr><td style="width:50%">';
 

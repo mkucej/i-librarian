@@ -172,13 +172,14 @@ function attach_clipboard($dbHandle) {
 // ALLOW SUB, SUP, AND MATHML
 function lib_htmlspecialchars($input) {
     $input = htmlspecialchars($input);
-    $arr = array('math', 'maction', 'maligngroup', 'malignmark', 'menclose', 'merror',
+    $arr = array('span', 'math', 'maction', 'maligngroup', 'malignmark', 'menclose', 'merror',
         'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr', 'mlongdiv',
         'mmultiscripts', 'mn', 'mo,mover', 'mpadded', 'mphantom', 'mroot', 'mrow',
         'ms', 'mscarries', 'mscarry', 'msgroup', 'msline', 'mspace', 'msqrt', 'msrow',
         'mstack', 'mstyle', 'msub', 'msup', 'msubsup', 'mtable', 'mtd', 'mtext', 'mtr',
         'munder', 'munderover', 'sub', 'sup');
     foreach ($arr as $tag) {
+        $input = str_replace('&lt;span class=&quot;highlight-search&quot;&gt;', '<span class="highlight-search">', $input);
         $input = str_replace('&lt;' . $tag . '&gt;', '<' . $tag . '>', $input);
         $input = str_replace('&lt;/' . $tag . '&gt;', '</' . $tag . '>', $input);
         $input = str_replace('&lt;' . $tag . '/&gt;', '<' . $tag . '/>', $input);
@@ -2018,7 +2019,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
 
 /////////////show results//////////////////////
 
-function show_search_results($result, $select, $shelf_files, $desktop_projects, $clip_files, $tempdbHandle) {
+function show_search_results($result, $select, $shelf_files, $desktop_projects, $clip_files, $tempdbHandle, $search_term = '') {
 
     $project = '';
     if (!empty($_GET['project']))
@@ -2049,6 +2050,21 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         $nasa_related_url = '';
         $nasa_citedby_pmc = '';
         $ieeeid = '';
+        
+        // Highlight search results.
+        if (!empty($search_term)) {
+            $search_words = explode(' ', $search_term);
+            foreach ($search_words as $search_word) {
+                foreach ($paper as $key => $value) {
+                    if ($key !== 'authors' && $key !== 'title' && $key !== 'abstract') {
+                        continue;
+                    }
+                    if (stristr($value, $search_word) !== FALSE) {
+                        $paper[$key] = preg_replace("/($search_word)/ui", '<span class="highlight-search">$1</span>', $value);
+                    }
+                }
+            }
+        }
 
         if (!empty($paper['uid'])) {
 
@@ -2123,16 +2139,16 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                         $first = substr($array2[1], 3, -1);
                     }
                     $new_authors[] = '<a href="display.php?select=' . $select . '&browse[' . urlencode($last . ', ' . $first) . ']=authors" class="navigation">'
-                            . htmlspecialchars($last . ', ' . $first, ENT_NOQUOTES) . '</a>';
+                            . lib_htmlspecialchars($last . ', ' . $first) . '</a>';
                 }
                 $paper['authors'] = join('; ', $new_authors);
             }
         }
 
-        $paper['journal'] = htmlspecialchars($paper['journal']);
+        $paper['journal'] = lib_htmlspecialchars($paper['journal']);
         $paper['title'] = lib_htmlspecialchars($paper['title']);
         $paper['abstract'] = lib_htmlspecialchars($paper['abstract']);
-        $paper['year'] = htmlspecialchars($paper['year']);
+        $paper['year'] = lib_htmlspecialchars($paper['year']);
 
         #######new date#########
         $date = '';
@@ -2189,7 +2205,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                     print '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                    print '<a href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="width:360px;height:240px;display:block">';
+                    print '<a href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode(strip_tags ($paper['title']))) . '&search_term=' . $search_term . '" target="_blank" style="width:360px;height:240px;display:block">';
 
                 print '<img src="icon.php?file=' . $paper['file'] . '" style="width:360px;height:240px;border:0" alt="Loading PDF..."></a>';
             } else {
@@ -2273,7 +2289,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
                     print '<div class="noprint titles-pdf" style="float:left">
-                        <a class="ui-state-error-text" href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode($paper['title'])) . '" target="_blank" style="display:block">
+                        <a class="ui-state-error-text" href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode(strip_tags ($paper['title']))) . '&search_term=' . $search_term . '" target="_blank" style="display:block">
                                 PDF</a></div>';
             } else {
                 print PHP_EOL . '<div class="noprint titles-pdf" style="float:left;color:rgba(0,0,0,0.3);cursor:auto">PDF</div>';

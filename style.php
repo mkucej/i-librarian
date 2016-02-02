@@ -485,6 +485,10 @@ margin:1px 0;
 padding:0 4px
 }
 
+.highlight-search {
+    background-color: orange;
+}
+
 .categorydiv {
 resize: vertical
 }

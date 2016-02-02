@@ -1919,4 +1919,10 @@ $(document).ready(function () {
     }
     // Bind tooltips.
     $(document).tooltip(toolTipOptions);
+    // Search term.
+    if (search_term !== '') {
+        var e = jQuery.Event("keydown");
+        e.which = 13; // Enter
+        $('#pdf-viewer-search').val(search_term).trigger(e);
+    }
 });

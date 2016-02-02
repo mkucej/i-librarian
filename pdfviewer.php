@@ -290,7 +290,8 @@ if (!isset($_GET['inline'])) {
                     pg = <?php print $page ?>,
                     inline = false,
                     preview = false,
-                    toolbar = true;
+                    toolbar = true,
+                    search_term = '';
 <?php
 if (isset($_GET['preview']) && $_GET['preview'] == 1) {
     echo "    preview = true;\n    toolbar = false;";
@@ -300,6 +301,9 @@ if (isset($_GET['toolbar']) && $_GET['toolbar'] == 0) {
 }
 if (isset($_GET['inline'])) {
     echo "    inline = true;";
+}
+if (!empty($_GET['search_term'])) {
+    echo "    search_term = '$_GET[search_term]';";
 }
 
 ?>

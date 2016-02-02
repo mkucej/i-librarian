@@ -374,24 +374,8 @@ class PDFViewer {
         // SQLite storage.
         $temp_db = $this->pdf_cache_path . DIRECTORY_SEPARATOR . $this->file_name . '.sq3';
 
-        // Database not found. Check the log whether conversion is running. If yes, delay.
-        if (!file_exists($temp_db) || filemtime($temp_db) < filemtime($this->pdf_full_path)) {
-
-            for ($i = 1; $i <= 60; $i++) {
-
-                if ($this->checkPDFLog($this->file_name . '.sq3')) {
-                    usleep(500000);
-                }
-            }
-        }
-
         if (!file_exists($temp_db) || filemtime($temp_db) < filemtime($this->pdf_full_path)) {
             
-            // Delete stale database.
-            if (file_exists($temp_db)) {
-                unlink($temp_db);
-            }
-
             // Write to log file.
             $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
 
@@ -403,7 +387,7 @@ class PDFViewer {
 
             $logHandle = null;
 
-            // IMPORTANT: If no insert due to unique constraint, exit.
+            // IMPORTANT: If no insert due to unique constraint, exit. Another process is running.
             if ($insert == 0) {
                 return;
             }
@@ -428,6 +412,9 @@ class PDFViewer {
             }
 
             $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
+            
+            // Delete stale database table.
+            $dbHandle->exec("DROP TABLE IF EXISTS texts");
 
             $dbHandle->exec("CREATE TABLE IF NOT EXISTS texts ("
                     . "id INTEGER PRIMARY KEY, "
@@ -647,7 +634,7 @@ class PDFViewer {
                 $this->extractXMLText();
             }
         }
-
+        
         // At this point, the database must exist.
         if (!file_exists($temp_db)) {
             sendError('Text storage not found.');
