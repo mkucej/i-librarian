@@ -414,6 +414,16 @@ class PDFViewer {
             }
 
             if (!file_exists($temp_xml . '.xml')) {
+
+                // We are done, delete from log.
+                $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
+
+                $file_q = $logHandle->quote($this->file_name . '.sq3');
+
+                $logHandle->exec("DELETE FROM files WHERE file=$file_q");
+
+                $logHandle = null;
+
                 sendError('PDF to XML conversion failed.');
             }
 
@@ -438,6 +448,16 @@ class PDFViewer {
             $xml = @simplexml_load_string($string);
 
             if ($xml === FALSE) {
+
+                // We are done, delete from log.
+                $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
+
+                $file_q = $logHandle->quote($this->file_name . '.sq3');
+
+                $logHandle->exec("DELETE FROM files WHERE file=$file_q");
+
+                $logHandle = null;
+
                 sendError('Invalid XML encoding.');
             }
 
@@ -1049,7 +1069,7 @@ class PDFViewer {
             $temp_file = $this->temp_path . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'output.zip';
 
             $zip = new ZipArchive;
-            $zip->open($temp_file, ZIPARCHIVE::OVERWRITE);
+            $open = $zip->open($temp_file, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
 
             // Add PDF.
             $zip->addFile($this->pdf_full_path, basename($this->file_name));
