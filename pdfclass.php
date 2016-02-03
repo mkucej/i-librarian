@@ -413,6 +413,8 @@ class PDFViewer {
 
             $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
             
+            $dbHandle->beginTransaction();
+            
             // Delete stale database table.
             $dbHandle->exec("DROP TABLE IF EXISTS texts");
 
@@ -435,6 +437,8 @@ class PDFViewer {
             $xml = @simplexml_load_string($string);
 
             if ($xml === FALSE) {
+                
+                $dbHandle->rollBack();
 
                 // We are done, delete from log.
                 $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
@@ -447,8 +451,6 @@ class PDFViewer {
 
                 sendError('Invalid XML encoding.');
             }
-
-            $dbHandle->beginTransaction();
 
             // Iterate XML page by page.
             foreach ($xml->page as $page) {
