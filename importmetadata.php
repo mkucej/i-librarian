@@ -1191,11 +1191,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                         $secondary_title = '';
 
-                        if (!empty($secondary_title_match[0]))
+                        if (!empty($secondary_title_match[0])) {
                             if (substr($secondary_title_match[0], 0, 1) == '{' && substr($secondary_title_match[0], -1) == '}') {
                                 $secondary_title_match[0] = substr($secondary_title_match[0], 1, -1);
                             }
                             $secondary_title = trim($secondary_title_match[0]);
+                        }
 
                         $tertiary_title = '';
 
@@ -1226,8 +1227,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                         $reference_type = 'article';
 
-                        if (!empty($type_match[0]))
+                        if (!empty($type_match[0])) {
                             $reference_type = convert_type(trim($type_match[0]), 'bibtex', 'ilib');
+                        }
 
                         $keywords = '';
 
@@ -1657,7 +1659,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $dbname);
         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $fdbname);
 
-        die('Done. Total items recorded: ' . $record_count);
+        die('Done. Total items recorded: ' . count($ids_cut));
     } else {
 
         ?>
