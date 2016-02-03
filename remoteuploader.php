@@ -296,7 +296,7 @@ if (!empty($_FILES)) {
                         $stmt->bindParam(':abstract_ascii', $abstract_ascii, PDO::PARAM_STR);
                         $stmt->bindParam(':added_by', $userID, PDO::PARAM_INT);
 
-                        $dbHandle->exec("BEGIN IMMEDIATE TRANSACTION");
+                        $dbHandle->beginTransaction();
 
                         $stmt->execute();
                         $stmt = null;
@@ -384,7 +384,7 @@ if (!empty($_FILES)) {
                         }
                         $stmt = null;
 
-                        $dbHandle->exec("COMMIT");
+                        $dbHandle->commit();
 
                         copy($file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
 

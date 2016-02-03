@@ -1397,7 +1397,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
             $tmpresult = $dbHandle->query("SELECT * FROM tempdb.library WHERE id >= $i AND id < $i + 1000 ORDER BY id ASC");
 
-            $dbHandle->exec("BEGIN DEFERRED TRANSACTION");
+            $dbHandle->beginTransaction();
 
             while ($tmprow = $tmpresult->fetch(PDO::FETCH_ASSOC)) {
 
@@ -1482,7 +1482,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $tmprow = null;
             }
 
-            $dbHandle->exec("COMMIT");
+            $dbHandle->commit();
             $tmpresult = null;
             $tmprow = null;
         }

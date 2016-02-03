@@ -90,7 +90,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signup' && !empty($_POST['user']
 
     $dbHandle->exec("ATTACH DATABASE $quoted_path AS userdatabase");
 
-    $dbHandle->exec("BEGIN IMMEDIATE TRANSACTION");
+    $dbHandle->beginTransaction();
 
     // How many users are there?
     $result = $dbHandle->query("SELECT count(*) FROM userdatabase.users");
@@ -139,7 +139,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signup' && !empty($_POST['user']
             $_SESSION['permissions'] = $permissions;
             $_SESSION['auth'] = true;
         } else {
-            $dbHandle->exec("ROLLBACK");
+            $dbHandle->rollBack();
             sendError('Username already exists.');
         }
     } else {
@@ -157,7 +157,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signup' && !empty($_POST['user']
         $_SESSION['auth'] = true;
     }
 
-    $dbHandle->exec("COMMIT TRANSACTION");
+    $dbHandle->commit();
 
     $dbHandle->exec("DETACH DATABASE userdatabase");
     $dbHandle = null;

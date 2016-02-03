@@ -196,47 +196,27 @@ class PDFViewer {
 
     }
 
-    public function checkPDFLog($file_name) {
-
-        $count = 0;
-
-        if (file_exists($this->pdf_cache_path . DIRECTORY_SEPARATOR . 'pdflog.sq3')) {
-
-            $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
-
-            $file_name_q = $logHandle->quote($file_name);
-
-            $result = $logHandle->query("SELECT 1 FROM files WHERE file=$file_name_q");
-
-            if (!is_object($result)) {
-                return FALSE;
-            }
-
-            $count = $result->fetchColumn();
-
-            $result = null;
-            $logHandle = null;
-        }
-
-        if ($count == 1) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-
-    }
-
     public function createPageImage($page) {
 
         $image_full_path = $this->image_path . DIRECTORY_SEPARATOR . $this->file_name . '.' . $page . '.jpg';
+        
+        $lock_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $this->file_name . '.' . $page . '.jpg.log';
 
-        // Image not found. Check the log whether conversion is running. If yes, delay.
-        if (!file_exists($image_full_path) || filemtime($image_full_path) < filemtime($this->pdf_full_path)) {
+        // Delay if another process is running on this image.
+        if (is_file($lock_file)) {
 
+            // Wait up to 10 sec.
             for ($i = 1; $i <= 40; $i++) {
+                
+                clearstatcache();
 
-                if ($this->checkPDFLog($this->file_name . '.' . $page . '.jpg')) {
+                if (is_file($lock_file)) {
+
                     usleep(250000);
+
+                } else {
+
+                    break;
                 }
             }
         }
@@ -244,16 +224,8 @@ class PDFViewer {
         // The image not found. Create it.
         if (!file_exists($image_full_path) || filemtime($image_full_path) < filemtime($this->pdf_full_path)) {
 
-            // Write to log file.
-            $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
-
-            $logHandle->exec("CREATE TABLE IF NOT EXISTS files (file TEXT PRIMARY KEY)");
-
-            $file_q = $logHandle->quote($this->file_name . '.' . $page . '.jpg');
-
-            $logHandle->exec("INSERT OR IGNORE INTO files VALUES($file_q)");
-
-            $logHandle = null;
+            // Create lock file.
+            file_put_contents($lock_file, '');
 
             // Create images.
             exec(select_ghostscript() . " -dSAFER"
@@ -263,14 +235,8 @@ class PDFViewer {
                     . " -o \"" . $image_full_path . "\""
                     . " \"" . $this->pdf_full_path . "\"");
 
-            // We are done, delete from log.
-            $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
-
-            $file_q = $logHandle->quote($this->file_name . '.' . $page . '.jpg');
-
-            $logHandle->exec("DELETE FROM files WHERE file=$file_q");
-
-            $logHandle = null;
+            // Delete lock file.
+            unlink($lock_file);
         }
 
         // At this point, if image not found, exit with error.
@@ -371,50 +337,42 @@ class PDFViewer {
         // Temporary XML output.
         $temp_xml = $this->temp_path . DIRECTORY_SEPARATOR . $this->file_name;
 
+        // Temporary lock file.
+        $temp_log = $temp_xml . '.xml.log';
+
         // SQLite storage.
         $temp_db = $this->pdf_cache_path . DIRECTORY_SEPARATOR . $this->file_name . '.sq3';
 
+        // Another process is running on this file. Delay.
+        if (is_file($temp_log)) {
+
+            // Wait up to 30 sec.
+            for ($i = 1; $i <= 60; $i++) {
+                
+                clearstatcache();
+
+                if (is_file($temp_log)) {
+
+                    usleep(500000);
+
+                } else {
+
+                    break;
+                }
+            }
+        }
+
+        // If the SQLite storage does not exist, or it is stale.
         if (!file_exists($temp_db) || filemtime($temp_db) < filemtime($this->pdf_full_path)) {
-            
-            // Write to log file.
-            $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
 
-            $logHandle->exec("CREATE TABLE IF NOT EXISTS files (file TEXT PRIMARY KEY)");
+            // Create lock file.
+            file_put_contents($temp_log, '');
 
-            $file_q = $logHandle->quote($this->file_name . '.sq3');
-
-            $insert = $logHandle->exec("INSERT OR IGNORE INTO files VALUES($file_q)");
-
-            $logHandle = null;
-
-            // IMPORTANT: If no insert due to unique constraint, exit. Another process is running.
-            if ($insert == 0) {
-                return;
-            }
-
-            // XML output file not found. Create one.
-            if (!file_exists($temp_xml . '.xml')) {
-                exec(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -hidden -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
-            }
-
-            if (!file_exists($temp_xml . '.xml')) {
-
-                // We are done, delete from log.
-                $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
-
-                $file_q = $logHandle->quote($this->file_name . '.sq3');
-
-                $logHandle->exec("DELETE FROM files WHERE file=$file_q");
-
-                $logHandle = null;
-
-                sendError('PDF to XML conversion not allowed.');
-            }
-
+            // Create/edit the database.
             $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
             
-            $dbHandle->beginTransaction();
-            
+            $dbHandle->exec('PRAGMA journal_mode = DELETE');
+
             // Delete stale database table.
             $dbHandle->exec("DROP TABLE IF EXISTS texts");
 
@@ -427,6 +385,19 @@ class PDFViewer {
                     . "text TEXT NOT NULL DEFAULT '', "
                     . "page_number INTEGER NOT NULL DEFAULT '')");
 
+            // XML output file not found. Create one.
+            if (!file_exists($temp_xml . '.xml')) {
+                exec(select_pdftohtml() . ' -nodrm -q -enc UTF-8 -nomerge -i -hidden -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
+            }
+
+            if (!file_exists($temp_xml . '.xml')) {
+
+                // Delete lock file.
+                unlink($temp_log);
+
+                sendError('PDF to XML conversion failed.');
+            }
+
             // Try to repair some malformed files.
             $string = file_get_contents($temp_xml . '.xml');
             $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]+/u', ' ', $string);
@@ -437,20 +408,15 @@ class PDFViewer {
             $xml = @simplexml_load_string($string);
 
             if ($xml === FALSE) {
-                
-                $dbHandle->rollBack();
 
-                // We are done, delete from log.
-                $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
-
-                $file_q = $logHandle->quote($this->file_name . '.sq3');
-
-                $logHandle->exec("DELETE FROM files WHERE file=$file_q");
-
-                $logHandle = null;
+                // Delete lock file.
+                unlink($temp_log);
 
                 sendError('Invalid XML encoding.');
             }
+
+            // Write new data to the database.
+            $dbHandle->beginTransaction();
 
             // Iterate XML page by page.
             foreach ($xml->page as $page) {
@@ -513,24 +479,18 @@ class PDFViewer {
                             . "VALUES($row_top_q, $row_left_q, $row_height_q, $row_width_q, $row_q, $page_number_q)");
                 }
             }
-
+            
             $dbHandle->commit();
 
             $dbHandle->exec("CREATE INDEX IF NOT EXISTS ind_pages ON texts(page_number)");
-
+            
             $dbHandle = null;
-
-            // We are done, delete from log.
-            $logHandle = database_connect($this->pdf_cache_path, 'pdflog');
-
-            $file_q = $logHandle->quote($this->file_name . '.sq3');
-
-            $logHandle->exec("DELETE FROM files WHERE file=$file_q");
-
-            $logHandle = null;
 
             // Delete XML file.
             unlink($temp_xml . '.xml');
+            
+            // Delete lock file.
+            unlink($temp_log);
         }
 
     }
@@ -542,34 +502,12 @@ class PDFViewer {
         // Temporary SQLite storage.
         $temp_db = $this->pdf_cache_path . DIRECTORY_SEPARATOR . $this->file_name . '.sq3';
 
-        /**
-         * Database text storage is created by extractXMLText(), when a PDF is open
-         * first time. When a PDF is being extracted, the PDF filename is written
-         * in a log. This code checks if a PDF is not being extracted at this
-         * moment, and delays the execution so that it continues after the database
-         * storage has been created.
-         */
-        if (!is_file($temp_db)) {
-
-            // Is it being created?
-            if ($this->checkPDFLog($this->file_name . '.sq3')) {
-
-                // Wait up to 30 sec.
-                for ($i = 1; $i <= 60; $i++) {
-
-                    if ($this->checkPDFLog($this->file_name . '.sq3')) {
-                        usleep(500000);
-                    }
-                }
-            } else {
-
-                // File might have been deleted. Re-create it.
-                $this->extractXMLText();
-            }
-        }
-
+        // Make sure SQLite storage exists.
+        $this->extractXMLText();
+        
         // At this point, the database must exist.
         if (!file_exists($temp_db)) {
+
             sendError('Text storage not found.');
         }
 
@@ -611,38 +549,16 @@ class PDFViewer {
         // Temporary SQLite storage.
         $temp_db = $this->pdf_cache_path . DIRECTORY_SEPARATOR . $this->file_name . '.sq3';
 
-        /**
-         * Database text storage is created by extractXMLText(), when a PDF is open
-         * first time. When a PDF is being extracted, the PDF filename is written
-         * in a log. This code checks if a PDF is not being extracted at this
-         * moment, and delays the execution so that it continues after the database
-         * storage has been created.
-         */
-        if (!is_file($temp_db)) {
+        // Make sure SQLite storage exists.
+        $this->extractXMLText();
 
-            // Is it being created?
-            if ($this->checkPDFLog($this->file_name . '.sq3')) {
-
-                // Wait up to 30 sec.
-                for ($i = 1; $i <= 60; $i++) {
-
-                    if ($this->checkPDFLog($this->file_name . '.sq3')) {
-                        usleep(500000);
-                    }
-                }
-            } else {
-
-                // File might have been deleted. Re-create it.
-                $this->extractXMLText();
-            }
-        }
-        
         // At this point, the database must exist.
         if (!file_exists($temp_db)) {
+
             sendError('Text storage not found.');
         }
 
-        // Fetch text from the database (8 PDF pages).
+        // Search text from the database.
         $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
 
         $term_q = $dbHandle->quote('%' . $term . '%');

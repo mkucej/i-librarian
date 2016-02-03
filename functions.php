@@ -540,23 +540,10 @@ function database_connect($database_path, $database_name) {
         print "PHP extensions PDO and PDO_SQLite must be installed.";
         die();
     }
-    //SWITCH TO WAL MODE IF SQLITE >3.7.0, DELETE MODE >3.6.0 <3.7.1
-    $result = $dbHandle->query('SELECT sqlite_version()');
-    $sqlite_version = $result->fetchColumn();
-    $result = null;
-    if (version_compare($sqlite_version, "3.5.9", ">")) {
-        $journal_mode = 'DELETE';
-        // There are read-only databases!
-        if (version_compare($sqlite_version, "3.7.0", ">") && $database_name != 'journals' && $database_name != 'styles') {
-            $journal_mode = 'WAL';
-        }
-        $dbHandle->query('PRAGMA journal_mode=' . $journal_mode);
-    }
-    $dbHandle->exec("PRAGMA cache_size = 1000000");
-    $dbHandle->sqliteCreateFunction('search_strip_tags', 'sqlite_strip_tags', 1);
-    
-    return $dbHandle;
 
+    $dbHandle->sqliteCreateFunction('search_strip_tags', 'sqlite_strip_tags', 1);
+
+    return $dbHandle;
 }
 
 /////////////sqlite_regexp//////////////////////
@@ -1894,7 +1881,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     $rating = 2;
     $added_by = intval($userID);
 
-    $dbHandle->exec("BEGIN IMMEDIATE TRANSACTION");
+    $dbHandle->beginTransaction();
 
     $stmt->execute();
     $stmt = null;
@@ -1966,7 +1953,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
     }
     $stmt = null;
 
-    $dbHandle->exec("COMMIT");
+    $dbHandle->commit();
 
     copy($file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
 

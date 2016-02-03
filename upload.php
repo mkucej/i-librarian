@@ -263,8 +263,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         $added_by = $user_id;
 
         ##########	get the new filename and record item	##########
-        $dbHandle->exec("BEGIN IMMEDIATE TRANSACTION");
-
+        $dbHandle->beginTransaction();
+        
         if (!empty($title))
             $insert = $stmt->execute();
         $stmt = null;
@@ -289,7 +289,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $stmt->execute();
         }
 
-        $dbHandle->exec("COMMIT");
+        $dbHandle->commit();
 
         if ($insert == false)
             $error[] = htmlspecialchars('Error! The item has not been recorded.<br>' . $title);

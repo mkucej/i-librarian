@@ -23,6 +23,9 @@ if (!is_dir(IL_PDF_CACHE_PATH)) {
 // Create database files.
 $dbHandle = database_connect(IL_DATABASE_PATH, 'library');
 
+$dbHandle->exec('PRAGMA journal_mode = DELETE');
+$dbHandle->exec('PRAGMA journal_mode = WAL');
+
 // Set db version to 3.6.
 $dbHandle->exec("PRAGMA user_version = 36");
 
@@ -202,6 +205,9 @@ $dbHandle = null;
 
 $dbHandle = database_connect(IL_DATABASE_PATH, 'fulltext');
 
+$dbHandle->exec('PRAGMA journal_mode = DELETE');
+$dbHandle->exec('PRAGMA journal_mode = WAL');
+
 // Create fulltext tables.
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS full_text (
                     fileID integer PRIMARY KEY,
@@ -238,6 +244,9 @@ $dbHandle = null;
 // Create user tables.
 $dbHandle = database_connect(IL_USER_DATABASE_PATH, 'users');
 
+$dbHandle->exec('PRAGMA journal_mode = DELETE');
+$dbHandle->exec('PRAGMA journal_mode = WAL');
+
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS users (
                 userID integer PRIMARY KEY,
                 username text UNIQUE NOT NULL DEFAULT '',
@@ -263,6 +272,9 @@ $dbHandle = null;
 // Create discussion tables.
 database_connect(IL_DATABASE_PATH, 'discussions');
 
+$dbHandle->exec('PRAGMA journal_mode = DELETE');
+$dbHandle->exec('PRAGMA journal_mode = WAL');
+
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS projectdiscussion ("
         . "id INTEGER PRIMARY KEY,"
         . " projectID integer NOT NULL,"
@@ -281,6 +293,9 @@ $dbHandle = null;
 
 // Create history tables.
 database_connect(IL_DATABASE_PATH, 'history');
+
+$dbHandle->exec('PRAGMA journal_mode = DELETE');
+$dbHandle->exec('PRAGMA journal_mode = WAL');
 
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS search_tables ("
             . "id INTEGER PRIMARY KEY,"
