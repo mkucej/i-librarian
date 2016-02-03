@@ -394,7 +394,7 @@ class PDFViewer {
 
             // XML output file not found. Create one.
             if (!file_exists($temp_xml . '.xml')) {
-                system(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -hidden -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
+                exec(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -hidden -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
             }
 
             if (!file_exists($temp_xml . '.xml')) {
@@ -408,7 +408,7 @@ class PDFViewer {
 
                 $logHandle = null;
 
-                sendError('PDF to XML conversion failed.');
+                sendError('PDF to XML conversion not allowed.');
             }
 
             $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
