@@ -450,25 +450,25 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         if ($_GET['format'] == 'BibTex') {
 
             $bibtex_translation = array(
-                "author = " => "authors",
-                "title = " => "title",
-                "journal = " => "journal",
-                "year = " => "year",
-                "volume = " => "volume",
-                "number = " => "issue",
-                "pages = " => "pages",
-                "abstract = " => "abstract",
-                "journal = " => "secondary_title",
-                "series = " => "tertiary_title",
-                "editor = " => "editor",
+                "author    = " => "authors",
+                "title     = " => "title",
+                "journal   = " => "journal",
+                "year      = " => "year",
+                "volume    = " => "volume",
+                "number    = " => "issue",
+                "pages     = " => "pages",
+                "abstract  = " => "abstract",
+                "journal   = " => "secondary_title",
+                "series    = " => "tertiary_title",
+                "editor    = " => "editor",
                 "publisher = " => "publisher",
-                "address = " => "place_published",
-                "doi = " => "doi",
-                "url = " => "url",
-                str_replace(' ', '-', strtolower($custom1)) . " = " => "custom1",
-                str_replace(' ', '-', strtolower($custom2)) . " = " => "custom2",
-                str_replace(' ', '-', strtolower($custom3)) . " = " => "custom3",
-                str_replace(' ', '-', strtolower($custom4)) . " = " => "custom4");
+                "address   = " => "place_published",
+                "doi       = " => "doi",
+                "url       = " => "url",
+                str_pad(str_replace(' ', '-', strtolower($custom1)), 9, ' ') . " = " => "custom1",
+                str_pad(str_replace(' ', '-', strtolower($custom2)), 9, ' ') . " = " => "custom2",
+                str_pad(str_replace(' ', '-', strtolower($custom3)), 9, ' ') . " = " => "custom3",
+                str_pad(str_replace(' ', '-', strtolower($custom4)), 9, ' ') . " = " => "custom4");
 
             if (isset($add_item['authors'])) {
 
@@ -557,6 +557,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
             while (list($key, $value) = each($add_item)) {
 
+                $value = wordwrap($value, 75, "\n            ");
+
                 $value = str_replace('&', '\&', $value);
 //                $value = str_replace('{', '\{', $value);
 //                $value = str_replace('}', '\}', $value);
@@ -576,7 +578,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             $paper .= '@' . $type . '{' . $add_item['id'] . ',';
             $paper .= PHP_EOL . $line;
             if ($hosted == false && is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file'])) {
-                $paper .= ',' . PHP_EOL . 'file = {FULLTEXT:';
+                $paper .= ',' . PHP_EOL . 'file      = {FULLTEXT:';
                 $paper .= IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($item['file']) . DIRECTORY_SEPARATOR . $item['file'] . ':PDF}' . PHP_EOL;
             }
             $paper .= '}' . PHP_EOL . PHP_EOL;
