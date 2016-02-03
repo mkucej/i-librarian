@@ -30,7 +30,7 @@ if(isset($_POST['newmessage']) && !empty($_POST['newmessage'])) {
         if ($insert) die('OK');
 }
 
-if(isset($_GET['delete1']) && !empty($_GET['delete2'])) {
+if(isset($_GET['delete'])) {
 
 	$delete = $dbHandle->exec("DELETE FROM projectdiscussion WHERE projectID=" . $projectID);
 	$dbHandle = null;
@@ -51,8 +51,8 @@ if(isset($_GET['read'])) {
 	$message['message'] = preg_replace('/(https?\:\/\/\S+)/i', '<a href="\\1" target="_blank">\\1</a>', $message['message']);
 	$message['message'] = nl2br($message['message']);
 
-	print "<tr><td style=\"white-space: nowrap;padding: 4px\"><b>".date("M j, Y, h:i:s A", $message['timestamp']).", ".$message['user'].":</b></td>";
-	print "<td style=\"padding: 4px\">$message[message]</td></tr>".PHP_EOL;
+        echo "<div class=\"alternating_row\" style=\"padding:2px\"><b>" . date("M j, Y, h:i:s A", $message['timestamp']) . ", " . $message['user'] . ":</b></div>";
+        echo "<div style=\"padding:2px 2px 10px 2px\">$message[message]</div>" . PHP_EOL;
     }
 
     print '</table>';
