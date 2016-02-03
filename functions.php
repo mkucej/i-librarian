@@ -1500,110 +1500,108 @@ function fetch_from_ieee($doi, $ieee_id) {
     $count = 0;
     $count = (string) $xml->totalfound;
 
-    if ($count == 0) {
-        die("Error! No record found.");
-    }
+    if ($count > 0) {
 
-    $item = $xml->document;
+        $item = $xml->document;
 
-    // TITLE
-    $response['title'] = (string) $item->title;
+        // TITLE
+        $response['title'] = (string) $item->title;
 
-    // IEEE ID
-    $id = (string) $item->arnumber;
-    $response['uid'][] = 'IEEE:' . $id;
+        // IEEE ID
+        $id = (string) $item->arnumber;
+        $response['uid'][] = 'IEEE:' . $id;
 
-    // AUTHORS
-    $authors = (string) $item->authors;
-    $author_array = explode(";", $authors);
-    foreach ($author_array as $author) {
+        // AUTHORS
+        $authors = (string) $item->authors;
+        $author_array = explode(";", $authors);
+        foreach ($author_array as $author) {
 
-        $author = trim($author);
-        $comma = strpos($author, ",");
-        $space = strpos($author, " ");
+            $author = trim($author);
+            $comma = strpos($author, ",");
+            $space = strpos($author, " ");
 
-        if ($comma === FALSE) {
+            if ($comma === FALSE) {
 
-            $response['first_name'][] = trim(substr($author, 0, $space));
-            $response['last_name'][] = trim(substr($author, $space + 1));
-            $name_array[] = 'L:"' . trim(substr($author, $space + 1)) . '",F:"' . trim(substr($author, 0, $space)) . '"';
-        } else {
+                $response['first_name'][] = trim(substr($author, 0, $space));
+                $response['last_name'][] = trim(substr($author, $space + 1));
+                $name_array[] = 'L:"' . trim(substr($author, $space + 1)) . '",F:"' . trim(substr($author, 0, $space)) . '"';
+            } else {
 
-            $response['last_name'][] = trim(substr($author, 0, $comma));
-            $response['first_name'][] = trim(substr($author, $comma + 1));
-            $name_array[] = 'L:"' . trim(substr($author, 0, $comma)) . '",F:"' . trim(substr($author, $comma + 1)) . '"';
-        }
-    }
-
-    if (isset($name_array)) {
-        $response['authors'] = join(";", $name_array);
-    }
-
-    // Affiliation.
-    $response['affiliation'] = (string) $item->affiliations;
-
-    // DOI
-    $response['doi'] = (string) $item->doi;
-
-    // YEAR
-    $response['year'] = (string) $item->py;
-
-    // Secondary title.
-    $response['secondary_title'] = (string) $item->pubtitle;
-
-    // Volume.
-    $response['volume'] = (string) $item->volume;
-
-    // Issue.
-    $response['issue'] = (string) $item->issue;
-
-    // Pages.
-    $response['pages'] = (string) $item->spage;
-    $epage = (string) $item->epage;
-    if (!empty($epage) && $epage != $response['pages']) {
-        $response['pages'] .= '-' . $epage;
-    }
-
-    // Keywords.
-    $keywords_array = array();
-    if (count($item->controlledterms->term) > 0) {
-
-        foreach ($item->controlledterms->term as $keyword) {
-
-            $keywords_array[] = (string) $keyword;
+                $response['last_name'][] = trim(substr($author, 0, $comma));
+                $response['first_name'][] = trim(substr($author, $comma + 1));
+                $name_array[] = 'L:"' . trim(substr($author, 0, $comma)) . '",F:"' . trim(substr($author, $comma + 1)) . '"';
+            }
         }
 
-        if (!empty($keywords_array)) {
-            $response['keywords'] = join(" / ", $keywords_array);
+        if (isset($name_array)) {
+            $response['authors'] = join(";", $name_array);
+        }
+
+        // Affiliation.
+        $response['affiliation'] = (string) $item->affiliations;
+
+        // DOI
+        $response['doi'] = (string) $item->doi;
+
+        // YEAR
+        $response['year'] = (string) $item->py;
+
+        // Secondary title.
+        $response['secondary_title'] = (string) $item->pubtitle;
+
+        // Volume.
+        $response['volume'] = (string) $item->volume;
+
+        // Issue.
+        $response['issue'] = (string) $item->issue;
+
+        // Pages.
+        $response['pages'] = (string) $item->spage;
+        $epage = (string) $item->epage;
+        if (!empty($epage) && $epage != $response['pages']) {
+            $response['pages'] .= '-' . $epage;
+        }
+
+        // Keywords.
+        $keywords_array = array();
+        if (count($item->controlledterms->term) > 0) {
+
+            foreach ($item->controlledterms->term as $keyword) {
+
+                $keywords_array[] = (string) $keyword;
+            }
+
+            if (!empty($keywords_array)) {
+                $response['keywords'] = join(" / ", $keywords_array);
+            }
+        }
+
+        // Publisher.
+        $response['publisher'] = (string) $item->publisher;
+
+        // Abstract.
+        $response['abstract'] = (string) $item->abstract;
+
+        // Reference type.
+        $reference_type = (string) $item->pubtype;
+
+        if ($reference_type == 'Conference Publications') {
+
+            $response['reference_type'] = 'conference';
+        } elseif ($reference_type == 'Journals & Magazines') {
+
+            $response['reference_type'] = 'article';
+        } elseif ($reference_type == 'Books & eBooks') {
+
+            $response['reference_type'] = 'chapter';
+        } elseif ($reference_type == 'Early Access Articles') {
+
+            $response['reference_type'] = 'article';
+        } elseif ($reference_type == 'Standards') {
+
+            $response['reference_type'] = 'manual';
         }
     }
-
-    // Publisher.
-    $response['publisher'] = (string) $item->publisher;
-
-    // Abstract.
-    $response['abstract'] = (string) $item->abstract;
-
-    // Reference type.
-    $reference_type = (string) $item->pubtype;
-
-    if ($reference_type == 'Conference Publications') {
-
-        $response['reference_type'] = 'conference';
-    } elseif ($reference_type == 'Journals & Magazines') {
-
-        $response['reference_type'] = 'article';
-    } elseif ($reference_type == 'Books & eBooks') {
-
-        $response['reference_type'] = 'chapter';
-    } elseif ($reference_type == 'Early Access Articles') {
-
-        $response['reference_type'] = 'article';
-    } elseif ($reference_type == 'Standards') {
-
-        $response['reference_type'] = 'manual';
-    }
-
 }
 
 //FETCH METADATA FROM ARXIV
