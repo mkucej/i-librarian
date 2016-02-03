@@ -1066,6 +1066,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 $file_to_copy_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
                             } elseif (stripos($tag, 'file = "') === 0) {
                                 $file_to_copy_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
+                            } elseif (stripos($tag, 'pmid = {') === 0) {
+                                $pmid_match[0] = trim(substr($tag, strpos($tag, '{') + 1, strrpos($tag, '}') - strlen($tag)));
+                            } elseif (stripos($tag, 'pmid = "') === 0) {
+                                $pmid_match[0] = trim(substr($tag, strpos($tag, '"') + 1, strrpos($tag, '"') - strlen($tag)));
                             }
                         }
 
@@ -1073,6 +1077,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $authors_ascii = '';
 
                         if (!empty($authors_match[0])) {
+                            if (substr($authors_match[0], 0, 1) == '{' && substr($authors_match[0], -1) == '}') {
+                                $authors_match[0] = substr($authors_match[0], 1, -1);
+                            }
                             $name_array = array();
                             $author_array = explode(" and ", $authors_match[0]);
                             foreach ($author_array as $author) {
@@ -1090,12 +1097,16 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 }
                             }
                             $authors = join(";", $name_array);
+                            
                             $authors_ascii = utf8_deaccent($authors);
                         }
 
                         $editor = '';
 
                         if (!empty($editors_match[0])) {
+                            if (substr($editors_match[0], 0, 1) == '{' && substr($editors_match[0], -1) == '}') {
+                                $editors_match[0] = substr($editors_match[0], 1, -1);
+                            }
                             $name_array = array();
                             $editor_array = explode(" and ", $editors_match[0]);
                             foreach ($editor_array as $editor) {
@@ -1121,6 +1132,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         if (!empty($title_match[0])) {
 
                             $title = trim($title_match[0]);
+                            if (substr($title, 0, 1) == '{' && substr($title, -1) == '}') {
+                                $title = substr($title, 1, -1);
+                            }
                             $title_ascii = utf8_deaccent($title);
                         }
 
@@ -1130,6 +1144,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                         if (!empty($year_match[0])) {
 
+                            if (substr($year_match[0], 0, 1) == '{' && substr($year_match[0], -1) == '}') {
+                                $year_match[0] = substr($year_match[0], 1, -1);
+                            }
                             $year = $year_match[0] . '-01-01';
                         }
 
@@ -1137,24 +1154,37 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $abstract_ascii = '';
 
                         if (!empty($abstract_match[0])) {
-
+                            if (substr($abstract_match[0], 0, 1) == '{' && substr($abstract_match[0], -1) == '}') {
+                                $abstract_match[0] = substr($abstract_match[0], 1, -1);
+                            }
                             $abstract = trim($abstract_match[0]);
                             $abstract_ascii = utf8_deaccent($abstract);
                         }
 
                         $volume = '';
 
-                        if (!empty($volume_match[0]))
+                        if (!empty($volume_match[0])) {
+                            if (substr($volume_match[0], 0, 1) == '{' && substr($volume_match[0], -1) == '}') {
+                                $volume_match[0] = substr($volume_match[0], 1, -1);
+                            }
                             $volume = trim($volume_match[0]);
+                        }
 
                         $issue = '';
 
-                        if (!empty($issue_match[0]))
+                        if (!empty($issue_match[0])) {
+                            if (substr($issue_match[0], 0, 1) == '{' && substr($issue_match[0], -1) == '}') {
+                                $issue_match[0] = substr($issue_match[0], 1, -1);
+                            }
                             $issue = trim($issue_match[0]);
+                        }
 
                         $pages = '';
 
                         if (!empty($pages_match[0])) {
+                            if (substr($pages_match[0], 0, 1) == '{' && substr($pages_match[0], -1) == '}') {
+                                $pages_match[0] = substr($pages_match[0], 1, -1);
+                            }
                             $pages = trim($pages_match[0]);
                             $pages = str_replace('--', '-', $pages_match[0]);
                         }
@@ -1162,22 +1192,37 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $secondary_title = '';
 
                         if (!empty($secondary_title_match[0]))
+                            if (substr($secondary_title_match[0], 0, 1) == '{' && substr($secondary_title_match[0], -1) == '}') {
+                                $secondary_title_match[0] = substr($secondary_title_match[0], 1, -1);
+                            }
                             $secondary_title = trim($secondary_title_match[0]);
 
                         $tertiary_title = '';
 
-                        if (!empty($tertiary_title_match[0]))
+                        if (!empty($tertiary_title_match[0])) {
+                            if (substr($tertiary_title_match[0], 0, 1) == '{' && substr($tertiary_title_match[0], -1) == '}') {
+                                $tertiary_title_match[0] = substr($tertiary_title_match[0], 1, -1);
+                            }
                             $tertiary_title = trim($tertiary_title_match[0]);
+                        }
 
                         $publisher = '';
 
-                        if (!empty($publisher_match[0]))
+                        if (!empty($publisher_match[0])) {
+                            if (substr($publisher_match[0], 0, 1) == '{' && substr($publisher_match[0], -1) == '}') {
+                                $publisher_match[0] = substr($publisher_match[0], 1, -1);
+                            }
                             $publisher = trim($publisher_match[0]);
+                        }
 
                         $place_published = '';
 
-                        if (!empty($place_published_match[0]))
+                        if (!empty($place_published_match[0])) {
+                            if (substr($place_published_match[0], 0, 1) == '{' && substr($place_published_match[0], -1) == '}') {
+                                $place_published_match[0] = substr($place_published_match[0], 1, -1);
+                            }
                             $place_published = trim($place_published_match[0]);
+                        }
 
                         $reference_type = 'article';
 
@@ -1188,18 +1233,33 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                         $doi = '';
 
-                        if (!empty($doi_match[0]))
+                        if (!empty($doi_match[0])) {
+                            if (substr($doi_match[0], 0, 1) == '{' && substr($doi_match[0], -1) == '}') {
+                                $doi_match[0] = substr($doi_match[0], 1, -1);
+                            }
                             $doi = trim($doi_match[0]);
+                        }
 
                         $bibtex = '';
 
-                        if (!empty($bibtex_match[0]))
+                        if (!empty($bibtex_match[0])) {
+                            if (substr($bibtex_match[0], 0, 1) == '{' && substr($bibtex_match[0], -1) == '}') {
+                                $bibtex_match[0] = substr($bibtex_match[0], 1, -1);
+                            }
                             $bibtex = trim($bibtex_match[0]);
+                        }
 
                         $bibtex_type = '';
 
                         if (!empty($type_match[0])) {
                             $bibtex_type = strtolower(trim($type_match[0]));
+                        }
+                        
+                        if (!empty($pmid_match[0])) {
+                            if (substr($pmid_match[0], 0, 1) == '{' && substr($pmid_match[0], -1) == '}') {
+                                $pmid_match[0] = substr($pmid_match[0], 1, -1);
+                            }
+                            $uid = 'PMID:' . trim($pmid_match[0]);
                         }
 
                         if (!empty($title)) {

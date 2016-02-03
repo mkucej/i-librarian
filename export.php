@@ -564,7 +564,20 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 //                $value = str_replace('}', '\}', $value);
                 $bibtex_name = array_search($key, $bibtex_translation);
                 if ($bibtex_name && !empty($value))
-                    $columns[] = $bibtex_name . '{' . $value . '}';
+                    $columns[] = $bibtex_name . '{{' . $value . '}}';
+            }
+            
+            // UIDs.
+            if (!empty($add_item['uid'])) {
+
+                $uids = explode('|', $add_item['uid']);
+
+                foreach ($uids as $uid) {
+
+                    $uid2 = explode(':', $uid);
+                    $key = str_pad(str_replace(' ', '-', strtolower($uid2[0])), 9, ' ') . ' = ';
+                    $columns[] = $key . '{' . $uid2[1] . '}';
+                }
             }
 
             reset($add_item);
