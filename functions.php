@@ -2035,6 +2035,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         $nasa_related_url = '';
         $nasa_citedby_pmc = '';
         $ieeeid = '';
+        $pdf_search_term = '';
         
         // Highlight search results.
         if (!empty($search_term)) {
