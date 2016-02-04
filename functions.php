@@ -2201,12 +2201,13 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
             print PHP_EOL . '<table class="item-sticker" style="width:100%;border:1px solid rgba(0,0,0,0.15)"><tr><td class="noprint ui-corner-all" style="padding:0.5em 0.75em">';
 
-            print '<i class="fa fa-info-circle quick-view" style="font-size:1.25em"></i>&nbsp;&nbsp;&nbsp;';
+            print '<div style="width:330px;white-space:nowrap;overflow:hidden;margin-bottom:0.25em">'
+            . '<i class="fa fa-info-circle quick-view" style="font-size:1.25em"></i>&nbsp;&nbsp;&nbsp;';
             print '<i class="fa fa-external-link-square quick-view-external" style="font-size:1.25em"></i>&nbsp;&nbsp;&nbsp;';
 
             print '<span><i class="star ' . (($paper['rating'] >= 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star" style="font-size:1.25em"></i>';
             print '&nbsp;<i class="star ' . (($paper['rating'] >= 2) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star" style="font-size:1.25em"></i>';
-            print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star" style="font-size:1.25em"></i></span>&nbsp;&nbsp;&nbsp;';
+            print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star" style="font-size:1.25em"></i></span>&nbsp;&nbsp;';
 
             if (empty($paper['bibtex'])) {
                 $bibtex_author = strip_tags($paper['authors']);
@@ -2223,8 +2224,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                 $paper['bibtex'] = utf8_deaccent($bibtex_author) . '-' . $bibtex_year . '-ID' . $paper['id'];
             }
 
-            echo '<div style="width:260px;white-space:nowrap;overflow:hidden;margin:0.5em 0">'
-            . '<input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly></div>';
+            echo '<input type="text" size="' . (strlen($paper['bibtex']) + 2) . '" class="bibtex" value="{' . htmlspecialchars($paper['bibtex']) . '}" readonly></div>';
 
             if (isset($shelf_files) && in_array($paper['id'], $shelf_files)) {
                 print ' <span class="update_shelf clicked"><i class="update_shelf fa fa-check-square ui-state-error-text"></i>&nbsp;Shelf&nbsp;</span>';
