@@ -66,6 +66,9 @@ if (!is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
     // Upgrade to 3.6.
     if (empty($db_version) || $db_version < '36')
         include_once 'migrate5.php';
+    // Upgrade to 4.1.
+    if (empty($db_version) || $db_version < '41')
+        include_once 'migrate6.php';
 }
 
 /**

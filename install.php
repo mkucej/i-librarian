@@ -23,11 +23,13 @@ if (!is_dir(IL_PDF_CACHE_PATH)) {
 // Create database files.
 $dbHandle = database_connect(IL_DATABASE_PATH, 'library');
 
+
+// Set journal mode to wal, or delete in old versions.
 $dbHandle->exec('PRAGMA journal_mode = DELETE');
 $dbHandle->exec('PRAGMA journal_mode = WAL');
 
-// Set db version to 3.6.
-$dbHandle->exec("PRAGMA user_version = 36");
+// Set db version.
+$dbHandle->exec("PRAGMA user_version = 41");
 
 // Create library tables.
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS library (

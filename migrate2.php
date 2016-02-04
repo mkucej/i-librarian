@@ -1,7 +1,7 @@
 <?php
 //THIS SCRIPT UPGRADES I, LIBRARIAN DATABASES FROM 2.1 to 2.4 FORMAT
 //ADD BIBTEX COLUMN TO TABLE LIBRARY AND SOME INDECES, UPGRADE AUTHORS
-die("Upgrading from version <2.4 is no longer supported.");
+
 ignore_user_abort();
 
 include_once 'data.php';
@@ -33,15 +33,15 @@ function migrate_authors ($string) {
     return $result;
 }
 
-database_connect($database_path, 'library');
+database_connect(IL_DATABASE_PATH, 'library');
 $dbHandle->sqliteCreateFunction('migrateauthors', 'migrate_authors', 1);
-$dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
+$dbHandle->beginTransaction();
 $dbHandle->exec("ALTER TABLE library ADD COLUMN bibtex TEXT NOT NULL DEFAULT ''");
 $dbHandle->exec("UPDATE library SET authors=migrateauthors(authors), authors_ascii=migrateauthors(authors_ascii) WHERE authors NOT LIKE '%L:\"%'");
 $dbHandle->exec("CREATE INDEX journal_ind ON library (journal)");
 $dbHandle->exec("CREATE INDEX secondary_title_ind ON library (secondary_title)");
 $dbHandle->exec("CREATE INDEX addition_date_ind ON library (addition_date)");
-$dbHandle->exec("COMMIT");
+$dbHandle->commit();
 $dbHandle = null;
 ?>
 <html>

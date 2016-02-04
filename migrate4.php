@@ -44,17 +44,17 @@ function migrate_authors($string) {
 //ADD TERTIARY_TITLE COLUMN TO TABLE LIBRARY AND UPGRADE EDITORS
 database_connect(IL_DATABASE_PATH, 'library');
 $dbHandle->sqliteCreateFunction('migrateauthors', 'migrate_authors', 1);
-$dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
+$dbHandle->beginTransaction();
 $dbHandle->exec("ALTER TABLE library ADD COLUMN tertiary_title TEXT NOT NULL DEFAULT ''");
 $dbHandle->exec("ALTER TABLE library ADD COLUMN filehash TEXT NOT NULL DEFAULT ''");
 $dbHandle->exec("ALTER TABLE projects ADD COLUMN active TEXT NOT NULL DEFAULT '1'");
 $dbHandle->exec("UPDATE library SET editor=migrateauthors(editor) WHERE editor NOT LIKE '%L:\"%'");
-$dbHandle->exec("COMMIT");
+$dbHandle->commit();
 $dbHandle = null;
 
 //CONSOLIDATE DISCUSSIONS INTO ONE DATABASE
 database_connect(IL_DATABASE_PATH, 'filediscussion');
-$dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
+$dbHandle->beginTransaction();
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS discussion (id INTEGER PRIMARY KEY,"
         . " fileID INTEGER NOT NULL,"
         . " user TEXT NOT NULL DEFAULT '',"
@@ -66,14 +66,14 @@ $dbHandle->exec("CREATE TABLE projectdiscussion (id integer PRIMARY KEY,"
         . " user text NOT NULL DEFAULT '',"
         . " timestamp text NOT NULL DEFAULT '',"
         . " message text NOT NULL DEFAULT '')");
-$dbHandle->exec("COMMIT");
+$dbHandle->commit();
 $dbs = glob(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'project*.sq3', GLOB_NOSORT);
 if (is_array($dbs)) {
     foreach ($dbs as $db) {
         $projID = substr(basename($db, '.sq3'), 7);
         $database_query = $dbHandle->quote($db);
         $dbHandle->exec("ATTACH DATABASE " . $database_query . " AS db2");
-        $dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
+        $dbHandle->beginTransaction();
         $result = $dbHandle->query("SELECT user,timestamp,message FROM db2.discussion");
         while ($row = $result->fetch(PDO::FETCH_NAMED)) {
             $projectID = intval($projID);
@@ -83,7 +83,7 @@ if (is_array($dbs)) {
             $dbHandle->exec("INSERT INTO projectdiscussion (projectID,user,timestamp,message) VALUES ($projectID, $user, $timestamp, $message)");
             var_dump($dbHandle->errorInfo());
         }
-        $dbHandle->exec("COMMIT");
+        $dbHandle->commit();
         $dbHandle->exec("DETACH DATABASE db2");
         unlink($db);
     }

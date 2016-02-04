@@ -1,14 +1,14 @@
 <?php
 //THIS SCRIPT UPGRADES I, LIBRARIAN DATABASES FROM 2.7 to 2.8 FORMAT
 //ADD TABLE LOG INTO LIBRARY AND FULLTEXT PLUS TRIGGERS
-die("Upgrading from version <2.8 is no longer supported.");
+
 ignore_user_abort();
 
 include_once 'data.php';
 include_once 'functions.php';
 
-database_connect($database_path, 'library');
-$dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
+database_connect(IL_DATABASE_PATH, 'library');
+$dbHandle->beginTransaction();
 $dbHandle->exec("UPDATE library SET reference_type='article'");
 $dbHandle->exec("CREATE TABLE library_log (
                 id integer PRIMARY KEY,
@@ -33,11 +33,11 @@ foreach ($tables as $table) {
                         UPDATE library_log SET ch_time=strftime('%s','now') WHERE ch_table='".$table."';
                     END;");
 }
-$dbHandle->exec("COMMIT");
+$dbHandle->commit();
 $dbHandle = null;
 
-database_connect($database_path, 'fulltext');
-$dbHandle->exec("BEGIN EXCLUSIVE TRANSACTION");
+database_connect(IL_DATABASE_PATH, 'fulltext');
+$dbHandle->beginTransaction();
 $dbHandle->exec("CREATE TABLE fulltext_log (
                 id integer PRIMARY KEY,
                 ch_table text NOT NULL DEFAULT '',
@@ -57,7 +57,7 @@ $dbHandle->exec("CREATE TRIGGER trigger_fulltext_update AFTER UPDATE ON full_tex
                 BEGIN
                     UPDATE fulltext_log SET ch_time=strftime('%s','now') WHERE ch_table='full_text';
                 END;");
-$dbHandle->exec("COMMIT");
+$dbHandle->commit();
 $dbHandle = null;
 ?>
 <html>
