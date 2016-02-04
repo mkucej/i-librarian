@@ -168,7 +168,7 @@ $(document).unbind('keydown').bind('keydown', 'd', function () {
     } else if ($('#pdf-viewer-marker-erase').prop('checked')) {
         $('#pdf-viewer-marker-erase').click();
     }
-}).bind('keydown', 'backspace', function () {
+}).bind('keydown', 'r', function () {
     // Go back if PDF link was clicked.
     if ($("#pdf-viewer-div").data("linkHistory") !== undefined) {
         // Scroll to destination page.
