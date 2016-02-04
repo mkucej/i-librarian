@@ -129,7 +129,7 @@ function perform_search($sql) {
         $dbHandle->beginTransaction();
 
         $dbHandle->exec("INSERT INTO history.`$table_name_hash` (itemID) " . $sql);
-
+        
         $dbHandle->exec("INSERT INTO history.search_tables(table_name,created,total_rows)"
                 . " VALUES('$table_name_hash', '" . time() . "', (SELECT count(*) FROM history.`$table_name_hash`))");
 
@@ -2039,6 +2039,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         // Highlight search results.
         if (!empty($search_term)) {
             $search_words = explode(' ', $search_term);
+            $search_words = array_filter($search_words);
             foreach ($search_words as $search_word) {
                 foreach ($paper as $key => $value) {
                     if ($key !== 'authors' && $key !== 'title' && $key !== 'abstract') {
@@ -2049,6 +2050,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                     }
                 }
             }
+            $pdf_search_term = $search_words[0];
         }
 
         if (!empty($paper['uid'])) {
@@ -2190,7 +2192,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                     print '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . urlencode($paper['file']) . '#pagemode=none&scrollbar=1&navpanes=0&toolbar=1&statusbar=0&page=1&view=FitH,0&zoom=page-width') . '" target="_blank" style="display:block">';
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
-                    print '<a href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode(strip_tags ($paper['title']))) . '&search_term=' . $search_term . '" target="_blank" style="width:360px;height:240px;display:block">';
+                    print '<a href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode(strip_tags ($paper['title']))) . '&search_term=' . urlencode ($pdf_search_term) . '" target="_blank" style="width:360px;height:240px;display:block">';
 
                 print '<img src="icon.php?file=' . $paper['file'] . '" style="width:360px;height:240px;border:0" alt="Loading PDF..."></a>';
             } else {
@@ -2274,7 +2276,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
                 if (!isset($_SESSION['pdfviewer']) || (isset($_SESSION['pdfviewer']) && $_SESSION['pdfviewer'] == 'internal'))
                     print '<div class="noprint titles-pdf" style="float:left">
-                        <a class="ui-state-error-text" href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode(strip_tags ($paper['title']))) . '&search_term=' . $search_term . '" target="_blank" style="display:block">
+                        <a class="ui-state-error-text" href="' . htmlspecialchars('pdfviewer.php?file=' . urlencode($paper['file']) . '&title=' . urlencode(strip_tags ($paper['title']))) . '&search_term=' . urlencode ($pdf_search_term) . '" target="_blank" style="display:block">
                                 PDF</a></div>';
             } else {
                 print PHP_EOL . '<div class="noprint titles-pdf" style="float:left;color:rgba(0,0,0,0.3);cursor:auto">PDF</div>';

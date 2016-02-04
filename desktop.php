@@ -33,6 +33,8 @@ $number_of_users = count($users);
         <table class="ui-state-default" style="width:100%;border-bottom:none">
             <tr>
                 <td class="quicksearch" style="padding:0">
+                    <input type="text" name="global" placeholder="Global Search"
+                           value="<?php echo isset($_SESSION['session_global']) ? htmlspecialchars($_SESSION['session_global']) : ''; ?>">
                     <input type="text" name="anywhere" placeholder="Quick Search"
                            value="<?php echo isset($_SESSION['session_anywhere']) ? htmlspecialchars($_SESSION['session_anywhere']) : ''; ?>">
                     <input type="text" name="fulltext" placeholder="PDF Search" style="display:none"
@@ -44,7 +46,21 @@ $number_of_users = count($users);
                 </td>
             </tr>
         </table>
-        <div id="anywhere_separator" class="separators">
+        <div id="global_separator" class="separators">
+            <input type="radio" id="global-separator1" name="global-separator" value="AND"<?php
+            if (!isset($_SESSION['session_global_separator']) || $_SESSION['session_global_separator'] == 'AND') echo 'checked';
+            ?>>
+            <label for="global-separator1">AND</label>
+            <input type="radio" id="global-separator2" name="global-separator" value="OR"<?php
+            if (isset($_SESSION['session_global_separator']) && $_SESSION['session_global_separator'] == 'OR') echo 'checked';
+            ?>>
+            <label for="global-separator2">OR</label>
+            <input type="radio" id="global-separator3" name="global-separator" value="PHRASE"<?php
+            if (isset($_SESSION['session_global_separator']) && $_SESSION['session_global_separator'] == 'PHRASE') echo 'checked';
+            ?>>
+            <label for="global-separator3">phrase</label>
+        </div>
+        <div id="anywhere_separator" class="separators" style="display:none">
             <input type="radio" id="anywhere-separator1" name="anywhere-separator" value="AND"<?php
             if (!isset($_SESSION['session_anywhere_separator']) || $_SESSION['session_anywhere_separator'] == 'AND') echo 'checked';
             ?>>
@@ -114,7 +130,8 @@ $number_of_users = count($users);
         <input type="hidden" name="rating[]" value="3">
     </form>
     <div id="search-menu" style="width:100%">
-        <div class="ui-state-default tabclicked" title="Search metadata"><i class="fa fa-list"></i></div>
+        <div class="ui-state-default tabclicked" title="Global search"><i class="fa fa-database"></i></div>
+        <div class="ui-state-default" title="Search metadata"><i class="fa fa-list"></i></div>
         <div class="ui-state-default" title="Search PDFs"><i class="fa fa-file-pdf-o"></i></div>
         <div class="ui-state-default" title="Search PDF notes"><i class="fa fa-comment"></i></div>
         <div class="ui-state-default" title="Search rich-text notes"><i class="fa fa-pencil"></i></div>

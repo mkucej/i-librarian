@@ -4,6 +4,8 @@ include_once 'data.php';
 include_once 'functions.php';
 
 if (isset($_GET['newsearch'])) {
+    unset($_SESSION['session_global']);
+    unset($_SESSION['session_global_separator']);
     unset($_SESSION['session_anywhere']);
     unset($_SESSION['session_anywhere_separator']);
     unset($_SESSION['session_authors']);
@@ -199,6 +201,10 @@ if (empty($_GET['select']) ||
 if (!empty($_GET['searchmode'])) {
     
     // Rename separators due to a bug in jQuery buttonset()
+    if (isset($_GET['global-separator'])) {
+        $_GET['global_separator'] = $_GET['global-separator'];
+        unset($_GET['global-separator']);
+    }
     if (isset($_GET['anywhere-separator'])) {
         $_GET['anywhere_separator'] = $_GET['anywhere-separator'];
         unset($_GET['anywhere-separator']);
@@ -215,10 +221,24 @@ if (!empty($_GET['searchmode'])) {
         $_GET['notes_separator'] = $_GET['notes-separator'];
         unset($_GET['notes-separator']);
     }
+    
+    // Global search.
+    if (!empty($_GET['global'])) {
+        $global_strings = array();
+        $_GET['searchtype'] == 'global';
+        $_GET['anywhere'] = $_GET['global'];
+        $_GET['anywhere_separator'] = $_GET['global_separator'];
+        $_GET['fulltext'] = $_GET['global'];
+        $_GET['fulltext_separator'] = $_GET['global_separator'];
+        $_GET['pdfnotes'] = $_GET['global'];
+        $_GET['pdfnotes_separator'] = $_GET['global_separator'];
+        $_GET['notes'] = $_GET['global'];
+        $_GET['notes_separator'] = $_GET['global_separator'];
+    }
 
 ######## REGISTER SESSION VARIABLES ##############
 
-    $get_array = array('anywhere', 'authors', 'affiliation', 'title', 'journal', 'secondary_title', 'tertiary_title', 'abstract', 'keywords',
+    $get_array = array('global', 'anywhere', 'authors', 'affiliation', 'title', 'journal', 'secondary_title', 'tertiary_title', 'abstract', 'keywords',
         'year', 'fulltext', 'notes', 'pdfnotes', 'category', 'whole_words', 'case', 'rating', 'search_id', 'custom1', 'custom2', 'custom3', 'custom4',
         'search-metadata', 'search-pdfs', 'search-pdfnotes', 'search-notes', 'include-categories', 'reference_type');
 
@@ -449,6 +469,8 @@ if (!empty($_GET['searchmode'])) {
             (array) $fulltext_array,
             (array) $notes_array,
             (array) $search_array);
+    
+    $search_query_array = array_unique($search_query_array);
 
     $search_query = join(' ', $search_query_array);
 
@@ -457,54 +479,9 @@ if (!empty($_GET['searchmode'])) {
     $result_array = array();
     $rows = 0;
 
-    if (!empty($search_string) && $_GET['searchtype'] == 'metadata') {
-
-        if ($_GET['select'] == 'shelf') {
-            perform_search("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search $search_string $ordering");
-        } else {
-            perform_search("SELECT id FROM library WHERE $in $rating_search $type_search $category_search $search_string $ordering");
-        }
-        
-    } elseif (!empty($search_string) && $_GET['searchtype'] == 'notes') {
-
-        $notes_in = str_replace("id IN", "fileID IN", $in);
-        $notes_category_search = str_replace("id IN", "fileID IN", $category_search);
-
-        $dbHandle->sqliteCreateFunction('search_strip_tags', 'sqlite_strip_tags', 1);
-
-        if ($_GET['select'] == 'shelf') {
-            $notes_query = "SELECT fileID FROM notes INNER JOIN shelves USING (fileID,userID) WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $notes_category_search $search_string";
-        } else {
-            $notes_query = "SELECT fileID FROM notes WHERE $notes_in userID=" . intval($_SESSION['user_id']) . " AND $notes_category_search $search_string";
-        }
-
-        perform_search("SELECT id FROM library WHERE $rating_search $type_search id IN ($notes_query) $ordering");
-
-    } elseif (!empty($search_string) && $_GET['searchtype'] == 'pdfnotes') {
-
-        $notes_query = "SELECT filename FROM annotations WHERE userID=" . intval($_SESSION['user_id']) . " AND $search_string";
-
-        if ($_GET['select'] == 'shelf') {
-            perform_search("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search file IN ($notes_query) $ordering");
-        } else {
-            perform_search("SELECT id FROM library WHERE $in $rating_search $type_search $category_search file IN ($notes_query) $ordering");
-        }
-
-    } elseif ($_GET['searchtype'] == 'pdf') {
-
-        $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
-
-        if ($case == 1)
-            $dbHandle->exec("PRAGMA case_sensitive_like = 1");
-        
-        $fulltext_query = "SELECT fileID FROM fulltextdatabase.full_text WHERE $search_string";
-        
-        if ($_GET['select'] == 'shelf') {
-            perform_search("SELECT id FROM library INNER JOIN shelves ON library.id=shelves.fileID WHERE shelves.userID=" . intval($_SESSION['user_id']) . " AND $rating_search $type_search $category_search id IN ($fulltext_query) $ordering");
-        } else {
-            perform_search("SELECT id FROM library WHERE $in $rating_search $type_search $category_search id IN ($fulltext_query) $ordering");
-        }
-
+    // Search using the combined SQL.
+    if (!empty($sql)) {
+        perform_search("SELECT id FROM library WHERE $sql $ordering");
     }
 
 //PRE-FETCH CATEGORIES, PROJECTS FOR DISPLAYED ITEMS IN A BATCH INTO TEMP DATABASE TO OFFLOAD THE MAIN DATABASE

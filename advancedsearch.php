@@ -1,5 +1,5 @@
 <?php
-if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
+if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['searchtype'] == 'global')) {
 
     if (!empty($_GET['anywhere'])) {
 
@@ -796,9 +796,14 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         $search_string = join('', $search_string);
     }
     $search_string = '(' . $search_string . ')';
+    
+    $sql = "$in $rating_search $type_search $category_search $search_string";
+
+    $global_strings[] = $sql;
+}
 
 ##########################notes#####################################
-} elseif (!empty($_GET['notes']) && $_GET['searchtype'] == 'notes') {
+if (!empty($_GET['notes']) && ($_GET['searchtype'] == 'notes' || $_GET['searchtype'] == 'global')) {
 
     $notes_array = array($_GET['notes']);
     if ($_GET['notes_separator'] == 'AND' || $_GET['notes_separator'] == 'OR')
@@ -836,23 +841,35 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         $search_string = join(' OR ', $notes_regexp);
     if ($_GET['notes_separator'] == 'PHRASE')
         $search_string = join('', $notes_regexp);
+    
+    $notes_in = str_replace("id IN", "fileID IN", $in);
+    $notes_category_search = str_replace("id IN", "fileID IN", $category_search);
+
+    $dbHandle->sqliteCreateFunction('search_strip_tags', 'sqlite_strip_tags', 1);
+
+    $notes_query = "SELECT fileID FROM notes WHERE $notes_in userID=" . intval($_SESSION['user_id']) . " AND $notes_category_search $search_string";
+
+    $sql = "$rating_search $type_search id IN ($notes_query)";
+
+    $global_strings[] = $sql;
+}
 
 ##########################PDF notes#####################################
-} elseif (!empty($_GET['pdfnotes']) && $_GET['searchtype'] == 'pdfnotes') {
+if (!empty($_GET['pdfnotes']) && ($_GET['searchtype'] == 'pdfnotes' || $_GET['searchtype'] == 'global')) {
 
-    $notes_array = array($_GET['pdfnotes']);
+    $pdfnotes_array = array($_GET['pdfnotes']);
     if ($_GET['pdfnotes_separator'] == 'AND' || $_GET['pdfnotes_separator'] == 'OR')
-        $notes_array = explode(' ', $_GET['pdfnotes']);
+        $pdfnotes_array = explode(' ', $_GET['pdfnotes']);
 
-    while ($notes = each($notes_array)) {
+    while ($pdfnotes = each($pdfnotes_array)) {
 
-        $like_query = str_replace("\\", "\\\\", $notes[1]);
+        $like_query = str_replace("\\", "\\\\", $pdfnotes[1]);
         $like_query = str_replace("%", "\%", $like_query);
         $like_query = str_replace("_", "\_", $like_query);
         $like_query = str_replace("<*>", "%", $like_query);
         $like_query = str_replace("<?>", "_", $like_query);
 
-        $regexp_query = addcslashes($notes[1], "\044\050..\053\056\057\074\076\077\133\134\136\173\174");
+        $regexp_query = addcslashes($pdfnotes[1], "\044\050..\053\056\057\074\076\077\133\134\136\173\174");
         $regexp_query = str_replace('\<\*\>', '.*', $regexp_query);
         $regexp_query = str_replace('\<\?\>', '.?', $regexp_query);
 
@@ -863,21 +880,28 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         $regexp_sql = "regexp_match(annotation, '$regexp_query', $case2)";
 
         if ($whole_words == 1) {
-            $notes_regexp[] = '(' . $like_sql . ') AND (' . $regexp_sql . ')';
+            $pdfnotes_regexp[] = '(' . $like_sql . ') AND (' . $regexp_sql . ')';
         } else {
-            $notes_regexp[] = '(' . $like_sql . ')';
+            $pdfnotes_regexp[] = '(' . $like_sql . ')';
         }
     }
 
     if ($_GET['pdfnotes_separator'] == 'AND')
-        $search_string = join(' AND ', $notes_regexp);
+        $search_string = join(' AND ', $pdfnotes_regexp);
     if ($_GET['pdfnotes_separator'] == 'OR')
-        $search_string = join(' OR ', $notes_regexp);
+        $search_string = join(' OR ', $pdfnotes_regexp);
     if ($_GET['pdfnotes_separator'] == 'PHRASE')
-        $search_string = join('', $notes_regexp);
+        $search_string = join('', $pdfnotes_regexp);
+    
+    $pdfnotes_query = "SELECT filename FROM annotations WHERE userID=" . intval($_SESSION['user_id']) . " AND $search_string";
+
+    $sql = "$in $rating_search $type_search $category_search file IN ($pdfnotes_query)";
+
+    $global_strings[] = $sql;
+}
 
 ##########################fulltext#####################################
-} elseif (!empty($_GET['fulltext']) && $_GET['searchtype'] == 'pdf') {
+if (!empty($_GET['fulltext']) && ($_GET['searchtype'] == 'pdf' || $_GET['searchtype'] == 'global')) {
 
     $fulltext_array = array($_GET['fulltext']);
     if ($_GET['fulltext_separator'] == 'AND' || $_GET['fulltext_separator'] == 'OR') {
@@ -930,7 +954,26 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         $search_string = join(' OR ', $fulltext_regexp);
     if ($_GET['fulltext_separator'] == 'PHRASE')
         $search_string = join('', $fulltext_regexp);
-} else {
+    
+    $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
+
+    if ($case == 1)
+        $dbHandle->exec("PRAGMA case_sensitive_like = 1");
+
+    $fulltext_query = "SELECT fileID FROM fulltextdatabase.full_text WHERE $search_string";
+
+    $sql = "$in $rating_search $type_search $category_search id IN ($fulltext_query)";
+    
+    $global_strings[] = $sql;
+}
+
+// Global search.
+if (!empty($_GET['searchtype']) && $_GET['searchtype'] == 'global' && !empty($global_strings)) {
+    $sql = join(") OR (", $global_strings);
+    $sql = "($sql)";
+}
+
+if (!isset($_GET['searchtype'])) {
 
     include_once 'data.php';
     include_once 'functions.php';

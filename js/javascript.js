@@ -2669,6 +2669,7 @@ var desktop = {
         });
         //////////////////////////////quick search///////////////////////////////////
         var radioRows = [
+            '#global_separator',
             '#anywhere_separator',
             '#fulltext_separator',
             '#pdfnotes_separator',
@@ -2721,8 +2722,8 @@ var desktop = {
             $("#quicksearch").find('.separators').eq(0).show();
             $("#quicksearch").find('.separators').eq(0).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('metadata');
-            $('#quicksearch input[name="searchmode"]').val('quick');
+            $('#quicksearch input[name="searchtype"]').val('global');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 0);
         });
@@ -2738,7 +2739,7 @@ var desktop = {
             $("#quicksearch").find('.separators').eq(1).show();
             $("#quicksearch").find('.separators').eq(1).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('pdf');
+            $('#quicksearch input[name="searchtype"]').val('metadata');
             $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 1);
@@ -2755,7 +2756,7 @@ var desktop = {
             $("#quicksearch").find('.separators').eq(2).show();
             $("#quicksearch").find('.separators').eq(2).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('pdfnotes');
+            $('#quicksearch input[name="searchtype"]').val('pdf');
             $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 2);
@@ -2772,10 +2773,27 @@ var desktop = {
             $("#quicksearch").find('.separators').eq(3).show();
             $("#quicksearch").find('.separators').eq(3).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('notes');
+            $('#quicksearch input[name="searchtype"]').val('pdfnotes');
             $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 3);
+        });
+        $('#search-menu div:eq(4)').click(function () {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide().attr('disabled', true);
+            $(".quicksearch").find(':text').eq(4).show().attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(4).show();
+            $("#quicksearch").find('.separators').eq(4).find(':radio').attr('disabled', false);
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('notes');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 4);
         });
         $('#search-menu div').tipsy({'gravity': 'nw'});
         // clicked tab memory
@@ -4537,6 +4555,7 @@ var leftindex = {
                 });
         //////////////////////////////quick search///////////////////////////////////
         var radioRows = [
+            '#global_separator',
             '#anywhere_separator',
             '#fulltext_separator',
             '#pdfnotes_separator',
@@ -4589,7 +4608,7 @@ var leftindex = {
             $("#quicksearch").find('.separators').eq(0).show();
             $("#quicksearch").find('.separators').eq(0).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('metadata');
+            $('#quicksearch input[name="searchtype"]').val('global');
             $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 0);
@@ -4606,7 +4625,7 @@ var leftindex = {
             $("#quicksearch").find('.separators').eq(1).show();
             $("#quicksearch").find('.separators').eq(1).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('pdf');
+            $('#quicksearch input[name="searchtype"]').val('metadata');
             $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 1);
@@ -4623,7 +4642,7 @@ var leftindex = {
             $("#quicksearch").find('.separators').eq(2).show();
             $("#quicksearch").find('.separators').eq(2).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('pdfnotes');
+            $('#quicksearch input[name="searchtype"]').val('pdf');
             $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 2);
@@ -4640,10 +4659,27 @@ var leftindex = {
             $("#quicksearch").find('.separators').eq(3).show();
             $("#quicksearch").find('.separators').eq(3).find(':radio').attr('disabled', false);
             // change hidden fields
-            $('#quicksearch input[name="searchtype"]').val('notes');
+            $('#quicksearch input[name="searchtype"]').val('pdfnotes');
             $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 3);
+        });
+        $('#search-menu div:eq(4)').click(function () {
+            // switch classes
+            $(this).siblings().removeClass('tabclicked');
+            $(this).addClass('tabclicked');
+            // show text field and separators
+            $(".quicksearch").find(':text').hide().attr('disabled', true);
+            $(".quicksearch").find(':text').eq(4).show().attr('disabled', false);
+            $("#quicksearch").find('.separators').hide();
+            $("#quicksearch").find(':radio').attr('disabled', true);
+            $("#quicksearch").find('.separators').eq(4).show();
+            $("#quicksearch").find('.separators').eq(4).find(':radio').attr('disabled', false);
+            // change hidden fields
+            $('#quicksearch input[name="searchtype"]').val('notes');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
+            // save state to localstorage
+            localStorage.setItem("search-menu-tab", 4);
         });
         $('#search-menu div').tipsy({'gravity': 'nw'});
         // clicked tab memory

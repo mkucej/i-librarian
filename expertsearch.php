@@ -300,6 +300,8 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
     }
 
     $search_string = str_ireplace(' NOT ', ' AND NOT ', $input);
+    
+    $sql = "$in $rating_search $type_search $category_search $search_string";
 
 //PDFS
 } elseif (isset($_GET['searchtype']) && $_GET['searchtype'] == 'pdf') {
@@ -356,6 +358,10 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
     }
 
     $search_string = str_ireplace(' NOT ', ' AND NOT ', $input);
+    
+    $fulltext_query = "SELECT fileID FROM fulltextdatabase.full_text WHERE $search_string";
+
+    $sql = "$in $rating_search $type_search $category_search id IN ($fulltext_query)";
 
 //NOTES
 } elseif (isset($_GET['searchtype']) && $_GET['searchtype'] == 'notes') {
@@ -400,6 +406,15 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
     }
 
     $search_string = str_ireplace(' NOT ', ' AND NOT ', $input);
+    
+    $notes_in = str_replace("id IN", "fileID IN", $in);
+    $notes_category_search = str_replace("id IN", "fileID IN", $category_search);
+
+    $dbHandle->sqliteCreateFunction('search_strip_tags', 'sqlite_strip_tags', 1);
+    
+    $notes_query = "SELECT fileID FROM notes WHERE $notes_in userID=" . intval($_SESSION['user_id']) . " AND $notes_category_search $search_string";
+
+    $sql = "$rating_search $type_search id IN ($notes_query)";
 
     //PDF NOTES
 } elseif (isset($_GET['searchtype']) && $_GET['searchtype'] == 'pdfnotes') {
@@ -444,6 +459,10 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
     }
 
     $search_string = str_ireplace(' NOT ', ' AND NOT ', $input);
+    
+    $pdfnotes_query = "SELECT filename FROM annotations WHERE userID=" . intval($_SESSION['user_id']) . " AND $search_string";
+
+    $sql = "$in $rating_search $type_search $category_search file IN ($pdfnotes_query)";
 
     //EXPERT SEARCH SPECIFIC END
 } else {
