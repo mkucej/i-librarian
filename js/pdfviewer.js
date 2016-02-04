@@ -168,6 +168,27 @@ $(document).unbind('keydown').bind('keydown', 'd', function () {
     } else if ($('#pdf-viewer-marker-erase').prop('checked')) {
         $('#pdf-viewer-marker-erase').click();
     }
+}).bind('keydown', 'backspace', function () {
+    // Go back if PDF link was clicked.
+    if ($("#pdf-viewer-div").data("linkHistory") !== undefined) {
+        // Scroll to destination page.
+        var pg = $("#pdf-viewer-div").data("linkHistory");
+        scrollHandling.page = pg;
+        var pgpos = $('#pdf-viewer-img-' + pg).position().top + $('#pdf-viewer-img-div').scrollTop();
+        $('#pdf-viewer-img-div').animate(
+            {scrollTop: pgpos},
+            {
+                duration: 400,
+                start: function () {
+                    scrollHandling.autoScroll = true;
+                },
+                always: function () {
+                    scrollHandling.autoScroll = false;
+                }
+            }
+        );
+        $("#pdf-viewer-div").removeData("linkHistory");
+    }
 });
 // Escape HTML special chars.
 function escapeHtml(unsafe) {
@@ -490,6 +511,68 @@ var getText = {
             // Re-enable and uncheck button.
             if (response.statusText !== 'abort' && getText.callerID.button("instance") !== undefined) {
                 getText.callerID.button('enable').prop('checked', false).trigger('change').button('refresh');
+            }
+        });
+    }
+};
+/**
+ * Fetch PDF links from the server.
+ */
+var getLinks = {
+    linkHistory: '',
+    init: function (f) {
+        $.getJSON('pdfcontroller.php?getlinks=1&file=' + fileName).done(function (answer) {
+            // Assemble search results.
+            var page = '';
+            $.each(answer, function (key, row) {
+                $('<div class="pdfviewer-link" id="link-page-' + key + '"></div>')
+                        .appendTo('#pdf-viewer-img-' + row.p);
+                $('#link-page-' + key).css({
+                    'width': row.w + '%',
+                    'height': row.h + '%',
+                    'top': row.t + '%',
+                    'left': row.l + '%'
+                }).attr('data-href', row.lk).attr('title', row.lk);
+                if (page !== row.p) {
+                    page = row.p;
+                }
+            });
+            $('.pdfviewer-link').click(function () {
+                var href = $(this).data('href');
+                if (href.substring(0,4) === 'http') {
+                    // External link. TODO: confirm dialog.
+                    window.open(href);
+                } else if (href.substring(0,6) === 'mailto') {
+                    // E-mail links.
+                    location.href = href;
+                } else {
+                    // History.
+                    this.linkHistory = scrollHandling.page;
+                    $('#pdf-viewer-div').data("linkHistory", this.linkHistory);
+                    // Parse the link.
+                    var parser = document.createElement('a');
+                    parser.href = href;
+                    // Scroll to destination page.
+                    var pg = parser.hash.substring(1);
+                    scrollHandling.page = pg;
+                    var pgpos = $('#pdf-viewer-img-' + pg).position().top + $('#pdf-viewer-img-div').scrollTop();
+                    $('#pdf-viewer-img-div').animate(
+                            {scrollTop: pgpos},
+                            {
+                                duration: 400,
+                                start: function () {
+                                    scrollHandling.autoScroll = true;
+                                },
+                                always: function () {
+                                    scrollHandling.autoScroll = false;
+                                }
+                            }
+                    );
+                }
+            });
+            // We are done. Call function f().
+            if (typeof f === 'function') {
+                f();
             }
         });
     }
@@ -1499,7 +1582,7 @@ $('#pdf-viewer-marker').change(function () {
                 $('.text-container').selectable({
                     distance: 0,
                     stop: function () {
-                        var $t = $(this), $d = $t.prev(), pg = $t.parent().attr('id').split('-').pop(),
+                        var $t = $(this), $d = $t.parent().find('.annotation-container'), pg = $t.parent().attr('id').split('-').pop(),
                                 markers = [], divs = '';
                         $t.find(".ui-selected").each(function () {
                             // GET COORDINATES
@@ -1598,7 +1681,7 @@ $('#pdf-viewer-marker').change(function () {
         });
     } else {
         $('.annotation-container').unbind('mousedown mouseup');
-        $('#pdf-viewer-img-div').clickNScroll().css('cursor', 'pointer');
+        $('#pdf-viewer-img-div').clickNScroll().css('cursor', 'grab');
         $("#cursor").hide().find('span').removeClass('fa-pencil');
         // Unbind and remove text layer.
         var $textdivs = $('#pdf-viewer-img-div').find('.text-container');
@@ -1627,7 +1710,7 @@ $('#pdf-viewer-note').change(function () {
         $('#pdf-viewer-img-div').unbind('mouseup mousedown mouseout').css('cursor', 'default');
     } else {
         //ENABLE DRAG-SCROLL
-        $('#pdf-viewer-img-div').clickNScroll().css('cursor', 'pointer');
+        $('#pdf-viewer-img-div').clickNScroll().css('cursor', 'grab');
         //REMOVE CURSOR
         $("#cursor").hide().find('span').removeClass('fa-thumb-tack');
     }
@@ -1745,7 +1828,7 @@ $('#pdf-viewer-marker-erase').change(function () {
         //HIDE MENU
         $('#pdf-viewer-delete-menu').hide();
         //ENABLE DRAG-SCROLL
-        $('#pdf-viewer-img-div').clickNScroll().css('cursor', 'pointer');
+        $('#pdf-viewer-img-div').clickNScroll().css('cursor', 'grab');
         //UNBIND SELECTABLE
         $selDivs = $('#pdf-viewer-img-div').find('.annotation-container');
         if ($selDivs.selectable('instance') !== undefined) {
@@ -1919,6 +2002,8 @@ $(document).ready(function () {
     }
     // Bind tooltips.
     $(document).tooltip(toolTipOptions);
+    // Get links.
+    getLinks.init();
     // Search term.
     if (search_term !== '') {
         var e = jQuery.Event("keydown");

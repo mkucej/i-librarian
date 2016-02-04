@@ -835,7 +835,7 @@ width:auto;
 height:100%;
 text-align:center;
 overflow:auto;
-cursor:pointer
+cursor:grab
 }
 
 #thumbs {
@@ -852,6 +852,16 @@ margin:auto;
 .pdfviewer-highlight       {
 position:absolute;
 background-color:rgba(255,60,0,0.2);
+}
+
+.pdfviewer-link {
+position:absolute;
+cursor: pointer;
+}
+
+.pdfviewer-link:hover {
+background-color: rgba(255, 0, 0, 0.05);
+border-bottom: 1px dashed rgba(255, 0, 0, 0.5);
 }
 
 .pdf-text-div       {

@@ -116,4 +116,9 @@ if (!empty($_GET['extractimage']) && !empty($_GET['image']) && !empty($_GET['x']
 
     // Download PDF.
     $pdfHandler->downloadPDF($mode, $attachments);
+
+} elseif (isset($_GET['getlinks'])) {
+
+    // Get links.
+    echo $pdfHandler->getLinks();
 }

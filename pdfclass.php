@@ -383,6 +383,7 @@ class PDFViewer {
                     . "height TEXT NOT NULL DEFAULT '', "
                     . "width TEXT NOT NULL DEFAULT '', "
                     . "text TEXT NOT NULL DEFAULT '', "
+                    . "link TEXT NOT NULL DEFAULT '', "
                     . "page_number INTEGER NOT NULL DEFAULT '')");
 
             // XML output file not found. Create one.
@@ -445,6 +446,14 @@ class PDFViewer {
 
                 foreach ($page->text as $row) {
 
+                    // Fetch links.
+                    $href = '';
+
+                    if ($row->a) {
+                        $attrs = $row->a->attributes();
+                        $href = (string) $attrs['href'];
+                    }
+
                     $row = strip_tags($row->asXML());
 
                     foreach ($page->text[$i]->attributes() as $a => $b) {
@@ -474,9 +483,10 @@ class PDFViewer {
                     $row_height_q = $dbHandle->quote($row_height);
                     $row_width_q = $dbHandle->quote($row_width);
                     $row_q = $dbHandle->quote($row);
+                    $href_q = $dbHandle->quote($href);
 
-                    $dbHandle->exec("INSERT INTO texts (top,left,height,width,text,page_number) "
-                            . "VALUES($row_top_q, $row_left_q, $row_height_q, $row_width_q, $row_q, $page_number_q)");
+                    $dbHandle->exec("INSERT INTO texts (top,left,height,width,text,link,page_number) "
+                            . "VALUES($row_top_q, $row_left_q, $row_height_q, $row_width_q, $row_q, $href_q, $page_number_q)");
                 }
             }
             
@@ -588,6 +598,56 @@ class PDFViewer {
 
             if ($count == 0) {
                 sendError('This PDF has no searchable text.');
+            }
+        }
+
+        // If the result set is empty, the PDF has no text layer. It is allowed.
+        return json_encode($text_hits);
+
+    }
+
+    public function getLinks() {
+
+        // Temporary SQLite storage.
+        $temp_db = $this->pdf_cache_path . DIRECTORY_SEPARATOR . $this->file_name . '.sq3';
+
+        // Make sure SQLite storage exists.
+        $this->extractXMLText();
+
+        // At this point, the database must exist.
+        if (!file_exists($temp_db)) {
+
+            sendError('Text storage not found.');
+        }
+
+        // Search text from the database.
+        $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
+
+        $result = $dbHandle->query("SELECT top,left,height,width,link,page_number"
+                . " FROM texts WHERE link!='' ORDER BY page_number ASC");
+
+        // Compile search results.
+        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+
+            extract($row);
+            $text_hits[] = array(
+                'p' => $page_number,
+                't' => $top,
+                'l' => $left,
+                'h' => $height,
+                'w' => $width,
+                'lk' => $link
+            );
+        }
+
+        // If the result set is empty, check if there is any text at all.
+        if (empty($text_hits)) {
+
+            $result = $dbHandle->query("SELECT count(*) FROM texts");
+            $count = $result->fetchColumn();
+
+            if ($count == 0) {
+                sendError('This PDF has no text layer.');
             }
         }
 
