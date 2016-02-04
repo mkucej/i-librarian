@@ -69,7 +69,7 @@ $number_of_users = count($users);
             <label for="fulltext-separator2">OR</label>
             <input type="radio" id="fulltext-separator3" name="fulltext-separator" value="PHRASE"<?php
             if (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'PHRASE') echo 'checked';
-            ?> disabled>
+            ?>>
             <label for="fulltext-separator3">phrase</label>
         </div>
         <div id="pdfnotes_separator" class="separators" style="display:none">

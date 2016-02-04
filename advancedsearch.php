@@ -879,7 +879,10 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
 ##########################fulltext#####################################
 } elseif (!empty($_GET['fulltext']) && $_GET['searchtype'] == 'pdf') {
 
-    $fulltext_array = explode(' ', $_GET['fulltext']);
+    $fulltext_array = array($_GET['fulltext']);
+    if ($_GET['fulltext_separator'] == 'AND' || $_GET['fulltext_separator'] == 'OR') {
+        $fulltext_array = explode(' ', $_GET['fulltext']);
+    }
 
 //INDEX
     #if ($_GET['fulltext_separator'] == 'AND') $search_string = join (' ', $fulltext_array);
@@ -925,6 +928,8 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
         $search_string = join(' AND ', $fulltext_regexp);
     if ($_GET['fulltext_separator'] == 'OR')
         $search_string = join(' OR ', $fulltext_regexp);
+    if ($_GET['fulltext_separator'] == 'PHRASE')
+        $search_string = join('', $fulltext_regexp);
 } else {
 
     include_once 'data.php';
@@ -1154,23 +1159,7 @@ if (isset($_GET['searchtype']) && $_GET['searchtype'] == 'metadata') {
                     Full text:
                 </td>
                 <td class="threed" colspan="3">
-                    <table style="width:100%">
-                        <tr>
-                            <td style="width:60%">
-                                <input type="text" style="width:99.5%" name="fulltext" value="<?php print isset($_SESSION['session_fulltext']) ? htmlspecialchars($_SESSION['session_fulltext']) : ''; ?>">
-                            </td>
-                            <td class="select_span" style="width:14%;padding-left: 6px">
-                                <input type="radio" name="fulltext_separator" value="AND" style="display:none" <?php print (empty($_SESSION['session_fulltext_separator']) || (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'AND')) ? 'checked' : ''  ?>>
-                                <i class="fa fa-circle<?php print (empty($_SESSION['session_fulltext_separator']) || (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'AND')) ? '' : '-o'  ?>">
-                                </i> AND
-                            </td>
-                            <td class="select_span">
-                                <input type="radio" name="fulltext_separator" value="OR" style="display:none" <?php print (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'OR') ? 'checked' : ''  ?>>
-                                <i class="fa fa-circle<?php print (isset($_SESSION['session_fulltext_separator']) && $_SESSION['session_fulltext_separator'] == 'OR') ? '' : '-o'  ?>">
-                                </i> OR
-                            </td>
-                        </tr>
-                    </table>
+                    <?php search_row('fulltext'); ?>
                 </td>
             </tr>
             <tr id="pdfnotesrow" style="display:none">
