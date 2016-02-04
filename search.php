@@ -430,9 +430,7 @@ if (!empty($_GET['searchmode'])) {
         $case2 = 0;
     $rating_array = array();
 
-    if (isset($_GET['searchmode']) && $_GET['searchmode'] == 'quick') {
-        include 'quicksearch.php';
-    } elseif (isset($_GET['searchmode']) && $_GET['searchmode'] == 'advanced') {
+    if (isset($_GET['searchmode']) && $_GET['searchmode'] == 'advanced') {
         include 'advancedsearch.php';
     } elseif (isset($_GET['searchmode']) && $_GET['searchmode'] == 'expert') {
         include 'expertsearch.php';

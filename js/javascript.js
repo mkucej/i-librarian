@@ -4590,7 +4590,7 @@ var leftindex = {
             $("#quicksearch").find('.separators').eq(0).find(':radio').attr('disabled', false);
             // change hidden fields
             $('#quicksearch input[name="searchtype"]').val('metadata');
-            $('#quicksearch input[name="searchmode"]').val('quick');
+            $('#quicksearch input[name="searchmode"]').val('advanced');
             // save state to localstorage
             localStorage.setItem("search-menu-tab", 0);
         });

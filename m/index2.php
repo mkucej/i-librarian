@@ -132,7 +132,7 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
                                         </tr>
                                     </table>
                                     <input type="hidden" name="searchtype" value="metadata">
-                                    <input type="hidden" name="searchmode" value="quick">
+                                    <input type="hidden" name="searchmode" value="advanced">
                                     <input type="hidden" name="rating[]" value="1">
                                     <input type="hidden" name="rating[]" value="2">
                                     <input type="hidden" name="rating[]" value="3">

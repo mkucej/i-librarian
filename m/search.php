@@ -196,10 +196,11 @@ if (!empty($_GET['searchmode'])) {
     $fulltext_array = array();
     $notes_array = array();
     $rating_array = array();
+    $case2 = 0;
 
 
-    if (isset($_GET['searchmode']) && $_GET['searchmode'] == 'quick') {
-        include '../quicksearch.php';
+    if (isset($_GET['searchmode']) && $_GET['searchmode'] == 'advanced') {
+        include '../advancedsearch.php';
     }
     
     //SEARCH
