@@ -608,6 +608,8 @@ class PDFViewer {
 
     public function getLinks() {
 
+        $text_hits = array();
+
         // Temporary SQLite storage.
         $temp_db = $this->pdf_cache_path . DIRECTORY_SEPARATOR . $this->file_name . '.sq3';
 

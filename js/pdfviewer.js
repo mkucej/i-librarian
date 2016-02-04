@@ -523,8 +523,14 @@ var getLinks = {
     init: function (f) {
         $.getJSON('pdfcontroller.php?getlinks=1&file=' + fileName).done(function (answer) {
             // Assemble search results.
-            var page = '';
+            var page = '', parser = document.createElement('a');
             $.each(answer, function (key, row) {
+                var ttl = row.lk;
+                if (ttl.substring(0,9) === fileName) {
+                    parser.href = row.lk;
+                    // Scroll to destination page.
+                    ttl = 'Go to page ' + parser.hash.substring(1);
+                }
                 $('<div class="pdfviewer-link" id="link-page-' + key + '"></div>')
                         .appendTo('#pdf-viewer-img-' + row.p);
                 $('#link-page-' + key).css({
@@ -532,7 +538,7 @@ var getLinks = {
                     'height': row.h + '%',
                     'top': row.t + '%',
                     'left': row.l + '%'
-                }).attr('data-href', row.lk).attr('title', row.lk);
+                }).attr('data-href', row.lk).attr('title', ttl);
                 if (page !== row.p) {
                     page = row.p;
                 }
