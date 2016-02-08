@@ -821,10 +821,10 @@ var searchresults = {
 };
 // Window resize.
 $(window).resize(function () {
-    var toolbar = $('#pdf-viewer-controls').height() + 1, zoom = localStorage.getItem('zoom');
+    var toolbarH = $('#pdf-viewer-controls').height() + 1, zoom = localStorage.getItem('zoom');
     if ($('#pdf-viewer-controls').is(':hidden'))
-        toolbar = 0;
-    $('#pdf-viewer-div').height($('#pdf-viewer-div').parent().height() - toolbar);
+        toolbarH = 0;
+    $('#pdf-viewer-div').height($('#pdf-viewer-div').parent().height() - toolbarH);
     if (zoom === 'o') {
         $('#size1').click();
     } else if (zoom === 'w') {
@@ -1981,10 +1981,10 @@ $(document).ready(function () {
     // Page drag scrolling.
     $('#pdf-viewer-img-div').clickNScroll();
     // Initial window size.
-    var toolbar = $('#pdf-viewer-controls').height() + 1;
+    var toolbarH = $('#pdf-viewer-controls').height() + 1;
     if ($('#pdf-viewer-controls').is(':hidden'))
-        toolbar = 0;
-    $('#pdf-viewer-div').height($('#pdf-viewer-div').parent().height() - toolbar);
+        toolbarH = 0;
+    $('#pdf-viewer-div').height($('#pdf-viewer-div').parent().height() - toolbarH);
     // Set initial page number.
     scrollHandling.page = pg;
     // Initial zoom is window width.
@@ -2009,7 +2009,9 @@ $(document).ready(function () {
     // Bind tooltips.
     $(document).tooltip(toolTipOptions);
     // Get links.
-    getLinks.init();
+    if (!preview && toolbar) {
+        getLinks.init();
+    }
     // Search term.
     if (search_term !== '') {
         var e = jQuery.Event("keydown");

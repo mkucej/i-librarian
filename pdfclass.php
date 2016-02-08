@@ -518,7 +518,7 @@ class PDFViewer {
         // At this point, the database must exist.
         if (!file_exists($temp_db)) {
 
-            sendError('Text storage not found.');
+            sendError('Text cache not found.');
         }
 
         // Fetch text from the database (8 PDF pages).
@@ -565,7 +565,7 @@ class PDFViewer {
         // At this point, the database must exist.
         if (!file_exists($temp_db)) {
 
-            sendError('Text storage not found.');
+            sendError('Text cache not found.');
         }
 
         // Search text from the database.
@@ -619,7 +619,7 @@ class PDFViewer {
         // At this point, the database must exist.
         if (!file_exists($temp_db)) {
 
-            sendError('Text storage not found.');
+            return json_encode($text_hits);
         }
 
         // Search text from the database.
@@ -649,7 +649,8 @@ class PDFViewer {
             $count = $result->fetchColumn();
 
             if ($count == 0) {
-                sendError('This PDF has no text layer.');
+
+                return json_encode($text_hits);
             }
         }
 
