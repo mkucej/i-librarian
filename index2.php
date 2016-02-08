@@ -385,7 +385,6 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
 
         ?>
                     $.jGrowl("<b>Welcome to I, Librarian!</b><br>Create an account first.", {sticky: true});
-                    $.jGrowl("<b>After you sign up</b>, go to Tools->Installation details to see if everything works.", {sticky: true});
                     $.jGrowl("<b>After you sign up</b>, go to Tools->Settings to adjust I, Librarian to your liking.", {sticky: true});
         <?php
     }
