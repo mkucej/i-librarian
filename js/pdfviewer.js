@@ -1072,7 +1072,7 @@ $('#control-last').click(function () {
 $('#pdf-viewer-copy-image').click(function () {
     $(this).blur();
     var page = scrollHandling.page,
-            img = $('#pdf-viewer-img-' + page).css('background-image').match('http://.*jpg');
+            img = $('#pdf-viewer-img-' + page).css('background-image').match('https?://.*jpg');
     $('#image-to-copy').attr('src', img);
     $('#image-src').val(img);
     $('#copy-image-container').dialog({
