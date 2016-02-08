@@ -783,6 +783,7 @@ cursor:pointer
 
 #pdf-viewer-controls	{
 width:100%;
+border-bottom:solid 1px rgba(0,0,0,0.33);
 }
 
 #pdf-viewer-controls .ui-button.ui-state-default {
@@ -823,7 +824,6 @@ box-shadow: inset 0 0 3px rgba(0,0,0,0.33);
 width:100%;
 height:calc(100% - 73px);
 position:relative;
-border-top:solid #86888c 1px;
 background-color:#c6c8cc;
 overflow:auto;
 text-align:center

@@ -189,6 +189,9 @@ $(document).unbind('keydown').bind('keydown', 'd', function () {
         );
         $("#pdf-viewer-div").removeData("linkHistory");
     }
+}).bind('keydown', 'c', function () {
+    $('#pdf-viewer-controls').toggle();
+    $(window).trigger('resize');
 });
 // Escape HTML special chars.
 function escapeHtml(unsafe) {
@@ -821,7 +824,7 @@ var searchresults = {
 };
 // Window resize.
 $(window).resize(function () {
-    var toolbarH = $('#pdf-viewer-controls').height() + 1, zoom = localStorage.getItem('zoom');
+    var toolbarH = $('#pdf-viewer-controls').outerHeight(), zoom = localStorage.getItem('zoom');
     if ($('#pdf-viewer-controls').is(':hidden'))
         toolbarH = 0;
     $('#pdf-viewer-div').height($('#pdf-viewer-div').parent().height() - toolbarH);
@@ -1981,7 +1984,8 @@ $(document).ready(function () {
     // Page drag scrolling.
     $('#pdf-viewer-img-div').clickNScroll();
     // Initial window size.
-    var toolbarH = $('#pdf-viewer-controls').height() + 1;
+    var toolbarH = $('#pdf-viewer-controls').outerHeight();
+    console.log(toolbarH);
     if ($('#pdf-viewer-controls').is(':hidden'))
         toolbarH = 0;
     $('#pdf-viewer-div').height($('#pdf-viewer-div').parent().height() - toolbarH);
