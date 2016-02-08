@@ -3777,24 +3777,22 @@ var filemanager = {
                                 theme: 'jgrowl-error',
                                 life: 6000
                             });
-                            return false;
-                        } else {
-                            if (file === $('#items-right').data('file')) {
-                                if (newfile !== '') {
-                                    if (top.frames.topframe.frames.pdf) {
-                                        top.frames.topframe.frames.pdf.location.reload(true);
-                                    } else if ($('#file-panel2').is(':visible')) {
-                                        $('#file-item').click();
-                                    }
-                                }
-                                if ($('#filelist').length === 1)
-                                    $('#file-files').click();
-                            }
-                            $.jGrowl('File(s) saved.');
-                            $('#right-panel').load(ref, function () {
-                                displaywindow.init(sel, ref);
-                            });
                         }
+                        if (file === $('#items-right').data('file')) {
+                            if (newfile !== '') {
+                                if (top.frames.topframe.frames.pdf) {
+                                    top.frames.topframe.frames.pdf.location.reload(true);
+                                } else if ($('#file-panel2').is(':visible')) {
+                                    $('#file-item').click();
+                                }
+                            }
+                            if ($('#filelist').length === 1)
+                                $('#file-files').click();
+                        }
+                        $.jGrowl('File saving done.');
+                        $('#right-panel').load(ref, function () {
+                            displaywindow.init(sel, ref);
+                        });
                     }
                 });
             });

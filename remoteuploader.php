@@ -113,7 +113,7 @@ if (!empty($_FILES)) {
 
             ##########	extract text from pdf	##########
 
-            system(select_pdftotext() . ' -enc UTF-8 "' . $file . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'librarian_temp' . $i . '.txt"', $ret);
+            system(select_pdftotext() . ' -enc UTF-8 -f 1 -l 3 "' . $file . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'librarian_temp' . $i . '.txt"', $ret);
 
             if (file_exists(IL_TEMP_PATH . DIRECTORY_SEPARATOR . "librarian_temp" . $i . ".txt"))
                 $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . "librarian_temp" . $i . ".txt");
@@ -123,7 +123,7 @@ if (!empty($_FILES)) {
                 if (isset($_GET['failed']) && $_GET['failed'] == '1') {
 
                     database_connect(IL_DATABASE_PATH, 'library');
-                    record_unknown($dbHandle, $orig_filename, $string, $file, $userID);
+                    record_unknown($dbHandle, $orig_filename, $file, $userID);
 
                     $put = basename($orig_filename) . ": Recorded as unknown. Full text not indexed (copying disallowed).<br>";
                 } else {
@@ -131,8 +131,6 @@ if (!empty($_FILES)) {
                     $put = basename($orig_filename) . ": copying disallowed.<br>";
                 }
             } else {
-
-                $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
 
                 $string = str_replace($order, ' ', $string);
                 $order = array("\xe2\x80\x93", "\xe2\x80\x94");
@@ -149,7 +147,7 @@ if (!empty($_FILES)) {
                         $string = preg_replace('/\s{2,}/u', " ", $string);
 
                         database_connect(IL_DATABASE_PATH, 'library');
-                        record_unknown($dbHandle, $orig_filename, $string, $file, $userID);
+                        record_unknown($dbHandle, $orig_filename, $file, $userID);
 
                         $put = basename($orig_filename) . ": Recorded as unknown. DOI not found.<br>";
                     } else {
@@ -399,20 +397,7 @@ if (!empty($_FILES)) {
 
                         $dbHandle = null;
 
-                        $string = preg_replace('/(^|\s)\S{1,2}(\s|$)/', ' ', $string);
-                        $string = preg_replace('/\s{2,}/', " ", $string);
-
-                        database_connect(IL_DATABASE_PATH, 'fulltext');
-
-                        $file_query = $dbHandle->quote($id);
-                        $fulltext_query = $dbHandle->quote($string);
-
-                        $dbHandle->beginTransaction();
-                        $dbHandle->exec("DELETE FROM full_text WHERE fileID=$file_query");
-                        $insert = $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($file_query,$fulltext_query)");
-                        $dbHandle->commit();
-
-                        $dbHandle = null;
+                        recordFulltext($id, $new_file);
 
                         $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
                         mkdir($unpack_dir);

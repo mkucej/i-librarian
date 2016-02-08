@@ -348,11 +348,18 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
                         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
 
-                        if (!empty($string)) {
+                        // Replace line breaks with spaces.
+                        $order = array("\r\n", "\n", "\r");
+                        $string = str_replace($order, ' ', $string);
 
-                            $order = array("\r\n", "\n", "\r");
-                            $string = str_replace($order, ' ', $string);
-                            $string = preg_replace('/\s{2,}/ui', ' ', $string);
+                        // Strip invalid UTF-8 characters.
+                        $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
+                        $string = preg_replace('/\s{2,}/ui', ' ', $string);
+
+                        // Strip non-printing characters.
+                        $string = trim(filter_var($string, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW));
+                        
+                        if (!empty($string)) {
 
                             $fulltext_query = $fdbHandle->quote($string);
 
@@ -679,12 +686,19 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                             $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
                             unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                            
+                            // Replace line breaks with spaces.
+                            $order = array("\r\n", "\n", "\r");
+                            $string = str_replace($order, ' ', $string);
+
+                            // Strip invalid UTF-8 characters.
+                            $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
+                            $string = preg_replace('/\s{2,}/ui', ' ', $string);
+
+                            // Strip non-printing characters.
+                            $string = trim(filter_var($string, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW));
 
                             if (!empty($string)) {
-
-                                $order = array("\r\n", "\n", "\r");
-                                $string = str_replace($order, ' ', $string);
-                                $string = preg_replace('/\s{2,}/ui', ' ', $string);
 
                                 $fulltext_query = $fdbHandle->quote($string);
 
@@ -1294,12 +1308,19 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                                 $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
                                 unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
+                                
+                                // Replace line breaks with spaces.
+                                $order = array("\r\n", "\n", "\r");
+                                $string = str_replace($order, ' ', $string);
+
+                                // Strip invalid UTF-8 characters.
+                                $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
+                                $string = preg_replace('/\s{2,}/ui', ' ', $string);
+
+                                // Strip non-printing characters.
+                                $string = trim(filter_var($string, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW));
 
                                 if (!empty($string)) {
-
-                                    $order = array("\r\n", "\n", "\r");
-                                    $string = str_replace($order, ' ', $string);
-                                    $string = preg_replace('/\s{2,}/ui', ' ', $string);
 
                                     $fulltext_query = $fdbHandle->quote($string);
 

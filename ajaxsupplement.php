@@ -156,47 +156,7 @@ if (!empty($_POST['filename']) && is_writable(IL_TEMP_PATH . DIRECTORY_SEPARATOR
     if (!isset($error)) {
 
         $filename = $_POST['filename'];
-
-        if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($filename) . DIRECTORY_SEPARATOR . $filename)) {
-
-            system(select_pdftotext() . ' -enc UTF-8 "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($filename) . DIRECTORY_SEPARATOR . $filename . '" "'
-                    . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $filename . '.txt"', $ret);
-
-            if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $filename . ".txt")) {
-
-                $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $filename . ".txt");
-                unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $filename . ".txt");
-
-                if (!empty($string)) {
-
-                    $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
-
-                    $order = array("\r\n", "\n", "\r");
-                    $string = str_replace($order, ' ', $string);
-                    $string = preg_replace('/\s{2,}/ui', ' ', $string);
-
-                    $output = null;
-
-                    database_connect(IL_DATABASE_PATH, 'fulltext');
-                    $file_query = $dbHandle->quote(intval($_POST['file']));
-                    $fulltext_query = $dbHandle->quote($string);
-
-                    $dbHandle->beginTransaction();
-                    $dbHandle->exec("DELETE FROM full_text WHERE fileID=$file_query");
-                    $output = $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($file_query,$fulltext_query)");
-                    $dbHandle->commit();
-                    $dbHandle = null;
-                    if (!$output)
-                        $error = "File recorded, however, a database error occured during text extraction.";
-                } else {
-                    $error = "File recorded, however, a text extraction error occured.";
-                }
-            } else {
-                $error = "File recorded, however, text extracting was not allowed.";
-            }
-        } else {
-            $error = "File not found.";
-        }
+        $error = recordFulltext($_POST['file'], $filename);
     }
 }
 
@@ -209,7 +169,6 @@ if (is_array($clean_files)) {
     }
 }
 
-if (!empty($error))
+if (!empty($error)) {
     print "Error! " . $error;
-
-?>
+}

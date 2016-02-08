@@ -51,46 +51,14 @@ foreach ($glob as $pdf) {
     // Extract text from PDF.
 
     if (is_readable($file_path)) {
+        
+        $answer[] = recordFulltext($file_id, $file_name);
 
-        system(select_pdftotext() . ' -enc UTF-8 "' . $file_path . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . '.txt"', $ret);
-
-        if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt")) {
-
-            $string = trim(file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt"));
-            unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt");
-
-            $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
-            $string = trim($string);
-
-            if (!empty($string)) {
-
-                $string = str_replace($order, ' ', $string);
-                $string = preg_replace('/\s{2,}/ui', ' ', $string);
-
-                $output = false;
-
-                database_connect(IL_DATABASE_PATH, 'fulltext');
-                $file_query = $dbHandle->quote($file_id);
-                $fulltext_query = $dbHandle->quote($string);
-                $dbHandle->beginTransaction();
-                $dbHandle->exec("DELETE FROM full_text WHERE fileID=$file_query");
-                $output = $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($file_query,$fulltext_query)");
-                $dbHandle->commit();
-                $dbHandle = null;
-
-                if (!$output)
-                    $answer[] = 'Database error.';
-
-                $output = null;
-            } else {
-                $answer[] = "There is no text to extract.";
-            }
-        } else {
-            $answer[] = "Text extracting not allowed.";
-        }
     } else {
         $answer[] = "File not found.";
     }
+    
+    $answer = array_filter($answer);
 
     $answers = join('<br>' . PHP_EOL, $answer);
 

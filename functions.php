@@ -1,5 +1,63 @@
 <?php
 
+// Extract and Record PDF full text.
+function recordFulltext($id, $file_name) {
+    
+    if (!is_numeric($id)) {
+        return "Warning! Invalid item ID.";
+    }
+    
+    $file_name = preg_replace('/[^a-zA-z0-9\_\.pdf]/', '', $file_name);
+
+    system(select_pdftotext() . ' -enc UTF-8 "'
+        . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file_name) . DIRECTORY_SEPARATOR . $file_name
+        . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . '.txt"');
+    
+    if (!is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt")) {
+        return "No text found in this PDF.";
+    }
+
+    $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt");
+    unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt");
+    
+    // Replace line breaks with spaces.
+    $order = array("\r\n", "\n", "\r");
+    $string = str_replace($order, ' ', $string);
+
+    // Strip invalid UTF-8 characters.
+    $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
+    $string = preg_replace('/\s{2,}/ui', ' ', $string);
+    
+    // Strip non-printing characters.
+    $string = trim(filter_var($string, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW));
+
+    $dbHandle = database_connect(IL_DATABASE_PATH, 'fulltext');
+
+    $id_query = $dbHandle->quote($id);
+    $fulltext_query = $dbHandle->quote($string);
+
+    $dbHandle->beginTransaction();
+
+    $dbHandle->exec("DELETE FROM full_text WHERE fileID=$id_query");
+    
+    // Only record non-empty string.
+    // If only spaces.
+    $srting2 = trim($string);
+
+    if (!empty($srting2)) {
+        
+        $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($id_query,$fulltext_query)");
+        $dbHandle->commit();
+        $dbHandle = null;
+
+    } else {
+
+        $dbHandle->commit();
+        $dbHandle = null;
+        return "This PDF cannot be indexed for full text search.";
+    }
+}
+
 // Send error message to client via AJAX.
 function sendError($errorMessage, $statusCode = 500) {
 
@@ -1857,7 +1915,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
 }
 
-function record_unknown($dbHandle, $title, $string, $file, $userID) {
+function record_unknown($dbHandle, $title, $file, $userID) {
 
     $query = "INSERT INTO library (file, title, title_ascii, addition_date, rating, added_by, bibtex)
              VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(id)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')),
@@ -1975,18 +2033,7 @@ function record_unknown($dbHandle, $title, $string, $file, $userID) {
 
     $dbHandle = null;
 
-    if (!empty($string)) {
-
-        $dbHandle2 = database_connect(IL_DATABASE_PATH, 'fulltext');
-
-        $file_query = $dbHandle2->quote($id);
-        $fulltext_query = $dbHandle2->quote($string);
-
-        $dbHandle2->query("DELETE FROM full_text WHERE fileID=$file_query");
-        $insert = $dbHandle2->exec("INSERT INTO full_text (fileID,full_text) VALUES ($file_query,$fulltext_query)");
-
-        $dbHandle2 = null;
-    }
+    $error = recordFulltext($id, $new_file);
 
     $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
     mkdir($unpack_dir);

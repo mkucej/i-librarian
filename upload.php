@@ -517,43 +517,14 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	extract text from pdf	##########
 
         if ((isset($copy) && $copy) || (isset($move) && $move)) {
-
-            system(select_pdftotext() . ' -enc UTF-8 "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file . '.txt"', $ret);
-
-            if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file . ".txt")) {
-
-                $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file . ".txt");
-                unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file . ".txt");
-
-                if (!empty($string)) {
-
-                    $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
-
-                    $order = array("\r\n", "\n", "\r");
-                    $string = str_replace($order, ' ', $string);
-                    $string = preg_replace('/\s{2,}/ui', ' ', $string);
-
-                    database_connect(IL_DATABASE_PATH, 'fulltext');
-
-                    $file_query = $dbHandle->quote($id);
-                    $fulltext_query = $dbHandle->quote($string);
-
-                    $dbHandle->beginTransaction();
-
-                    $dbHandle->exec("DELETE FROM full_text WHERE fileID=$file_query");
-                    $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($file_query,$fulltext_query)");
-
-                    $dbHandle->commit();
-
-                    $dbHandle = null;
-                } else {
-
-                    $error[] = "Warning! The PDF file cannot be indexed for full text search.";
-                }
-            }
+            
+            $error[] = recordFulltext($id, $new_file);
         }
 
         $_POST = array();
+
+        // Send errors.
+        $error = array_filter($error);
 
         if (count($error) > 0 || count($message) > 0) {
             $json = array();

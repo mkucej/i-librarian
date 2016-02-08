@@ -454,7 +454,7 @@ if (!isset($_GET['commence'])) {
 
             ##########	extract text from pdf	##########
 
-            system(select_pdftotext() . ' -enc UTF-8 "' . $file . '" "' . $temp_file . '"', $ret);
+            system(select_pdftotext() . ' -enc UTF-8 -f 1 -l 3 "' . $file . '" "' . $temp_file . '"');
 
             if (file_exists($temp_file))
                 $string = file_get_contents($temp_file);
@@ -464,7 +464,7 @@ if (!isset($_GET['commence'])) {
                 if (isset($_GET['failed']) && $_GET['failed'] == '1') {
 
                     database_connect(IL_DATABASE_PATH, 'library');
-                    record_unknown($dbHandle, $title, $string, $file, $userID);
+                    record_unknown($dbHandle, $title, $file, $userID);
 
                     $put = "<hr> " . basename($file) . ": Recorded into category !unknown. Full text not indexed (copying disallowed).<br>";
                     file_put_contents($log, $put . file_get_contents($log));
@@ -474,8 +474,6 @@ if (!isset($_GET['commence'])) {
                     file_put_contents($log, $put . file_get_contents($log));
                 }
             } else {
-
-                $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
 
                 $string = str_replace($order, ' ', $string);
                 $order = array("\xe2\x80\x93", "\xe2\x80\x94");
@@ -488,11 +486,8 @@ if (!isset($_GET['commence'])) {
 
                     if (isset($_GET['failed']) && $_GET['failed'] == '1') {
 
-                        $string = preg_replace('/(^|\s)\S{1,2}(\s|$)/u', ' ', $string);
-                        $string = preg_replace('/\s{2,}/u', " ", $string);
-
                         database_connect(IL_DATABASE_PATH, 'library');
-                        record_unknown($dbHandle, $title, $string, $file, $userID);
+                        record_unknown($dbHandle, $title, $file, $userID);
 
                         $put = "<hr> " . basename($file) . ": Recorded into category !unknown. DOI not found.<br>";
                         file_put_contents($log, $put . file_get_contents($log));
@@ -770,21 +765,8 @@ if (!isset($_GET['commence'])) {
                         }
 
                         $dbHandle = null;
-
-                        $string = preg_replace('/(^|\s)\S{1,2}(\s|$)/', ' ', $string);
-                        $string = preg_replace('/\s{2,}/', " ", $string);
-
-                        database_connect(IL_DATABASE_PATH, 'fulltext');
-
-                        $file_query = $dbHandle->quote($id);
-                        $fulltext_query = $dbHandle->quote($string);
-
-                        $dbHandle->beginTransaction();
-                        $dbHandle->exec("DELETE FROM full_text WHERE fileID=$file_query");
-                        $insert = $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($file_query,$fulltext_query)");
-                        $dbHandle->commit();
-
-                        $dbHandle = null;
+                        
+                        recordFulltext($id, $new_file);
 
                         $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
                         mkdir($unpack_dir);
@@ -825,4 +807,3 @@ if (!isset($_GET['commence'])) {
     sleep(1);
     @unlink($log);
 }
-?>
