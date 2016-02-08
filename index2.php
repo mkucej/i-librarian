@@ -216,9 +216,6 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
             </div>
             <?php
         } else {
-            if ($hosted == true && stripos(IL_URL, 'http://') === 0) {
-                die('<script type="text/javascript"> top.location.assign("' . str_ireplace('http://', 'https://', IL_URL) . '") </script></body></html>');
-            }
             $signin_mode = '';
             $disallow_signup = '';
             database_connect(IL_USER_DATABASE_PATH, 'users');

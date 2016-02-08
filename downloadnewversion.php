@@ -45,7 +45,7 @@ if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
 
         if ($proxy_fp) {
 
-            fputs($proxy_fp, "GET http://i-librarian.net/newversion.txt HTTP/1.0\r\nHost: $proxy_name\r\n");
+            fputs($proxy_fp, "GET https://i-librarian.net/newversion.txt HTTP/1.0\r\nHost: $proxy_name\r\n");
             if (!empty($proxy_username))
                 fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n");
             fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
@@ -60,7 +60,7 @@ if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
         }
     } else {
 
-        $proxy_fp = @fsockopen('i-librarian.net', 80, $e1, $e2, 5);
+        $proxy_fp = @fsockopen('ssl://i-librarian.net', 443, $e1, $e2, 5);
 
         if ($proxy_fp) {
 
