@@ -177,7 +177,7 @@ if ($rsslinks == '1')
     $allowed_pages[] = 'rss.php';
 
 if (!in_array(basename($_SERVER['PHP_SELF']), $allowed_pages) && !isset($_SESSION['auth'])) {
-    http_response_code(403);
+    header('HTTP/1.0 403 Forbidden');
     die();
 }
 
