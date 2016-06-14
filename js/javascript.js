@@ -4286,6 +4286,13 @@ var upload = {
             var $t = $(this), $f = $t.closest(".uploadform"), title = $f.find('textarea[name="title"]').val(), proxystr;
             $t.button("option", "disabled", true);
             if (title !== '' && title !== undefined) {
+                if ($f.parent('div').hasClass('save_container')) {
+                    $f.parent('div').empty().hide();
+                } else {
+                    $('#addarticle-right').load('upload.php', function () {
+                        upload.init();
+                    });
+                }
                 $.getScript('wpad.php', function () {
                     proxystr = FindProxyForURL('', 'www.crossref.org');
                     $f.ajaxSubmit({
@@ -4307,15 +4314,6 @@ var upload = {
                                     mess = mess.replace(/&gt;/g, '>');
                                     $.jGrowl(mess);
                                 });
-                            }
-                            if ($f.is(':visible')) {
-                                if ($f.parent('div').hasClass('save_container')) {
-                                    $f.parent('div').empty().hide();
-                                } else {
-                                    $('#addarticle-right').load('upload.php', function () {
-                                        upload.init();
-                                    });
-                                }
                             }
                         }
                     });

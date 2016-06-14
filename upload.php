@@ -264,7 +264,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         ##########	get the new filename and record item	##########
         $dbHandle->beginTransaction();
-        
+
         if (!empty($title))
             $insert = $stmt->execute();
         $stmt = null;
@@ -473,11 +473,11 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	record supplementary files	##########
 
         if (!empty($_FILES['form_supplementary_file']['name'])) {
-            
+
             for ($i = 0; $i < count($_FILES['form_supplementary_file']['name']); $i++) {
-                
+
                 if (is_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i])) {
-                    
+
                     $supplement_filename = preg_replace('/[\/\\\]/', '_', $_FILES['form_supplementary_file']['name'][$i]);
                     $supplement_filename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $supplement_filename);
                     $supplement_filename = sprintf("%05d", $new_file) . $supplement_filename;
@@ -490,7 +490,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 }
             }
         }
-        
+
         if (file_exists(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file)) {
             $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
             mkdir($unpack_dir);
@@ -517,7 +517,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         ##########	extract text from pdf	##########
 
         if ((isset($copy) && $copy) || (isset($move) && $move)) {
-            
+
             $error[] = recordFulltext($id, $new_file);
         }
 
@@ -1202,23 +1202,23 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                                 ?>
                                 <div>
-                                    Last name: <input type="text" name="last_name[]" value=""> 
+                                    Last name: <input type="text" name="last_name[]" value="">
                                     First name: <input type="text" name="first_name[]" value="">
                                 </div>
                                 <div>
-                                    Last name: <input type="text" name="last_name[]" value=""> 
+                                    Last name: <input type="text" name="last_name[]" value="">
                                     First name: <input type="text" name="first_name[]" value="">
                                 </div>
                                 <div>
-                                    Last name: <input type="text" name="last_name[]" value=""> 
+                                    Last name: <input type="text" name="last_name[]" value="">
                                     First name: <input type="text" name="first_name[]" value="">
                                 </div>
                                 <div>
-                                    Last name: <input type="text" name="last_name[]" value=""> 
+                                    Last name: <input type="text" name="last_name[]" value="">
                                     First name: <input type="text" name="first_name[]" value="">
                                 </div>
                                 <div>
-                                    Last name: <input type="text" name="last_name[]" value=""> 
+                                    Last name: <input type="text" name="last_name[]" value="">
                                     First name: <input type="text" name="first_name[]" value="">
                                     <i class="fa fa-plus-circle addauthorrow" style="cursor:pointer"></i>
                                 </div>
@@ -1236,7 +1236,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                                 . ' First name: <input class="author-first" name="first_name[]" type="text" value="' . $first . '"></div>';
                                 }
                                 print '<div>
-                            Last name: <input type="text" value=""> 
+                            Last name: <input type="text" value="">
                             First name: <input type="text" value="">
                             <i class="fa fa-plus-circle addauthorrow" style="cursor:pointer"></i>
                             </div>';
@@ -1374,15 +1374,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                                 ?>
                                 <div>
-                                    Last name: <input type="text" value=""> 
+                                    Last name: <input type="text" value="">
                                     First name: <input type="text" value="">
                                 </div>
                                 <div>
-                                    Last name: <input type="text" value=""> 
+                                    Last name: <input type="text" value="">
                                     First name: <input type="text" value="">
                                 </div>
                                 <div>
-                                    Last name: <input type="text" value=""> 
+                                    Last name: <input type="text" value="">
                                     First name: <input type="text" value="">
                                     <i class="fa fa-plus-circle addauthorrow" style="cursor:pointer"></i>
                                 </div>
@@ -1407,7 +1407,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                     }
                                 }
                                 print '<div>
-                            Last name: <input type="text" value=""> 
+                            Last name: <input type="text" value="">
                             First name: <input type="text" value="">
                             <i class="fa fa-plus-circle addauthorrow" style="cursor:pointer"></i>
                             </div>';
