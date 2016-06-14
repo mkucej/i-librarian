@@ -2018,7 +2018,7 @@ function record_unknown($dbHandle, $title, $file, $userID) {
     $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
 
     //record office file into supplement
-    if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+    if (in_array($file_extension, array('doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
         //record original file into supplement
         $supplement_filename = sprintf("%05d", intval($new_file)) . $title;
         copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);

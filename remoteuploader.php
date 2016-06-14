@@ -58,7 +58,7 @@ if (!empty($_FILES)) {
         if (isset($_FILES['Filedata']))
             $file_extension = pathinfo($orig_filename, PATHINFO_EXTENSION);
 
-        if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+        if (in_array($file_extension, array('doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
             $move = move_uploaded_file($file, IL_TEMP_PATH . DIRECTORY_SEPARATOR . $orig_filename);
             if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                 putenv('HOME=' . IL_TEMP_PATH);

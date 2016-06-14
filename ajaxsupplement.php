@@ -102,7 +102,7 @@ if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']
 
     $file_extension = pathinfo($_FILES['form_new_file']['name'], PATHINFO_EXTENSION);
 
-    if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+    if (in_array($file_extension, array('doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
         $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']);
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=' . IL_TEMP_PATH);

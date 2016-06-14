@@ -118,7 +118,7 @@ if (!isset($_GET['commence'])) {
                 $lit->rewind();
                 while ($lit->valid()) {
                     $file = $lit->key();
-                    if (is_readable($file) && in_array(pathinfo($file, PATHINFO_EXTENSION), array('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+                    if (is_readable($file) && in_array(pathinfo($file, PATHINFO_EXTENSION), array('pdf', 'doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
                         $pdf_files[] = $file;
                     }
                     $lit->next();
@@ -376,7 +376,7 @@ if (!isset($_GET['commence'])) {
         $lit->rewind();
         while ($lit->valid()) {
             $file = $lit->key();
-            if (is_readable($file) && in_array(pathinfo($file, PATHINFO_EXTENSION), array('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+            if (is_readable($file) && in_array(pathinfo($file, PATHINFO_EXTENSION), array('pdf', 'doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
                 $files[] = $file;
             }
             $lit->next();
@@ -439,7 +439,7 @@ if (!isset($_GET['commence'])) {
             //convert office to pdf
             $file_extension = pathinfo($file, PATHINFO_EXTENSION);
 
-            if (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+            if (in_array($file_extension, array('doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=' . IL_TEMP_PATH);
                 exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . IL_TEMP_PATH . '" "' . $file . '"');
