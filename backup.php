@@ -35,12 +35,24 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
     if (!empty($_GET['backup'])) {
 
         $directory = '';
-        if (isset($_GET['directory']))
+
+        if (isset($_GET['directory'])) {
             $directory = $_GET['directory'];
-        if (substr($directory, -1) == DIRECTORY_SEPARATOR)
+        }
+
+        // Convert DIRECTORY_SEPARATOR to forward slashes.
+        $directory = str_replace(DIRECTORY_SEPARATOR, '/', $directory);
+
+        // Remove directory trailing slash.
+        if (substr($directory, -1) == '/') {
             $directory = substr($directory, 0, -1);
+        }
 
         if (empty($directory)) {
+
+            /*
+             * Initial backup form. Calculate required drive space.
+             */
 
             $required_space = null;
             $f_number = 1;
@@ -54,7 +66,17 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 }
                 $lit->next();
             }
+
         } else {
+
+            /*
+             * Backup.
+             */
+
+            // Directory must end with /library.
+            if (substr($directory, -8) !== '/library') {
+                $directory .= '/library';
+            }
 
             if (!is_dir($directory)) {
                 $is_dir = @mkdir($directory);
@@ -67,7 +89,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                 database_connect(IL_USER_DATABASE_PATH, 'users');
                 save_setting($dbHandle, 'backup_dir', $directory);
                 $dbHandle = null;
-                
+
                 // Create folders.
                 $lit = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(IL_LIBRARY_PATH));
                 while ($lit->valid()) {
@@ -145,12 +167,28 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
     } elseif (!empty($_GET['restore'])) {
 
         $directory = '';
-        if (isset($_GET['directory']))
+        if (isset($_GET['directory'])) {
             $directory = $_GET['directory'];
-        if (substr($directory, -1) == DIRECTORY_SEPARATOR)
+        }
+
+        // Convert DIRECTORY_SEPARATOR to forward slashes.
+        $directory = str_replace(DIRECTORY_SEPARATOR, '/', $directory);
+
+        // Remove directory trailing slash.
+        if (substr($directory, -1) == '/') {
             $directory = substr($directory, 0, -1);
+        }
 
         if (!empty($directory)) {
+
+            /*
+             * Restore.
+             */
+
+            // Directory must end with /library.
+            if (substr($directory, -8) !== '/library') {
+                $directory .= '/library';
+            }
 
             if (!is_dir($directory)) {
                 $is_dir = false;
@@ -162,7 +200,7 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
 
                 if (!is_readable($directory . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'library.sq3'))
                     die('Error! Access denied or directory does not exist.');
-                
+
                 if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
                     exec("del /q \"" . IL_LIBRARY_PATH . "\"");
                     exec("rmdir \"" . IL_DATABASE_PATH . "\" /s/q");
