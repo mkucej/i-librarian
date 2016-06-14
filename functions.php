@@ -2,24 +2,24 @@
 
 // Extract and Record PDF full text.
 function recordFulltext($id, $file_name) {
-    
+
     if (!is_numeric($id)) {
         return "Warning! Invalid item ID.";
     }
-    
+
     $file_name = preg_replace('/[^a-zA-z0-9\_\.pdf]/', '', $file_name);
 
     system(select_pdftotext() . ' -enc UTF-8 "'
         . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file_name) . DIRECTORY_SEPARATOR . $file_name
         . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . '.txt"');
-    
+
     if (!is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt")) {
         return "No text found in this PDF.";
     }
 
     $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt");
     unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt");
-    
+
     // Replace line breaks with spaces.
     $order = array("\r\n", "\n", "\r");
     $string = str_replace($order, ' ', $string);
@@ -27,7 +27,7 @@ function recordFulltext($id, $file_name) {
     // Strip invalid UTF-8 characters.
     $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
     $string = preg_replace('/\s{2,}/ui', ' ', $string);
-    
+
     // Strip non-printing characters.
     $string = trim(filter_var($string, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW));
 
@@ -39,13 +39,13 @@ function recordFulltext($id, $file_name) {
     $dbHandle->beginTransaction();
 
     $dbHandle->exec("DELETE FROM full_text WHERE fileID=$id_query");
-    
+
     // Only record non-empty string.
     // If only spaces.
     $srting2 = trim($string);
 
     if (!empty($srting2)) {
-        
+
         $dbHandle->exec("INSERT INTO full_text (fileID,full_text) VALUES ($id_query,$fulltext_query)");
         $dbHandle->commit();
         $dbHandle = null;
@@ -93,7 +93,7 @@ function perform_search($sql) {
     global $result;
     global $rows;
     global $case;
-    
+
     // Generate table name hash.
 
     $table_name_hash = '';
@@ -174,9 +174,9 @@ function perform_search($sql) {
     // No. Get all ids ordered + total count and save to history.
     // Yes. Do id-based paging.
     if ($table == 0) {
-        
+
         $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
-        
+
         if ($case == 1) {
             $dbHandle->exec("PRAGMA case_sensitive_like = 1");
         }
@@ -187,7 +187,7 @@ function perform_search($sql) {
         $dbHandle->beginTransaction();
 
         $dbHandle->exec("INSERT INTO history.`$table_name_hash` (itemID) " . $sql);
-        
+
         $dbHandle->exec("INSERT INTO history.search_tables(table_name,created,total_rows)"
                 . " VALUES('$table_name_hash', '" . time() . "', (SELECT count(*) FROM history.`$table_name_hash`))");
 
@@ -216,11 +216,11 @@ function attach_clipboard($dbHandle) {
     $dbHandle->exec("CREATE TABLE IF NOT EXISTS clipboard.files (id INTEGER PRIMARY KEY)");
     $dbHandle->exec("CREATE TABLE IF NOT EXISTS clipboard.clipboard_log (ch_time TEXT NOT NULL DEFAULT '')");
     $dbHandle->exec("INSERT OR IGNORE INTO clipboard.clipboard_log (rowid, ch_time) VALUES(1, strftime('%s','now'))");
-    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS clipboard.trigger_clipboard_delete AFTER DELETE ON files 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS clipboard.trigger_clipboard_delete AFTER DELETE ON files
                         BEGIN
                             UPDATE clipboard_log SET ch_time=strftime('%s','now') WHERE rowid=1;
                         END;");
-    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS clipboard.trigger_clipboard_insert AFTER INSERT ON files 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS clipboard.trigger_clipboard_insert AFTER INSERT ON files
                         BEGIN
                             UPDATE clipboard_log SET ch_time=strftime('%s','now') WHERE rowid=1;
                         END;");
@@ -587,9 +587,9 @@ function get_username($dbHandle, $userID) {
 /////////////create, upgrade, or connect to database//////////////////////
 
 function database_connect($database_path, $database_name) {
-    
+
     global $dbHandle;
-    
+
     /////////////connect to database//////////////////////
     try {
         $dbHandle = new PDO('sqlite:' . $database_path . DIRECTORY_SEPARATOR . $database_name . '.sq3');
@@ -658,7 +658,7 @@ function select_pdftotext() {
         $output = $path . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $output;
+    return '"' . $output . '"';
 
 }
 
@@ -675,7 +675,7 @@ function select_pdfinfo() {
         $output = $path . DIRECTORY_SEPARATOR . 'Frameworks' . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $output;
+    return '"' . $output . '"';
 
 }
 
@@ -692,7 +692,7 @@ function select_pdftohtml() {
         $output = $path . DIRECTORY_SEPARATOR . 'Frameworks' . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $output;
+    return '"' . $output . '"';
 
 }
 
@@ -709,7 +709,7 @@ function select_pdfdetach() {
         $output = $path . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $output;
+    return '"' . $output . '"';
 
 }
 
@@ -726,7 +726,7 @@ function select_ghostscript() {
         $output = $path . DIRECTORY_SEPARATOR . $output;
     }
 
-    return $output;
+    return '"' . $output . '"';
 
 }
 
@@ -740,7 +740,7 @@ function select_tesseract() {
         $output = '"%PROGRAMFILES%\\Tesseract-OCR\\tesseract.exe"';
     }
 
-    return $output;
+    return '"' . $output . '"';
 
 }
 
@@ -758,7 +758,7 @@ function select_soffice() {
         }
     }
 
-    return $output;
+    return '"' . $output . '"';
 
 }
 
@@ -1443,7 +1443,7 @@ function fetch_from_googlepatents($patent_id) {
     if (!empty($pdf_link[2])) {
         $response['form_new_file_link'] = 'http:' . htmlspecialchars($pdf_link[2]);
     }
-    
+
     //GET OTHER META TAGS
     file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id), $dom);
     $tags = get_meta_tags(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'patent' . urlencode($patent_id));
@@ -2083,7 +2083,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         $nasa_citedby_pmc = '';
         $ieeeid = '';
         $pdf_search_term = '';
-        
+
         // Highlight search results.
         if (!empty($search_term)) {
             $search_words = explode(' ', $search_term);
@@ -2541,7 +2541,7 @@ function read_shelf($dbHandle, $id_array) {
 /////////////read desktop/////////////////////////
 
 function read_desktop($dbHandle) {
-    
+
     if (isset($_GET['select']) && $_GET['select'] == 'desk') {
         $active = '';
     } else {
@@ -2609,7 +2609,7 @@ function delete_record($dbHandle, $files) {
 
         if (is_file($pdf_path . $filename))
             unlink($pdf_path . $filename);
-        
+
         if (is_file(IL_PDF_CACHE_PATH . DIRECTORY_SEPARATOR . $filename . '.sq3'))
             unlink(IL_PDF_CACHE_PATH . DIRECTORY_SEPARATOR . $filename . '.sq3');
 

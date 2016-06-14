@@ -89,9 +89,9 @@ class PDFViewer {
             if (!$page) {
                 $page = 1;
             }
-            
+
             $page_info = $this->getPageInfo();
-            
+
             // History can be stale.
             if ($page_info['page_number'] < $page) {
                 $page = 1;
@@ -199,7 +199,7 @@ class PDFViewer {
     public function createPageImage($page) {
 
         $image_full_path = $this->image_path . DIRECTORY_SEPARATOR . $this->file_name . '.' . $page . '.jpg';
-        
+
         $lock_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $this->file_name . '.' . $page . '.jpg.log';
 
         // Delay if another process is running on this image.
@@ -207,7 +207,7 @@ class PDFViewer {
 
             // Wait up to 10 sec.
             for ($i = 1; $i <= 40; $i++) {
-                
+
                 clearstatcache();
 
                 if (is_file($lock_file)) {
@@ -348,7 +348,7 @@ class PDFViewer {
 
             // Wait up to 30 sec.
             for ($i = 1; $i <= 60; $i++) {
-                
+
                 clearstatcache();
 
                 if (is_file($temp_log)) {
@@ -370,7 +370,7 @@ class PDFViewer {
 
             // Create/edit the database.
             $dbHandle = database_connect($this->pdf_cache_path, $this->file_name);
-            
+
             $dbHandle->exec('PRAGMA journal_mode = DELETE');
 
             // Delete stale database table.
@@ -489,16 +489,16 @@ class PDFViewer {
                             . "VALUES($row_top_q, $row_left_q, $row_height_q, $row_width_q, $row_q, $href_q, $page_number_q)");
                 }
             }
-            
+
             $dbHandle->commit();
 
             $dbHandle->exec("CREATE INDEX IF NOT EXISTS ind_pages ON texts(page_number)");
-            
+
             $dbHandle = null;
 
             // Delete XML file.
             unlink($temp_xml . '.xml');
-            
+
             // Delete lock file.
             unlink($temp_log);
         }
@@ -514,7 +514,7 @@ class PDFViewer {
 
         // Make sure SQLite storage exists.
         $this->extractXMLText();
-        
+
         // At this point, the database must exist.
         if (!file_exists($temp_db)) {
 
@@ -968,7 +968,7 @@ class PDFViewer {
 
                 $pdfmark .= '[ /Subtype /Highlight
                                 /Rect [ ' . $bottomx . ' ' . $bottomy . ' ' . $topx . ' ' . $topy . ' ]
-                                /QuadPoints [ ' . $bottomx . ' ' . $topy . ' ' . $topx . ' ' . $topy . ' ' . $bottomx . ' ' . $bottomy . ' ' . $topx . ' ' . $bottomy . ' ] 
+                                /QuadPoints [ ' . $bottomx . ' ' . $topy . ' ' . $topx . ' ' . $topy . ' ' . $bottomx . ' ' . $bottomy . ' ' . $topx . ' ' . $bottomy . ' ]
                                 /SrcPg ' . $annotations['page'] . '
                                 /Color [0.78 0.8 1]
                                 /Title (Highlight by ' . $annotations['username'] . ')
