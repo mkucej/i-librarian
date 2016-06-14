@@ -42,6 +42,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
                         . " abstract LIKE $like_query ESCAPE '\' OR"
                         . " year LIKE $like_query ESCAPE '\' OR"
                         . " id=" . intval($anywhere[1]) . " OR"
+                        . " bibtex LIKE " . $like_query . " ESCAPE '\' OR"
                         . " keywords LIKE $like_query ESCAPE '\' OR"
                         . " authors_ascii LIKE $author_like_query_translated ESCAPE '\' OR"
                         . " title_ascii LIKE $like_query_translated ESCAPE '\' OR"
@@ -56,6 +57,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
                         . " regexp_match(title, '$regexp_query', $case2) OR"
                         . " regexp_match(abstract, '$regexp_query', $case2) OR"
                         . " regexp_match(year, '$regexp_query', $case2) OR"
+                        . " regexp_match(bibtex, '$regexp_query', $case2) OR"
                         . " regexp_match(keywords, '$regexp_query', $case2) OR"
                         . " regexp_match(authors_ascii, '$author_regexp_query_translated', $case2) OR"
                         . " regexp_match(title_ascii, '$regexp_query_translated', $case2) OR"
@@ -72,6 +74,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
                         . " abstract_ascii LIKE $like_query ESCAPE '\' OR"
                         . " year LIKE $like_query ESCAPE '\' OR"
                         . " id=" . intval($anywhere[1]) . " OR"
+                        . " bibtex LIKE " . $like_query . " ESCAPE '\' OR"
                         . " keywords LIKE $like_query ESCAPE '\'";
 
                 $regexp_sql = "regexp_match(authors_ascii, '$author_regexp_query', $case2) OR"
@@ -83,6 +86,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
                         . " regexp_match(title_ascii, '$regexp_query', $case2) OR"
                         . " regexp_match(abstract_ascii, '$regexp_query', $case2) OR"
                         . " regexp_match(year, '$regexp_query', $case2) OR"
+                        . " regexp_match(bibtex, '$regexp_query', $case2) OR"
                         . " regexp_match(keywords, '$regexp_query', $case2)";
             }
 
@@ -386,7 +390,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
         if ($_GET['affiliation_separator'] == 'PHRASE')
             $search_string[] = join('', $affiliation_regexp);
     }
-    
+
     #######################################################################
 
     if (!empty($_GET['custom1'])) {
@@ -439,7 +443,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
         if ($_GET['custom1_separator'] == 'PHRASE')
             $search_string[] = join('', $custom1_regexp);
     }
-    
+
     #######################################################################
 
     if (!empty($_GET['custom2'])) {
@@ -492,7 +496,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
         if ($_GET['custom2_separator'] == 'PHRASE')
             $search_string[] = join('', $custom2_regexp);
     }
-    
+
     #######################################################################
 
     if (!empty($_GET['custom3'])) {
@@ -545,7 +549,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
         if ($_GET['custom3_separator'] == 'PHRASE')
             $search_string[] = join('', $custom3_regexp);
     }
-    
+
     #######################################################################
 
     if (!empty($_GET['custom4'])) {
@@ -782,7 +786,41 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
         $search_id_array = explode(' ', $_GET['search_id']);
 
         while ($search_id = each($search_id_array)) {
-            $search_id_regexp[] = "id=" . intval($search_id[1]);
+
+            $like_query = str_replace("\\", "\\\\", $search_id[1]);
+            $like_query = str_replace("%", "\%", $like_query);
+            $like_query = str_replace("_", "\_", $like_query);
+            $like_query = str_replace("<*>", "%", $like_query);
+            $like_query = str_replace("<?>", "_", $like_query);
+
+            $regexp_query = addcslashes($search_id[1], "\044\050..\053\056\057\074\076\077\133\134\136\173\174");
+            $regexp_query = str_replace('\<\*\>', '.*', $regexp_query);
+            $regexp_query = str_replace('\<\?\>', '.?', $regexp_query);
+
+            $like_query = $dbHandle->quote("%$like_query%");
+            $regexp_query = str_replace("'", "''", $regexp_query);
+
+            $translation = utf8_deaccent($like_query);
+
+            if ($translation != $like_query) {
+
+                $like_query_translated = $translation;
+                $regexp_query_translated = utf8_deaccent($regexp_query);
+
+                $like_sql = "id=" . intval($search_id[1]) . " OR bibtex LIKE " . $like_query . " ESCAPE '\'";
+                $regexp_sql = "id=" . intval($search_id[1]) . " OR regexp_match(bibtex, '$regexp_query', $case2)";
+
+            } else {
+
+                $like_sql = "id=" . intval($search_id[1]) . " OR bibtex LIKE " . $like_query . " ESCAPE '\'";
+                $regexp_sql = "id=" . intval($search_id[1]) . " OR regexp_match(bibtex, '$regexp_query', $case2)";
+            }
+
+            if ($whole_words == 1) {
+                $search_id_regexp[] = '(' . $like_sql . ') AND (' . $regexp_sql . ')';
+            } else {
+                $search_id_regexp[] = '(' . $like_sql . ')';
+            }
         }
 
         $search_string[] = join(' OR ', $search_id_regexp);
@@ -796,7 +834,7 @@ if (isset($_GET['searchtype']) && ($_GET['searchtype'] == 'metadata' || $_GET['s
         $search_string = join('', $search_string);
     }
     $search_string = '(' . $search_string . ')';
-    
+
     $sql = "$in $rating_search $type_search $category_search $search_string";
 
     $global_strings[] = $sql;
@@ -841,7 +879,7 @@ if (!empty($_GET['notes']) && ($_GET['searchtype'] == 'notes' || $_GET['searchty
         $search_string = join(' OR ', $notes_regexp);
     if ($_GET['notes_separator'] == 'PHRASE')
         $search_string = join('', $notes_regexp);
-    
+
     $notes_in = str_replace("id IN", "fileID IN", $in);
     $notes_category_search = str_replace("id IN", "fileID IN", $category_search);
 
@@ -892,7 +930,7 @@ if (!empty($_GET['pdfnotes']) && ($_GET['searchtype'] == 'pdfnotes' || $_GET['se
         $search_string = join(' OR ', $pdfnotes_regexp);
     if ($_GET['pdfnotes_separator'] == 'PHRASE')
         $search_string = join('', $pdfnotes_regexp);
-    
+
     $pdfnotes_query = "SELECT filename FROM annotations WHERE userID=" . intval($_SESSION['user_id']) . " AND $search_string";
 
     $sql = "$in $rating_search $type_search $category_search file IN ($pdfnotes_query)";
@@ -954,7 +992,7 @@ if (!empty($_GET['fulltext']) && ($_GET['searchtype'] == 'pdf' || $_GET['searcht
         $search_string = join(' OR ', $fulltext_regexp);
     if ($_GET['fulltext_separator'] == 'PHRASE')
         $search_string = join('', $fulltext_regexp);
-    
+
     $dbHandle->sqliteCreateFunction('regexp_match', 'sqlite_regexp', 3);
 
     if ($case == 1)
@@ -963,7 +1001,7 @@ if (!empty($_GET['fulltext']) && ($_GET['searchtype'] == 'pdf' || $_GET['searcht
     $fulltext_query = "SELECT fileID FROM fulltextdatabase.full_text WHERE $search_string";
 
     $sql = "$in $rating_search $type_search $category_search id IN ($fulltext_query)";
-    
+
     $global_strings[] = $sql;
 }
 
@@ -1182,7 +1220,7 @@ if (!isset($_GET['searchtype'])) {
             </tr>
             <tr class="refrow">
                 <td class="threed">
-                    ID:
+                    ID/Citation Key:
                 </td>
                 <td class="threed">
                     <table style="width:100%">
