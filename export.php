@@ -97,7 +97,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         }
 
         if (isset($add_item['id'])) {
-            
+
             if (!empty($item['bibtex'])) {
 
                 $add_item['id'] = $item['bibtex'];
@@ -120,7 +120,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
         }
 
         if ($_GET['format'] == 'citations') {
-            
+
             if (!empty($_GET['last-style']))
                 $_GET['citation-style'] = $_GET['last-style'];
 
@@ -543,30 +543,46 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 $bibtex_translation['booktitle = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'book') {
                 unset($bibtex_translation['journal = ']);
-                $bibtex_translation['seriestitle = '] = 'secondary_title';
+                $bibtex_translation['series    = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'thesis') {
                 unset($bibtex_translation['journal = ']);
-                $bibtex_translation['school = '] = 'secondary_title';
+                $bibtex_translation['school    = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'manual') {
                 unset($bibtex_translation['journal = ']);
-                $bibtex_translation['section = '] = 'secondary_title';
+                $bibtex_translation['section   = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'patent') {
                 unset($bibtex_translation['journal = ']);
-                $bibtex_translation['source = '] = 'secondary_title';
+                $bibtex_translation['source    = '] = 'secondary_title';
             }
 
             while (list($key, $value) = each($add_item)) {
 
                 $value = wordwrap($value, 75, "\n            ");
 
+                // Escape certain special chars.
                 $value = str_replace('&', '\&', $value);
-//                $value = str_replace('{', '\{', $value);
-//                $value = str_replace('}', '\}', $value);
+                $value = str_replace('%', '\%', $value);
+                $value = str_replace('$', '\$', $value);
+
                 $bibtex_name = array_search($key, $bibtex_translation);
-                if ($bibtex_name && !empty($value))
-                    $columns[] = $bibtex_name . '{{' . $value . '}}';
+                if ($bibtex_name && !empty($value)) {
+
+                    // Protect capitalization.
+                    $protected_fields = array(
+                        'title     = ',
+                        'booktitle = ',
+                        'series    = ',
+                        'journal   = '
+                    );
+
+                    if (in_array($bibtex_name, $protected_fields)) {
+                        $value = preg_replace('/(\p{Lu}{2,})/u', '{$1}', $value);
+                    }
+
+                    $columns[] = $bibtex_name . '{' . $value . '}';
+                }
             }
-            
+
             // UIDs.
             if (!empty($add_item['uid'])) {
 
