@@ -1,7 +1,7 @@
 <?php
 
 // I, Librarian version
-$version = '4.1';
+$version = '4.2';
 
 // initial PHP settings
 ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
@@ -32,14 +32,14 @@ define('IL_URL', $url);
 
 // library and database full paths
 if (!empty($ini_array['library_path'])) {
-    
+
     if (substr($ini_array['library_path'], -1) == DIRECTORY_SEPARATOR) {
         $ini_array['library_path'] = substr($ini_array['library_path'], 0, -1);
     }
-    
+
     define('IL_LIBRARY_PATH', $ini_array['library_path'] . DIRECTORY_SEPARATOR . 'library');
 } else {
-    
+
     define('IL_LIBRARY_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'library');
 }
 define('IL_DATABASE_PATH', IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . 'database');
@@ -58,10 +58,10 @@ if (!is_writable(IL_LIBRARY_PATH)) {
 
 // set temp dir for this installation
 if (!empty($ini_array['temp_path'])) {
-    
+
     $temp_dir = $ini_array['temp_path'];
 } else {
-    
+
     $temp_dir = sys_get_temp_dir();
     if (PHP_OS == 'Linux') {
         $temp_dir = '/var/tmp';
