@@ -1202,10 +1202,10 @@ function fetch_from_nasaads($doi, $nasa_id) {
 
         $record = $xml->record;
 
-        $bibcode = $record->bibcode;
-        $response['title'] = $record->title;
+        $bibcode = (string) $record->bibcode;
+        $response['title'] = (string) $record->title;
 
-        $journal = $record->journal;
+        $journal = (string) $record->journal;
         if (strstr($journal, ","))
             $response['secondary_title'] = substr($journal, 0, strpos($journal, ','));
 
@@ -1219,32 +1219,32 @@ function fetch_from_nasaads($doi, $nasa_id) {
         if (!empty($doi))
             $response['doi'] = $doi;
 
-        $response['volume'] = $record->volume;
-        $response['pages'] = $record->page;
-        $last_page = $record->lastpage;
+        $response['volume'] = (string) $record->volume;
+        $response['pages'] = (string) $record->page;
+        $last_page = (string) $record->lastpage;
         if (!empty($last_page))
             $response['pages'] = $response['pages'] . '-' . $last_page;
 
-        $response['affiliation'] = $record->affiliation;
+        $response['affiliation'] = (string) $record->affiliation;
 
-        $year = $record->pubdate;
+        $year = (string) $record->pubdate;
         $response['year'] = date('Y-m-d', strtotime($year));
 
         $response['abstract'] = (string) $record->abstract;
         if ($response['abstract'] == 'Not Available')
             unset($response['abstract']);
-        $nasa_url = $record->url;
+        $nasa_url = (string) $record->url;
 
         foreach ($record->link as $links) {
 
             foreach ($links->attributes() as $a => $b) {
 
                 if ($a == 'type' && $b == 'EJOURNAL') {
-                    $ejournal_url = $links->url;
+                    $ejournal_url = (string) $links->url;
                 } elseif ($a == 'type' && $b == 'PREPRINT') {
-                    $preprint_url = $links->url;
+                    $preprint_url = (string) $links->url;
                 } elseif ($a == 'type' && $b == 'GIF') {
-                    $gif_url = $links->url;
+                    $gif_url = (string) $links->url;
                 }
             }
         }
@@ -1272,7 +1272,7 @@ function fetch_from_nasaads($doi, $nasa_id) {
 
             foreach ($keywords as $keyword) {
 
-                $keywords_array[] = $keyword->keyword;
+                $keywords_array[] = (string) $keyword->keyword;
             }
         }
 
@@ -1668,14 +1668,14 @@ function fetch_from_arxiv($arxiv_id) {
     if ($response['title'] != 'Error') {
 
         $children = $record->children('http://arxiv.org/schemas/atom');
-        $response['secondary_title'] = $children->journal_ref;
+        $response['secondary_title'] = (string) $children->journal_ref;
 
-        $response['doi'] = $children->doi;
+        $response['doi'] = (string) $children->doi;
 
-        $pub_date = $record->published;
+        $pub_date = (string) $record->published;
         $response['year'] = date("Y-m-d", strtotime($pub_date));
 
-        $response['abstract'] = trim($record->summary);
+        $response['abstract'] = trim((string) $record->summary);
 
         $authors = $record->author;
 
@@ -1684,7 +1684,7 @@ function fetch_from_arxiv($arxiv_id) {
 
             foreach ($authors as $author) {
 
-                $author = $author->name;
+                $author = (string) $author->name;
                 $author_array = explode(' ', $author);
                 $last = array_pop($author_array);
                 $first = join(' ', $author_array);
@@ -1723,7 +1723,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
         $count = $xml->Count;
         if ($count == 1)
-            $pmid = $xml->IdList->Id;
+            $pmid = (string) $xml->IdList->Id;
     }
 
     if (!empty($pmid)) {
@@ -1767,7 +1767,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
             $response['reference_type'] = 'article';
 
-            $response['title'] = $xml->PubmedArticle->MedlineCitation->Article->ArticleTitle;
+            $response['title'] = (string) $xml->PubmedArticle->MedlineCitation->Article->ArticleTitle;
 
             $abstract_array = array();
 
@@ -1784,7 +1784,7 @@ function fetch_from_pubmed($doi, $pmid) {
                 $response['abstract'] = implode(' ', $abstract_array);
             }
 
-            $response['secondary_title'] = $xml->PubmedArticle->MedlineCitation->Article->Journal->Title;
+            $response['secondary_title'] = (string) $xml->PubmedArticle->MedlineCitation->Article->Journal->Title;
 
             $day = (string) $xml->PubmedArticle->MedlineCitation->Article->Journal->JournalIssue->PubDate->Day;
             $month = (string) $xml->PubmedArticle->MedlineCitation->Article->Journal->JournalIssue->PubDate->Month;
@@ -1805,13 +1805,13 @@ function fetch_from_pubmed($doi, $pmid) {
                 $response['year'] = date('Y-m-d', strtotime($day . '-' . $month . '-' . $year));
             }
 
-            $response['volume'] = $xml->PubmedArticle->MedlineCitation->Article->Journal->JournalIssue->Volume;
+            $response['volume'] = (string) $xml->PubmedArticle->MedlineCitation->Article->Journal->JournalIssue->Volume;
 
-            $response['issue'] = $xml->PubmedArticle->MedlineCitation->Article->Journal->JournalIssue->Issue;
+            $response['issue'] = (string) $xml->PubmedArticle->MedlineCitation->Article->Journal->JournalIssue->Issue;
 
-            $response['pages'] = $xml->PubmedArticle->MedlineCitation->Article->Pagination->MedlinePgn;
+            $response['pages'] = (string) $xml->PubmedArticle->MedlineCitation->Article->Pagination->MedlinePgn;
 
-            $response['journal_abbr'] = $xml->PubmedArticle->MedlineCitation->MedlineJournalInfo->MedlineTA;
+            $response['journal_abbr'] = (string) $xml->PubmedArticle->MedlineCitation->MedlineJournalInfo->MedlineTA;
 
             $authors = $xml->PubmedArticle->MedlineCitation->Article->AuthorList->Author;
 
@@ -1819,11 +1819,12 @@ function fetch_from_pubmed($doi, $pmid) {
             $response['affiliation'] = '';
             if (!empty($authors)) {
                 foreach ($authors as $author) {
-                    $name_array[] = 'L:"' . $author->LastName . '",F:"' . $author->ForeName . '"';
+                    $name_array[] = 'L:"' . (string) $author->LastName . '",F:"' . (string) $author->ForeName . '"';
                     $response['last_name'][] = (string) $author->LastName;
                     $response['first_name'][] = (string) $author->ForeName;
-                    if (empty($response['affiliation']))
-                        $response['affiliation'] = $author->AffiliationInfo->Affiliation;
+                    if (empty($response['affiliation'])) {
+                        $response['affiliation'] = (string) $author->AffiliationInfo->Affiliation;
+                    }
                 }
             }
 
@@ -1831,7 +1832,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
             if (!empty($mesh)) {
                 foreach ($mesh as $meshheading) {
-                    $mesh_array[] = $meshheading->DescriptorName;
+                    $mesh_array[] = (string) $meshheading->DescriptorName;
                 }
             }
 
@@ -1843,26 +1844,26 @@ function fetch_from_pubmed($doi, $pmid) {
 
         if ($xml_type == 'book') {
 
-            $pmid = $xml->PubmedBookArticle->BookDocument->PMID;
+            $pmid = (string) $xml->PubmedBookArticle->BookDocument->PMID;
 
             $response['uid'][] = "PMID:$pmid";
 
             $response['url'][] = "http://www.pubmed.org/$pmid";
 
-            $response['title'] = $xml->PubmedBookArticle->BookDocument->ArticleTitle;
+            $response['title'] = (string) $xml->PubmedBookArticle->BookDocument->ArticleTitle;
 
             if (empty($response['title'])) {
                 $response['reference_type'] = 'book';
-                $response['title'] = $xml->PubmedBookArticle->BookDocument->Book->BookTitle;
-                $response['secondary_title'] = $xml->PubmedBookArticle->BookDocument->Book->CollectionTitle;
+                $response['title'] = (string) $xml->PubmedBookArticle->BookDocument->Book->BookTitle;
+                $response['secondary_title'] = (string) $xml->PubmedBookArticle->BookDocument->Book->CollectionTitle;
             } else {
                 $response['reference_type'] = 'chapter';
-                $response['secondary_title'] = $xml->PubmedBookArticle->BookDocument->Book->BookTitle;
-                $response['tertiary_title'] = $xml->PubmedBookArticle->BookDocument->Book->CollectionTitle;
+                $response['secondary_title'] = (string) $xml->PubmedBookArticle->BookDocument->Book->BookTitle;
+                $response['tertiary_title'] = (string) $xml->PubmedBookArticle->BookDocument->Book->CollectionTitle;
             }
 
-            $response['publisher'] = $xml->PubmedBookArticle->BookDocument->Book->Publisher->PublisherName;
-            $response['place_published'] = $xml->PubmedBookArticle->BookDocument->Book->Publisher->PublisherLocation;
+            $response['publisher'] = (string) $xml->PubmedBookArticle->BookDocument->Book->Publisher->PublisherName;
+            $response['place_published'] = (string) $xml->PubmedBookArticle->BookDocument->Book->Publisher->PublisherLocation;
 
             $abstract_array = array();
 
@@ -1876,9 +1877,9 @@ function fetch_from_pubmed($doi, $pmid) {
             }
             $response['abstract'] = implode(' ', $abstract_array);
 
-            $day = $xml->PubmedBookArticle->BookDocument->Book->PubDate->Day;
-            $month = $xml->PubmedBookArticle->BookDocument->Book->PubDate->Month;
-            $year = $xml->PubmedBookArticle->BookDocument->Book->PubDate->Year;
+            $day = (string) $xml->PubmedBookArticle->BookDocument->Book->PubDate->Day;
+            $month = (string) $xml->PubmedBookArticle->BookDocument->Book->PubDate->Month;
+            $year = (string) $xml->PubmedBookArticle->BookDocument->Book->PubDate->Year;
 
             $response['year'] = '';
             if (!empty($year)) {
@@ -1894,7 +1895,7 @@ function fetch_from_pubmed($doi, $pmid) {
             $name_array = array();
             if (!empty($authors)) {
                 foreach ($authors as $author) {
-                    $name_array[] = 'L:"' . $author->LastName . '",F:"' . $author->ForeName . '"';
+                    $name_array[] = 'L:"' . (string) $author->LastName . '",F:"' . (string) $author->ForeName . '"';
                 }
             }
             if (isset($name_array))
@@ -1905,7 +1906,7 @@ function fetch_from_pubmed($doi, $pmid) {
             $name_array = array();
             if (!empty($editors)) {
                 foreach ($editors as $editor) {
-                    $name_array[] = 'L:"' . $editor->LastName . '",F:"' . $editor->ForeName . '"';
+                    $name_array[] = 'L:"' . (string) $editor->LastName . '",F:"' . (string) $editor->ForeName . '"';
                 }
             }
             if (isset($name_array))
