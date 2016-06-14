@@ -79,7 +79,7 @@ if (isset($_GET['open']) && in_array("authors", $_GET['open'])) {
     usort($authors_unique, "strnatcasecmp");
 
     $json_authors = array();
-    
+
     while (list($key, $authors) = each($authors_unique)) {
         $authors = str_replace('L:"', '', $authors);
         $authors = str_replace('",F:"', ', ', $authors);
@@ -87,7 +87,7 @@ if (isset($_GET['open']) && in_array("authors", $_GET['open'])) {
         $json_authors[] = $authors;
         if (!isset($_GET['term'])) print PHP_EOL . '<span class="author" id="' . urlencode($authors) . '">' . htmlspecialchars($authors) . '</span><br>';
     }
-    
+
     // autocomplete
     if (isset($_GET['term']))
         echo json_encode($json_authors);
@@ -156,7 +156,11 @@ if (isset($_GET['open']) && in_array("editors", $_GET['open'])) {
     $authors = array_filter($authors, 'filter_authors');
 
     if (empty($authors)) {
-        print 'No such authors.';
+        if (isset($_GET['term'])) {
+            echo json_encode(array());
+        } else {
+            echo 'No such editors.';
+        }
         die();
     }
 
@@ -164,7 +168,7 @@ if (isset($_GET['open']) && in_array("editors", $_GET['open'])) {
     usort($authors_unique, "strnatcasecmp");
 
     $json_authors = array();
-    
+
     while (list($key, $authors) = each($authors_unique)) {
         $authors = str_replace('L:"', '', $authors);
         $authors = str_replace('",F:"', ', ', $authors);
@@ -172,7 +176,7 @@ if (isset($_GET['open']) && in_array("editors", $_GET['open'])) {
         $json_authors[] = $authors;
         if (!isset($_GET['term'])) print PHP_EOL . '<span class="author" id="' . urlencode($authors) . '">' . htmlspecialchars($authors) . '</span><br>';
     }
-    
+
     // autocomplete
     if (isset($_GET['term']))
         echo json_encode($json_authors);

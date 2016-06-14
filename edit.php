@@ -460,7 +460,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         empty($_POST['pages']) ? $pages = '' : $pages = trim($_POST['pages']);
 
-        empty($_POST['editor']) ? $editor = '' : $editor = trim($_POST['editor']);
+        empty($_POST['editor']) ? $editor = '' : $editor = trim(htmlspecialchars_decode($_POST['editor']));
 
         empty($_POST['url'][0]) ? $url = '' : $url = implode('|', array_filter($_POST['url']));
 

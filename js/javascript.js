@@ -2594,7 +2594,7 @@ var editorinputs = {
             $e = $('.editor-inputs');
         }
         $e.find('input').bind('keyup blur', function () {
-            authorinputs.formatEditors();
+            editorinputs.formatEditors();
         });
         $e.find('input:even').autocomplete({
             source: 'ajaxfilter.php?open[]=editors',
