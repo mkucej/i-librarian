@@ -737,7 +737,7 @@ function select_tesseract() {
     $output = 'tesseract';
 
     if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-        $output = '"%PROGRAMFILES%\\Tesseract-OCR\\tesseract.exe"';
+        $output = '%PROGRAMFILES%\\Tesseract-OCR\\tesseract.exe';
     }
 
     return '"' . $output . '"';
@@ -752,9 +752,9 @@ function select_soffice() {
 
     if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
         if (!empty($_SESSION['soffice_path'])) {
-            $output = '"' . $_SESSION['soffice_path'] . DIRECTORY_SEPARATOR . 'soffice.exe"';
+            $output = $_SESSION['soffice_path'] . DIRECTORY_SEPARATOR . 'soffice.exe';
         } else {
-            $output = '"%PROGRAMFILES%\\LibreOffice 4\\program\\soffice.exe"';
+            $output = '%PROGRAMFILES%\\LibreOffice 4\\program\\soffice.exe';
         }
     }
 
