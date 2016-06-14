@@ -268,7 +268,7 @@ var scrollHandling = {
             // Find leftmost page.
             var minLeft = $('#pdf-viewer-img-1').position().left,
                     leftImgs = [], $items = $('.pdf-viewer-img');
-            for (var i = Math.max(estPage - 8, 0), j = 0; i < Math.min(estPage + 8, $items.length); i++) {
+            for (var i = Math.max(estPage - 80, 0), j = 0; i < Math.min(estPage + 80, $items.length); i++) {
                 var $t = $($items[i]), tTop = $t.position().top;
                 if ($t.position().left <= minLeft
                         && ((tTop > 0 && tTop < (parentheight / 2)) || (tTop + $t.height()) > (parentheight / 2))) {
