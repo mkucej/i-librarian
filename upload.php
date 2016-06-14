@@ -412,7 +412,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $message[] = htmlspecialchars("The PDF file has been recorded.<br>" . $title);
                     $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
                 }
-            } elseif (in_array($file_extension, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
+            } elseif (in_array($file_extension, array('doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
                 $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']);
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=' . IL_TEMP_PATH);
