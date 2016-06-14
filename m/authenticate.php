@@ -16,17 +16,21 @@ if (file_exists('../ilibrarian.ini')) {
  * LDAP settings from ilibrarian.ini.
  */
 $ldap_active = $ini_array['ldap_active'];
+$ldap_debug_enabled = $ini_array['ldap_debug_enabled'];
+$ldap_opt_debug_level = $ini_array['ldap_opt_debug_level'];
+$ldap_opt_referrals = $ini_array['ldap_opt_referrals'];
 $ldap_version = $ini_array['ldap_version'];
 $ldap_server = $ini_array['ldap_server'];
-$ldap_port = $ini_array['ldap_port'];
 $ldap_basedn = $ini_array['ldap_basedn'];
-$ldap_binduser_rdn = $ini_array['ldap_binduser_rdn'];
+$ldap_binduser_dn = $ini_array['ldap_binduser_dn']; // easier to use DN instead of RDN as RDN 
 $ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
 $ldap_username_attr = $ini_array['ldap_username_attr'];
 $ldap_user_rdn = $ini_array['ldap_user_rdn'];
 $ldap_group_rdn = $ini_array['ldap_group_rdn'];
 $ldap_usergroup_cn = $ini_array['ldap_usergroup_cn'];
+$ldap_usergroup_dn = $ini_array['ldap_usergroup_dn'];
 $ldap_admingroup_cn = $ini_array['ldap_admingroup_cn'];
+$ldap_admingroup_dn = $ini_array['ldap_admingroup_dn'];
 $ldap_filter = $ini_array['ldap_filter'];
 if (!extension_loaded('ldap'))
     $ldap_active = false;
@@ -179,9 +183,21 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
 
     // LDAP authentication.
     if ($ldap_active) {
-
+        // Verify if ldap was enabled within php.
+        if ($ldap_libcheck = function_exists("ldap_connect")) {
+            // "LDAP CONNECT function is available.";
+            } else {
+            sendError ("LDAP library not loaded. Contact server admin.");
+        }
+        // Set LDAP debug level
+        if ($ldap_debug_enabled) {
+            if (!ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, $ldap_opt_debug_level)) {
+                sendError("Failed to set LDAP debug level $ldap_opt_debug_level");
+            }
+        }
+        
         // Connect.
-        if (!$ldap_connect = ldap_connect($ldap_server, $ldap_port)) {
+        if (!$ldap_connect = ldap_connect($ldap_server)) {
             sendError("Could not connect to LDAP server");
         }
 
@@ -189,9 +205,12 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
             sendError("Failed to set version to protocol $ldap_version");
         }
 
+        if (!ldap_set_option($ldap_connect, LDAP_OPT_REFERRALS, $ldap_opt_referrals)) {
+            sendError("Failed to set referrals option.") ;
+        }
+
         // Bind.
-        if (!empty($ldap_binduser_rdn)) {
-            $ldap_binduser_dn = $ldap_binduser_rdn . ',' . $ldap_basedn;
+        if (!empty($ldap_binduser_dn)) {
 
             if (!$ldap_bind = @ldap_bind($ldap_connect, $ldap_binduser_dn, $ldap_binduser_pw)) {
                 sendError("Failed to bind as proxy user.");
@@ -207,7 +226,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
             $ldap_filter_string = '(&(|(objectClass=user)(objectClass=iNetOrgPerson))' .
                     '(' . $ldap_username_attr . '=' . $username . '))';
 
-            if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_user_rdn . ',' . $ldap_basedn, $ldap_filter_string, array($ldap_username_attr))) {
+            if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_base_dn, $ldap_filter_string, array($ldap_username_attr))) {
                 sendError("Bad username or password.");
             }
 
@@ -219,6 +238,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
 
             $ldap_user_sr = ldap_first_entry($ldap_connect, $ldap_sr);
             $ldap_user_dn = ldap_get_dn($ldap_connect, $ldap_user_sr);
+
         } else {
 
             $bind_rdn = '';
@@ -233,10 +253,20 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                 sendError("Failed to authenticate.");
             }
         }
-
+        // fix characters in ldap_user_dn https://msdn.microsoft.com/en-us/library/aa746475(v=vs.85).aspx
+        $ldap_user_dn  = str_replace("*","\\2a", $ldap_user_dn);
+		$ldap_user_dn  = str_replace("(","\\28", $ldap_user_dn);
+		$ldap_user_dn  = str_replace(")","\\29", $ldap_user_dn);
+		$ldap_user_dn  = str_replace("\\","\\5c", $ldap_user_dn);
+		// $ldap_user_dn  = str_replace(null,"\\00", $ldap_user_dn);
+		$ldap_user_dn  = str_replace("/","\\2f", $ldap_user_dn);
+		
         // Authorize: Check if user is in admin group.
-        $ldap_admin_group_dn = $ldap_admingroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
-        $ldap_sr = @ldap_read($ldap_connect, $ldap_admin_group_dn, '(' . $ldap_filter . '=' . $ldap_user_dn . ')', array('member'));
+        // ldap_admingroup_dn could be either set within config our built using cn,rdn,basedn
+        if (empty($ldap_admingroup_dn)) {
+            $ldap_admingroup_dn = $ldap_admingroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
+        }
+        $ldap_sr = @ldap_read($ldap_connect, $ldap_admingroup_dn, '(' . $ldap_filter . '=' . $ldap_user_dn . ')', array('member'));
         $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
 
         if ($ldap_info_group['count'] > 0) {
@@ -246,11 +276,14 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
              * If we don't have a ldap_usergroup_cn setting, assume all
              * users under the search base are eligible
              */
-            if (empty($ldap_usergroup_cn)) {
+            if ((empty($ldap_usergroup_cn)) && (empty($ldap_usergroup_dn))) {
                 $permissions = 'U';
             } else {
-                $ldap_user_group_dn = $ldap_usergroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
-                $ldap_sr = @ldap_read($ldap_connect, $ldap_user_group_dn, '(' . $ldap_filter . '=' . $user_dn . ')', array('member'));
+                // ldap_usergroup_dn could be either set within config our built using cn,rdn,basedn
+                if (empty($ldap_usergroup_dn)) {
+                    $ldap_usergroup_dn = $ldap_usergroup_cn . ',' . $ldap_group_rdn . ',' . $ldap_basedn;
+                }
+                $ldap_sr = @ldap_read($ldap_connect, $ldap_usergroup_dn, '(' . $ldap_filter . '=' . $ldap_user_dn . ')', array('member'));
                 $ldap_info_group = @ldap_get_entries($ldap_connect, $ldap_sr);
                 if ($ldap_info_group['count'] > 0) {
                     $permissions = 'U';

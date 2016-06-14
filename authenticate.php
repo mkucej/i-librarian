@@ -21,7 +21,6 @@ $ldap_opt_debug_level = $ini_array['ldap_opt_debug_level'];
 $ldap_opt_referrals = $ini_array['ldap_opt_referrals'];
 $ldap_version = $ini_array['ldap_version'];
 $ldap_server = $ini_array['ldap_server'];
-$ldap_port = $ini_array['ldap_port'];
 $ldap_basedn = $ini_array['ldap_basedn'];
 $ldap_binduser_dn = $ini_array['ldap_binduser_dn']; // easier to use DN instead of RDN as RDN 
 $ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
@@ -198,7 +197,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
         }
         
         // Connect.
-        if (!$ldap_connect = ldap_connect($ldap_server, $ldap_port)) {
+        if (!$ldap_connect = ldap_connect($ldap_server)) {
             sendError("Could not connect to LDAP server");
         }
 
@@ -206,14 +205,12 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
             sendError("Failed to set version to protocol $ldap_version");
         }
 
-        //if (!ldap_set_option($ldap_connect, LDAP_OPT_REFERRALS, True)) {
-		if (!ldap_set_option($ldap_connect, LDAP_OPT_REFERRALS, $ldap_opt_referrals)) {
+        if (!ldap_set_option($ldap_connect, LDAP_OPT_REFERRALS, $ldap_opt_referrals)) {
             sendError("Failed to set referrals option.") ;
         }
 
         // Bind.
         if (!empty($ldap_binduser_dn)) {
-            //$ldap_binduser_dn = $ldap_binduser_rdn . ',' . $ldap_basedn;
 
             if (!$ldap_bind = @ldap_bind($ldap_connect, $ldap_binduser_dn, $ldap_binduser_pw)) {
                 sendError("Failed to bind as proxy user.");
@@ -241,6 +238,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
 
             $ldap_user_sr = ldap_first_entry($ldap_connect, $ldap_sr);
             $ldap_user_dn = ldap_get_dn($ldap_connect, $ldap_user_sr);
+
         } else {
 
             $bind_rdn = '';
