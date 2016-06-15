@@ -292,9 +292,14 @@ class PDFViewer {
 
         // Try to repair some malformed files.
         $string = file_get_contents($temp_xml . '.xml');
+        // Bad UTF-8 encoding.
+        $string = utf8_encode($string);
+        // Remove invalid XML characters.
         $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]+/u', ' ', $string);
         $string = preg_replace('/\s{2,}/ui', ' ', $string);
-        $string = str_ireplace('<!doctype pdf2xml system "pdf2xml.dtd">', '<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">', $string);
+        // Remove unneeded tags. They are often malformed.
+        $string = strip_tags(strstr($string, '<pdf2xml'), '<pdf2xml><page><fontspec><text><a><outline><item>');
+        $string = '<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd"> ' . $string;
 
         // Load XML file into object.
         $xml = @simplexml_load_string($string);
@@ -401,9 +406,14 @@ class PDFViewer {
 
             // Try to repair some malformed files.
             $string = file_get_contents($temp_xml . '.xml');
+            // Bad UTF-8 encoding.
+            $string = utf8_encode($string);
+            // Remove invalid XML characters.
             $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]+/u', ' ', $string);
             $string = preg_replace('/\s{2,}/ui', ' ', $string);
-            $string = str_ireplace('<!doctype pdf2xml system "pdf2xml.dtd">', '<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">', $string);
+            // Remove unneeded tags. They are often malformed.
+            $string = strip_tags(strstr($string, '<pdf2xml'), '<pdf2xml><page><fontspec><text><a><outline><item>');
+            $string = '<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd"> ' . $string;
 
             // Load XML file into object.
             $xml = @simplexml_load_string($string);
