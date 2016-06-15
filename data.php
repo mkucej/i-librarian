@@ -1,7 +1,7 @@
 <?php
 
 // I, Librarian version
-$version = '4.2';
+$version = '4.3';
 
 // initial PHP settings
 ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
