@@ -129,7 +129,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $pubmed_query = urlencode($pubmed_query);
 
                 if (!empty($_POST['doi']))
-                    $pubmed_query = $_POST['doi'] . '[AID]';
+                    $pubmed_query = $_POST['doi'] . urlencode('[AID]');
 
                 $request_url = "http://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=Pubmed&term=$pubmed_query&usehistory=y&retstart=0&retmax=1&sort=&tool=I,Librarian&email=i.librarian.software@gmail.com";
 
