@@ -2854,8 +2854,10 @@ function loadDataFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy
 	$contents='';
 	$curl=curl_init();
 	if (isset($proxy_name) && !empty($proxy_name)) {
+		//enable NTLM proxy authentication - todo - add checkbox to settings setup
+		curl_setopt($curl, CURLOPT_PROXYAUTH, CURLAUTH_NTLM);
 		curl_setopt($curl, CURLOPT_PROXY, "$proxy_name:$proxy_port");
-        curl_setopt($curl, CURLOPT_PROXYUSERPWD, "$proxy_username:$proxy_password");
+                curl_setopt($curl, CURLOPT_PROXYUSERPWD, "$proxy_username:$proxy_password");
 		curl_setopt($curl, CURLOPT_HTTPPROXYTUNNEL, 0);
 	}
 	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
