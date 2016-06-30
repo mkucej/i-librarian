@@ -71,7 +71,8 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             'gd' => 'icon views and PDF viewer',
             'fileinfo' => 'file type detection',
             'openssl' => 'secure HTTP connections',
-            'zip' => 'export to ZIP');
+            'zip' => 'export to ZIP',
+			'cURL'=>'client URL library');
 
         while (list($extension, $feature) = each($extensions)) {
 
