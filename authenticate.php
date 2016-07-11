@@ -25,6 +25,7 @@ $ldap_basedn = $ini_array['ldap_basedn'];
 $ldap_binduser_dn = $ini_array['ldap_binduser_dn']; // easier to use DN instead of RDN as RDN 
 $ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
 $ldap_username_attr = $ini_array['ldap_username_attr'];
+$ldap_userlogin_attr = $ini_array['ldap_userlogin_attr'];
 $ldap_user_rdn = $ini_array['ldap_user_rdn'];
 $ldap_group_rdn = $ini_array['ldap_group_rdn'];
 $ldap_usergroup_cn = $ini_array['ldap_usergroup_cn'];
@@ -292,6 +293,15 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                 }
             }
         }
+        // Verify the given password!!
+	$ldap_sr_all_user_attributes = @ldap_search($ldap_connect, '', $ldap_filter_string);
+	$usersattributes = @ldap_get_entries($ldap_connect, $ldap_sr_all_user_attributes);
+	// try to connect to ldap using the given attribute and the password
+	if (!$ldap_bind_check_pass = ldap_bind($ldap_connect, $usersattributes[0][$ldap_userlogin_attr][0], $password)) {
+                sendError("Failed to authenticate: " . $usersattributes[0][$ldap_userlogin_attr][0]);
+        } else {
+		// password is valid!
+	}
 
         $dbHandle->beginTransaction();
 

@@ -290,29 +290,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $lookfor_query = urlencode($lookfor_query);
 
                 $request_url = "http://crossref.org/sigg/sigg/FindWorks?version=1&access=i.librarian.software@gmail.com&expression=" . $lookfor_query;
-
-                if (!empty($proxy_name)) {
-
-                    $proxy_fp = @fsockopen($proxy_name, $proxy_port);
-
-                    if ($proxy_fp) {
-
-                        $result = '';
-
-                        fputs($proxy_fp, "GET $request_url HTTP/1.0\r\nHost: $proxy_name\r\n");
-                        fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n");
-                        fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n\r\n");
-
-                        while (!feof($proxy_fp)) {
-                            $result .= fgets($proxy_fp, 128);
-                        }
-
-                        fclose($proxy_fp);
-                    }
-                } else {
-                    $result = file_get_contents($request_url);
-                }
-
+                $result = loadDataFromWeb($request_url,$proxy_name,$proxy_port,$proxy_username,$proxy_password);
                 $result = json_decode(strchr($result, '['));
 
                 if (count($result) == 1)
