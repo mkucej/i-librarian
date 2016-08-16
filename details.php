@@ -16,11 +16,11 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
     if (!empty($_GET['soffice_path'])) {
 
         database_connect(IL_USER_DATABASE_PATH, 'users');
-        
+
         save_settings($dbHandle, array('global_soffice_path' => $_GET['soffice_path']));
 
         $dbHandle = null;
-        
+
         die();
     }
 
@@ -71,7 +71,11 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             'gd' => 'icon views and PDF viewer',
             'fileinfo' => 'file type detection',
             'openssl' => 'secure HTTP connections',
-            'zip' => 'export to ZIP');
+            'zip' => 'export to ZIP',
+            'curl' => 'getting resources from the Web',
+            'simplexml' => 'internal XML extension',
+            'xml' => 'internal XML extension',
+            'json' => 'JSON extension');
 
         while (list($extension, $feature) = each($extensions)) {
 
@@ -218,7 +222,7 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
         if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
             if (empty($_SESSION['soffice_path'])) {
                 // Translate default LibreOffice path.
-                exec('echo %PROGRAMFILES%\\LibreOffice 4\\program', $output);
+                exec('echo %PROGRAMFILES%\\LibreOffice 5\\program', $output);
                 $soffice_path = $output[0];
             } else {
                 $soffice_path = $_SESSION['soffice_path'];
