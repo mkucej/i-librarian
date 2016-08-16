@@ -294,16 +294,17 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
             }
         }
 
-        // It is not clear to me why password should be verified second time.
-//        // Verify the given password
-//	$ldap_sr_all_user_attributes = @ldap_search($ldap_connect, '', $ldap_filter_string);
-//	$usersattributes = @ldap_get_entries($ldap_connect, $ldap_sr_all_user_attributes);
-//	// try to connect to ldap using the given attribute and the password
-//	if (!$ldap_bind_check_pass = ldap_bind($ldap_connect, $usersattributes[0][$ldap_userlogin_attr][0], $password)) {
-//            sendError("Failed to authenticate: " . $usersattributes[0][$ldap_userlogin_attr][0]);
-//        } else {
-//            // password is valid!
-//	}
+        if (!empty($ldap_binduser_dn)) {
+            // Verify the given password
+            $ldap_sr_all_user_attributes = @ldap_search($ldap_connect, '', $ldap_filter_string);
+            $usersattributes = @ldap_get_entries($ldap_connect, $ldap_sr_all_user_attributes);
+            // try to connect to ldap using the given attribute and the password
+            if (!$ldap_bind_check_pass = ldap_bind($ldap_connect, $usersattributes[0][$ldap_userlogin_attr][0], $password)) {
+                sendError("Failed to authenticate: " . $usersattributes[0][$ldap_userlogin_attr][0]);
+            } else {
+                // password is valid!
+            }
+        }
 
         $dbHandle->beginTransaction();
 
