@@ -1,6 +1,7 @@
 <?php
 
 include_once 'data.php';
+include_once 'functions.php';
 session_write_close();
 
 if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
@@ -35,54 +36,13 @@ if ($_SESSION['auth'] && $_SESSION['permissions'] == 'A') {
             $proxy_password = $_SESSION['proxy_password'];
     }
 
-    $response_string = '';
     $current_version = '';
     $current_array = array();
 
-    if (isset($proxy_name) && !empty($proxy_name)) {
+    $response = getFromWeb('https://i-librarian.net/newversion.txt', $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
-        $proxy_fp = @fsockopen($proxy_name, $proxy_port, $e1, $e2, 5);
+    $current_array = explode(":", $response);
 
-        if ($proxy_fp) {
-
-            fputs($proxy_fp, "GET https://i-librarian.net/newversion.txt HTTP/1.0\r\nHost: $proxy_name\r\n");
-            if (!empty($proxy_username))
-                fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n");
-            fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-            while (!feof($proxy_fp)) {
-                $response_string .= fgets($proxy_fp, 128);
-            }
-
-            fclose($proxy_fp);
-        } else {
-            die();
-        }
-    } else {
-
-        $proxy_fp = @fsockopen('ssl://i-librarian.net', 443, $e1, $e2, 5);
-
-        if ($proxy_fp) {
-
-            $pdf_string = '';
-            $cookies = array();
-
-            fputs($proxy_fp, "GET /newversion.txt HTTP/1.0\r\n");
-            fputs($proxy_fp, "Host: i-librarian.net\r\n");
-            fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-            while (!feof($proxy_fp)) {
-                $response_string .= fgets($proxy_fp, 128);
-            }
-
-            fclose($proxy_fp);
-        } else {
-            die();
-        }
-    }
-
-    $response_string = strstr($response_string, "current-version:");
-    $current_array = explode(":", $response_string);
     if (count($current_array) == 2)
         $current_version = $current_array[1];
 
