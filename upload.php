@@ -405,7 +405,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']['tmp_name'])) {
             $pdf_contents = file_get_contents($_FILES['form_new_file']['tmp_name'], NULL, NULL, 0, 100);
             if (stripos($pdf_contents, '%PDF') === 0) {
-                $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+                $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file);
                 if ($move == false)
                     $error[] = "Error! The PDF file has not been recorded.<br>" . htmlspecialchars($title);
                 if ($move == true) {
@@ -423,12 +423,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 if (!is_file($converted_file)) {
                     $error[] = "Error! Conversion to PDF failed.<br>" . htmlspecialchars($title);
                 } else {
-                    copy($converted_file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+                    copy($converted_file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file);
                     $message[] = htmlspecialchars("The PDF file has been recorded.<br>" . $title);
                     unlink($converted_file);
                 }
                 $supplement_filename = sprintf("%05d", intval($new_file)) . $_FILES['form_new_file']['name'];
-                copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
+                copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . $supplement_filename);
             } else {
                 $error[] = "Error! No PDF was found.<br>" . $title;
             }
@@ -467,7 +467,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         if (isset($_POST['filename']) && is_readable(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_POST['filename'])) {
 
             $_POST['filename'] = str_replace(array('\\', '/'), '', $_POST['filename']);
-            $copy = copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_POST['filename'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+            $copy = copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_POST['filename'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file);
             unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_POST['filename']);
             if ($copy == false)
                 $error[] = htmlspecialchars('Error! The PDF file has not been recorded.<br>' . $title);
@@ -513,7 +513,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $unpacked_files = scandir($unpack_dir);
             foreach ($unpacked_files as $unpacked_file) {
                 if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file))
-                    @rename($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
+                    @rename($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
             }
             rmdir($unpack_dir);
         }
@@ -526,7 +526,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             if (empty($extension))
                 $extension = 'jpg';
             $new_name = sprintf("%05d", intval($new_file)) . 'graphical_abstract.' . $extension;
-            move_uploaded_file($_FILES['form_graphical_abstract']['tmp_name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_name);
+            move_uploaded_file($_FILES['form_graphical_abstract']['tmp_name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . $new_name);
         }
 
         ##########	extract text from pdf	##########

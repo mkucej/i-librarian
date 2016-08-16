@@ -170,7 +170,7 @@ class PDFViewer {
         if (isset($_GET['mode']) && $_GET['mode'] == 'save') {
 
             $png_saved = imagepng($dst_r, $this->supplement_path . DIRECTORY_SEPARATOR
-                    . get_subfolder($this->file_name) . DIRECTORY_SEPARATOR
+                    . get_subfolder($this->file_name, $this->supplement_path) . DIRECTORY_SEPARATOR
                     . $fileID . 'image-p' . $page . '-' . $x . 'x' . $y . '.png', 6);
 
             imagedestroy($dst_r);

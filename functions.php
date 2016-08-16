@@ -75,11 +75,32 @@ function displayError($errorMessage) {
 }
 
 // get numbered subfolder where file resides
-function get_subfolder($file) {
+function get_subfolder($file, $dir = null) {
 
-    $file = substr($file, 0, 5);
-    return sprintf("%02d", floor(intval($file) / 100000) + 1);
+    $id = substr($file, 0, 5);
 
+    if (is_numeric($id) && strlen($id) === 5) {
+
+        $level_1 = substr($id, 0, 1);
+        $level_2 = substr($id, 1, 1);
+
+        // Create the dir, if it does not exist.
+        if (isset($dir)) {
+
+            $dir .= DIRECTORY_SEPARATOR . $level_1 . DIRECTORY_SEPARATOR . $level_2;
+
+            if (!is_dir($dir)) {
+
+                mkdir($dir, 0755, true);
+            }
+        }
+
+        return $level_1 . DIRECTORY_SEPARATOR . $level_2;
+
+    } else {
+
+        return false;
+    }
 }
 
 // Search database and write to history cache tables.
@@ -1674,7 +1695,7 @@ function record_unknown($dbHandle, $title, $file, $userID) {
 
     $dbHandle->commit();
 
-    copy($file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+    copy($file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file);
 
     $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
 
@@ -1682,7 +1703,7 @@ function record_unknown($dbHandle, $title, $file, $userID) {
     if (in_array($file_extension, array('doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
         //record original file into supplement
         $supplement_filename = sprintf("%05d", intval($new_file)) . $title;
-        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
+        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . $supplement_filename);
         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $title);
     }
 
@@ -1703,7 +1724,7 @@ function record_unknown($dbHandle, $title, $file, $userID) {
     $unpacked_files = scandir($unpack_dir);
     foreach ($unpacked_files as $unpacked_file) {
         if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file)) {
-            rename($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
+            rename($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file, IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
         }
     }
     rmdir($unpack_dir);

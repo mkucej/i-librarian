@@ -29,7 +29,7 @@ $dbHandle->exec('PRAGMA journal_mode = DELETE');
 $dbHandle->exec('PRAGMA journal_mode = WAL');
 
 // Set db version.
-$dbHandle->exec("PRAGMA user_version = 41");
+$dbHandle->exec("PRAGMA user_version = 44");
 
 // Create library tables.
 $dbHandle->exec("CREATE TABLE IF NOT EXISTS library (
@@ -187,17 +187,17 @@ foreach ($tables as $table) {
     $dbHandle->exec("INSERT INTO library_log (ch_table, ch_time)
                             VALUES('" . $table . "', strftime('%s', 'now'))");
 
-    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_delete AFTER DELETE ON " . $table . " 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_delete AFTER DELETE ON " . $table . "
                             BEGIN
                                 UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
 
-    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_insert AFTER INSERT ON " . $table . " 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_insert AFTER INSERT ON " . $table . "
                             BEGIN
                                 UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");
 
-    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_update AFTER UPDATE ON " . $table . " 
+    $dbHandle->exec("CREATE TRIGGER IF NOT EXISTS trigger_" . $table . "_update AFTER UPDATE ON " . $table . "
                             BEGIN
                                 UPDATE library_log SET ch_time = strftime('%s', 'now') WHERE ch_table = '" . $table . "';
                             END;");

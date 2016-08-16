@@ -754,7 +754,7 @@ if (!isset($_GET['commence'])) {
 
                         $dbHandle->commit();
 
-                        copy($file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+                        copy($file, IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file);
 
                         $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
 
@@ -775,7 +775,7 @@ if (!isset($_GET['commence'])) {
                         foreach ($unpacked_files as $unpacked_file) {
                             if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file))
                                 rename($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file,
-                                        IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
+                                        IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . sprintf("%05d", intval($new_file)) . $unpacked_file);
                         }
                         rmdir($unpack_dir);
 

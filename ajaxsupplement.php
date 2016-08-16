@@ -93,7 +93,7 @@ if (isset($_FILES['form_graphical_abstract']) && is_uploaded_file($_FILES['form_
     if (empty($extension))
         $extension = 'jpg';
     $new_name = sprintf("%05d", intval($_POST['file'])) . 'graphical_abstract.' . $extension;
-    move_uploaded_file($_FILES['form_graphical_abstract']['tmp_name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
+    move_uploaded_file($_FILES['form_graphical_abstract']['tmp_name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . $new_name);
 }
 
 ##########	replace PDF	##########
@@ -115,7 +115,7 @@ if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']
         } else {
             copy($converted_file, IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
             $supplement_filename = sprintf("%05d", intval($_POST['filename'])) . $_FILES['form_new_file']['name'];
-            copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($supplement_filename) . DIRECTORY_SEPARATOR . $supplement_filename);
+            copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($supplement_filename, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . $supplement_filename);
             unlink($converted_file);
         }
     } else {
@@ -150,7 +150,7 @@ if (!empty($_POST['filename']) && is_writable(IL_TEMP_PATH . DIRECTORY_SEPARATOR
     $uploaded_file_content = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], FILE_BINARY, null, 0, 100);
 
     if (stripos($uploaded_file_content, '%PDF') === 0) {
-        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
+        copy(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename'], IL_PDF_PATH) . DIRECTORY_SEPARATOR . $_POST['filename']);
         unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename']);
         $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($_POST['filename']) . DIRECTORY_SEPARATOR . $_POST['filename']);
     } else {

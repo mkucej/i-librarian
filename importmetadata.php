@@ -358,7 +358,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                         // Strip non-printing characters.
                         $string = trim(filter_var($string, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW));
-                        
+
                         if (!empty($string)) {
 
                             $fulltext_query = $fdbHandle->quote($string);
@@ -686,7 +686,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                             $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
                             unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
-                            
+
                             // Replace line breaks with spaces.
                             $order = array("\r\n", "\n", "\r");
                             $string = str_replace($order, ' ', $string);
@@ -1111,7 +1111,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 }
                             }
                             $authors = join(";", $name_array);
-                            
+
                             $authors_ascii = utf8_deaccent($authors);
                         }
 
@@ -1270,7 +1270,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         if (!empty($type_match[0])) {
                             $bibtex_type = strtolower(trim($type_match[0]));
                         }
-                        
+
                         if (!empty($pmid_match[0])) {
                             if (substr($pmid_match[0], 0, 1) == '{' && substr($pmid_match[0], -1) == '}') {
                                 $pmid_match[0] = substr($pmid_match[0], 1, -1);
@@ -1308,7 +1308,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                                 $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
                                 unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt");
-                                
+
                                 // Replace line breaks with spaces.
                                 $order = array("\r\n", "\n", "\r");
                                 $string = str_replace($order, ' ', $string);
@@ -1495,7 +1495,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 //RENAME TEMP PDFS
                 if (is_writable(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'])) {
                     $dbHandle->exec("UPDATE tempfdb.full_text SET fileID=" . $new_id . " WHERE fileID=" . $tmprow['id']);
-                    copy(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
+                    copy(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file);
                     $hashes[$new_id] = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
                     @unlink(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file']);
                 }

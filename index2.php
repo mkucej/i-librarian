@@ -4,7 +4,7 @@ include_once 'functions.php';
 
 // Check for an obsolete INI.
 if (isset($_SESSION['permissions']) && $_SESSION['permissions'] === 'A') {
-    
+
     if (file_exists('ilibrarian.ini')) {
         $ini_array = parse_ini_file("ilibrarian.ini");
     } else {
@@ -21,10 +21,10 @@ if (isset($_SESSION['permissions']) && $_SESSION['permissions'] === 'A') {
 
 // Install or upgrade.
 if (!is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
-    
+
     include 'install.php';
 } else {
-    
+
     $isupgraded = false;
     $is_2_11 = false;
     database_connect(IL_DATABASE_PATH, 'library');
@@ -69,6 +69,9 @@ if (!is_file(IL_DATABASE_PATH . DIRECTORY_SEPARATOR . 'library.sq3')) {
     // Upgrade to 4.1.
     if (empty($db_version) || $db_version < '41')
         include_once 'migrate6.php';
+    // Upgrade to 4.4.
+    if (empty($db_version) || $db_version < '44')
+        include_once 'migrate7.php';
 }
 
 /**
@@ -187,7 +190,7 @@ if (!isset($_POST['form']) && !isset($_SESSION['auth']) && $ini_array['autosign'
     <body style="margin:0;border:0;padding:0;width:100%;height:100%;overflow:hidden">
         <?php
         if (isset($_SESSION['auth'])) {
-            
+
             include 'keyboard.php';
 
             ?>
