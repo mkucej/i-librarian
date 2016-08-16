@@ -4285,6 +4285,7 @@ var upload = {
             var $t = $(this), $f = $t.closest(".uploadform"), title = $f.find('textarea[name="title"]').val(), proxystr;
             $t.button("option", "disabled", true);
             if (title !== '' && title !== undefined) {
+                $.jGrowl('Document recording has started. You may continue to work.');
                 if ($f.parent('div').hasClass('save_container')) {
                     $f.parent('div').empty().hide();
                 } else {
@@ -4328,6 +4329,7 @@ var upload = {
                 if ($sel !== '') {
                     $uidinp.val($sel + ':' + $uidinp.val());
                 }
+                $.jGrowl('Document recording has started. You may continue to work.');
                 timeId = setTimeout(dooverlay, 1000);
                 $.getScript('wpad.php', function () {
                     proxystr = FindProxyForURL('', 'www.crossref.org');
