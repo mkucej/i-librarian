@@ -131,7 +131,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 if (!empty($_POST['doi']))
                     $pubmed_query = $_POST['doi'] . '[AID]';
 
-                $request_url = "http://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=Pubmed&term=$pubmed_query&usehistory=y&retstart=0&retmax=1&sort=&tool=I,Librarian&email=i.librarian.software@gmail.com";
+                $request_url = "https://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=Pubmed&term=$pubmed_query&usehistory=y&retstart=0&retmax=1&sort=&tool=I,Librarian&email=i.librarian.software@gmail.com";
 
                 $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 

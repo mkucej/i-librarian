@@ -101,7 +101,7 @@ if (isset($_GET['doi'])) {
     <?php
     ##########	print full text links	##########
 
-    print '<a href="' . htmlspecialchars("http://dx.doi.org/" . urlencode($_GET['doi'])) . '" target="_blank">Publisher Website</a>';
+    print '<a href="' . htmlspecialchars("https://dx.doi.org/" . urlencode($_GET['doi'])) . '" target="_blank">Publisher Website</a>';
 
     if (!empty($_GET['pdf']))
         print ' &middot; <a href="' . htmlspecialchars($_GET['pdf']) . '" target="_blank">PDF</a>';

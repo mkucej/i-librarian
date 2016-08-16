@@ -1374,7 +1374,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
     if (empty($pmid) && !empty($doi)) {
 
-        $request_url = "http://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=Pubmed&term=" . $doi . "[AID]&usehistory=y&retstart=&retmax=1&sort=&tool=I,Librarian&email=i.librarian.software@gmail.com";
+        $request_url = "https://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=Pubmed&term=" . $doi . "[AID]&usehistory=y&retstart=&retmax=1&sort=&tool=I,Librarian&email=i.librarian.software@gmail.com";
 
         $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
         if (empty($xml))
@@ -1390,7 +1390,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
         ##########	open efetch, read xml	##########
 
-        $request_url = "http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=Pubmed&rettype=abstract&retmode=XML&id=" . urlencode($pmid) . "&tool=I,Librarian&email=i.librarian.software@gmail.com";
+        $request_url = "https://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=Pubmed&rettype=abstract&retmode=XML&id=" . urlencode($pmid) . "&tool=I,Librarian&email=i.librarian.software@gmail.com";
 
         $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
         if (empty($xml))
@@ -1423,7 +1423,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
             $response['uid'][] = 'PMID:' . $pmid;
 
-            $response['url'][] = "http://www.pubmed.org/$pmid";
+            $response['url'][] = "https://www.ncbi.nlm.nih.gov/pubmed/$pmid";
 
             $response['reference_type'] = 'article';
 
@@ -1508,7 +1508,7 @@ function fetch_from_pubmed($doi, $pmid) {
 
             $response['uid'][] = "PMID:$pmid";
 
-            $response['url'][] = "http://www.pubmed.org/$pmid";
+            $response['url'][] = "https://www.ncbi.nlm.nih.gov/pubmed/$pmid";
 
             $response['title'] = (string) $xml->PubmedBookArticle->BookDocument->ArticleTitle;
 
@@ -1806,8 +1806,8 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         }
 
         if (!empty($pmid)) {
-            $pmid_related_url = 'http://www.ncbi.nlm.nih.gov/sites/entrez?db=pubmed&cmd=link&linkname=pubmed_pubmed&uid=' . $pmid;
-            $pmid_citedby_pmc = 'http://www.ncbi.nlm.nih.gov/pubmed?db=pubmed&cmd=link&linkname=pubmed_pubmed_citedin&uid=' . $pmid;
+            $pmid_related_url = 'https://www.ncbi.nlm.nih.gov/sites/entrez?db=pubmed&cmd=link&linkname=pubmed_pubmed&uid=' . $pmid;
+            $pmid_citedby_pmc = 'https://www.ncbi.nlm.nih.gov/pubmed?db=pubmed&cmd=link&linkname=pubmed_pubmed_citedin&uid=' . $pmid;
         }
 
         if (!empty($nasaid)) {

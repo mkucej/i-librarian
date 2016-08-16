@@ -190,7 +190,7 @@ if (!isset($_GET['commence'])) {
                     <tr><td class="threedleft">Info:</td>
                         <td class="threedright" style="padding-left: 18px">
                             Found <?php print $pdf_count; ?> file<?php print ($pdf_count == 1) ? '' : 's'; ?>.
-                            (Note that PDFs must contain a <a href="http://en.wikipedia.org/wiki/Digital_object_identifier" target="_blank">DOI</a> in order to track the corresponding metadata.)
+                            (Note that PDFs must contain a <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" target="_blank">DOI</a> in order to track the corresponding metadata.)
                             <?php
                             if ($pdf_count > 100) {
                                 ?>
@@ -358,7 +358,7 @@ if (!isset($_GET['commence'])) {
         'batchimport_failed' => $failed,
         'batchimport_log' => $batchimport_log
     ));
-    
+
     $dbHandle = null;
 
     $user_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id();
@@ -765,7 +765,7 @@ if (!isset($_GET['commence'])) {
                         }
 
                         $dbHandle = null;
-                        
+
                         recordFulltext($id, $new_file);
 
                         $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;

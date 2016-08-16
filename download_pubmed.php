@@ -349,7 +349,7 @@ if (isset($_SESSION['auth'])) {
 
         $pubmed_query = urlencode($pubmed_query);
 
-        $request_url = 'http://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=Pubmed&term=' . $pubmed_query . '&usehistory=y&retstart=0&retmax=1000&sort=' . urlencode($sort) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
+        $request_url = 'https://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=Pubmed&term=' . $pubmed_query . '&usehistory=y&retstart=0&retmax=1000&sort=' . urlencode($sort) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
 
         $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -377,7 +377,7 @@ if (isset($_SESSION['auth'])) {
 
         if ($count > 0) {
 
-            $request_url = 'http://www.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=Pubmed&retmode=XML&retstart=' . $retstart . '&retmax=10&WebEnv=' . urlencode($webenv) . '&query_key=' . urlencode($querykey) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
+            $request_url = 'https://www.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=Pubmed&retmode=XML&retstart=' . $retstart . '&retmax=10&WebEnv=' . urlencode($webenv) . '&query_key=' . urlencode($querykey) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
 
             $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -559,13 +559,13 @@ if (isset($_SESSION['auth'])) {
 
                     print '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . htmlspecialchars($authors) . '</div>';
 
-                    print '<a href="' . htmlspecialchars('http://www.pubmed.org/' . urlencode($id)) . '" target="_blank">PubMed</a>';
+                    print '<a href="' . htmlspecialchars('https://www.ncbi.nlm.nih.gov/pubmed/' . urlencode($id)) . '" target="_blank">PubMed</a>';
 
                     if (!empty($doi))
-                        print ' <b>&middot;</b> <a href="' . htmlspecialchars('http://dx.doi.org/' . urlencode($doi)) . '" target="_blank">Publisher Website</a>';
+                        print ' <b>&middot;</b> <a href="' . htmlspecialchars('https://dx.doi.org/' . urlencode($doi)) . '" target="_blank">Publisher Website</a>';
 
                     if (!empty($pmcid))
-                        print ' <b>&middot;</b> <a href="' . htmlspecialchars('http://www.ncbi.nlm.nih.gov/pmc/articles/' . urlencode($pmcid) . '/pdf/') . '" target="_blank">Full Text PDF</a> (PubMed Central)';
+                        print ' <b>&middot;</b> <a href="' . htmlspecialchars('https://www.ncbi.nlm.nih.gov/pmc/articles/' . urlencode($pmcid) . '/pdf/') . '" target="_blank">Full Text PDF</a> (PubMed Central)';
 
                     print '</div>';
 
@@ -626,7 +626,7 @@ if (isset($_SESSION['auth'])) {
             <form enctype="application/x-www-form-urlencoded" action="download_pubmed.php" method="GET" id="download-form">
                 <input type="hidden" name="form_submitted" value="">
                 <div class="ui-state-default ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
-                    <a href="http://www.pubmed.org" target="_blank" style="display:block"><i class="fa fa-external-link"></i> PubMed</a>
+                    <a href="https://www.ncbi.nlm.nih.gov/pubmed/" target="_blank" style="display:block"><i class="fa fa-external-link"></i> PubMed</a>
                 </div>
                 <div style="clear:both"></div>
                 <table class="threed" style="width:100%">
@@ -639,7 +639,7 @@ if (isset($_SESSION['auth'])) {
                     </tr>
                     <tr>
                         <td class="threed" style="width:14em">
-                            Boolean query: <a href="http://www.ncbi.nlm.nih.gov/bookshelf/br.fcgi?book=helppubmed&part=pubmedhelp#pubmedhelp.Combining_search_ter" target="_blank">?</a>
+                            Boolean query: <a href="https://www.ncbi.nlm.nih.gov/bookshelf/br.fcgi?book=helppubmed&part=pubmedhelp#pubmedhelp.Combining_search_ter" target="_blank">?</a>
                         </td>
                         <td class="threed">
                             <textarea class="tagged_query" name="tagged_query" cols="55" rows="6" style="width:99%"><?php print isset($_SESSION['session_download_tagged_query']) ? htmlspecialchars($_SESSION['session_download_tagged_query']) : ''; ?></textarea>
@@ -817,8 +817,8 @@ if (isset($_SESSION['auth'])) {
                         </td>
                     </tr>
                 </table>
-                &nbsp;<a href="http://www.ncbi.nlm.nih.gov/books/NBK3827/" target="_blank">Help</a>
-                &nbsp;&nbsp;<a href="http://www.ncbi.nlm.nih.gov/About/disclaimer.html" target="_blank">Disclaimer</a>
+                &nbsp;<a href="https://www.ncbi.nlm.nih.gov/books/NBK3827/" target="_blank">Help</a>
+                &nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/home/about/policies.shtml" target="_blank">Disclaimer</a>
             </form>
         </div>
         <?php

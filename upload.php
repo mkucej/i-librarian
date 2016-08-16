@@ -849,7 +849,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
             $split_uid = array();
             $split_uid = explode(':', $paper_uid);
             if ($split_uid[0] == 'PMCID')
-                $web_pdf = 'http://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . urlencode($split_uid[1]) . '/pdf';
+                $web_pdf = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . urlencode($split_uid[1]) . '/pdf';
         }
     }
     if (!empty($_POST['url']) && is_array($_POST['url']) && empty($paper_urls)) {

@@ -65,7 +65,7 @@ if (isset($_GET['id'])) {
     print '</div>';
 
     if (!empty($authors)) {
-        
+
         $names = array();
         $new_names = array();
         $names = explode(';', $authors);
@@ -124,22 +124,22 @@ if (isset($_GET['id'])) {
     <input type="hidden" name="abstract" value="<?php print !empty($abstract) ? htmlspecialchars($abstract) : "No abstract available."; ?>">
     <input type="hidden" name="publisher" value="<?php print !empty($publisher) ? htmlspecialchars($publisher) : ""; ?>">
     <input type="hidden" name="place_published" value="<?php print !empty($place_published) ? htmlspecialchars($place_published) : ""; ?>">
-    <input type="hidden" name="form_new_file_link" value="<?php print !empty($pmcid) ? htmlspecialchars("http://www.ncbi.nlm.nih.gov/pmc/articles/PMC" . $pmcid . "/pdf") : ""; ?>">
+    <input type="hidden" name="form_new_file_link" value="<?php print !empty($pmcid) ? htmlspecialchars("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC" . $pmcid . "/pdf") : ""; ?>">
 
     <?php
     ##########	print full text links	##########
 
     print '<b>Full text options:</b><br>
-	<a href="' . htmlspecialchars("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=" . urlencode($_GET['id']) . "&retmode=ref&cmd=prlinks&tool=I,Librarian&email=i.librarian.software@gmail.com") . '" target="_blank">
+	<a href="' . htmlspecialchars("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=pubmed&id=" . urlencode($_GET['id']) . "&retmode=ref&cmd=prlinks&tool=I,Librarian&email=i.librarian.software@gmail.com") . '" target="_blank">
 	PubMed LinkOut
 	</a>';
 
     if (!empty($pmcid))
-        print ' <b>&middot;</b> <a href="' . htmlspecialchars("http://www.ncbi.nlm.nih.gov/pmc/articles/PMC$pmcid/pdf/") . '" target="_blank">
+        print ' <b>&middot;</b> <a href="' . htmlspecialchars("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC$pmcid/pdf/") . '" target="_blank">
 	Full Text PDF</a> (PubMed Central)';
 
     if (!empty($doi))
-        print ' <b>&middot;</b> <a href="' . htmlspecialchars("http://dx.doi.org/" . urlencode($doi)) . '" target="_blank">Publisher Website</A>';
+        print ' <b>&middot;</b> <a href="' . htmlspecialchars("https://dx.doi.org/" . urlencode($doi)) . '" target="_blank">Publisher Website</A>';
 
     print '<br><button class="save-item"><i class="fa fa-save"></i> Save</button> <button class="quick-save-item"><i class="fa fa-save"></i> Quick Save</button>';
 

@@ -41,7 +41,7 @@ if (isset($_GET['id'])) {
 
     if (!empty($_GET['id'])) {
 
-        $request_url = 'http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=Pubmed&rettype=abstract&retmode=XML&id=' . urlencode($_GET['id']) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
+        $request_url = 'https://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=Pubmed&rettype=abstract&retmode=XML&id=' . urlencode($_GET['id']) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
 
         $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -141,7 +141,7 @@ if (isset($_GET['id'])) {
 
     if (empty($_GET['id']) && !empty($_GET['pmcid'])) {
 
-        $request_url = 'http://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&rettype=abstract&retmode=XML&id=' . urlencode($_GET['pmcid']) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
+        $request_url = 'https://www.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&rettype=abstract&retmode=XML&id=' . urlencode($_GET['pmcid']) . '&tool=I,Librarian&email=i.librarian.software@gmail.com';
 
         $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -314,9 +314,9 @@ if (isset($_GET['id'])) {
     foreach ($uid_array as $uid) {
         print '<input type="hidden" name="uid[]" value="' . htmlspecialchars($uid) . '">';
     }
-    $url_array[] = 'http://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . $pmcid . '/';
+    $url_array[] = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . $pmcid . '/';
     if (!empty($pmid))
-        $url_array[] = 'http://www.pubmed.org/' . $pmid;
+        $url_array[] = 'https://www.ncbi.nlm.nih.gov/pubmed/' . $pmid;
     foreach ($url_array as $url) {
         print '<input type="hidden" name="url[]" value="' . htmlspecialchars($url) . '">';
     }
@@ -335,21 +335,21 @@ if (isset($_GET['id'])) {
     <input type="hidden" name="pages" value="<?php if (!empty($pages)) print htmlspecialchars($pages); ?>">
     <input type="hidden" name="keywords" value="<?php if (!empty($keywords)) print htmlspecialchars($keywords); ?>">
     <input type="hidden" name="abstract" value="<?php print !empty($abstract) ? htmlspecialchars($abstract) : "No abstract available."; ?>">
-    <input type="hidden" name="form_new_file_link" value="<?php print !empty($pmcid) ? htmlspecialchars("http://www.ncbi.nlm.nih.gov/pmc/articles/PMC" . $pmcid . "/pdf") : ""; ?>">
+    <input type="hidden" name="form_new_file_link" value="<?php print !empty($pmcid) ? htmlspecialchars("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC" . $pmcid . "/pdf") : ""; ?>">
 
     <?php
     ##########	print full text links	##########
 
     print '<b>Full text options:</b><br>';
 
-    print '<a href="' . htmlspecialchars('http://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . $pmcid . '/') . '" target="_blank">
+    print '<a href="' . htmlspecialchars('https://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . $pmcid . '/') . '" target="_blank">
 	PubMed Central</a>';
 
-    print ' <b>&middot;</b> <a href="' . htmlspecialchars('http://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . $pmcid . '/pdf/') . '" target="_blank">
+    print ' <b>&middot;</b> <a href="' . htmlspecialchars('https://www.ncbi.nlm.nih.gov/pmc/articles/PMC' . $pmcid . '/pdf/') . '" target="_blank">
 	Full Text PDF</a>';
 
     if (!empty($doi))
-        print ' <b>&middot;</b> <a href="' . htmlspecialchars('http://dx.doi.org/' . urlencode($doi)) . '" target="_blank">Publishers Website</a>';
+        print ' <b>&middot;</b> <a href="' . htmlspecialchars('https://dx.doi.org/' . urlencode($doi)) . '" target="_blank">Publishers Website</a>';
 
     print '<br><button class="save-item"><i class="fa fa-save"></i> Save</button> <button class="quick-save-item"><i class="fa fa-save"></i> Quick Save</button>';
 

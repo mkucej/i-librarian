@@ -320,9 +320,9 @@ if (isset($_SESSION['auth'])) {
         cache_start($db_change);
 
         ########## register the time of search ##############
-        
+
         if (!empty($_SESSION['session_download_pmc_searchname'])) {
-            
+
             database_connect(IL_DATABASE_PATH, 'library');
 
             $stmt = $dbHandle->prepare("UPDATE searches SET searchvalue=:searchvalue WHERE userID=:user AND searchname=:searchname AND searchfield=:searchfield");
@@ -344,7 +344,7 @@ if (isset($_SESSION['auth'])) {
 
         $pmc_query = urlencode($pmc_query);
 
-        $request_url = 'http://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=' . $pmc_query . '&usehistory=y&retstart=0&retmax=1000&sort=' . $pmc_sort . '&rettype=uilist&tool=I,Librarian&email=i.librarian.software@gmail.com';
+        $request_url = 'https://www.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=' . $pmc_query . '&usehistory=y&retstart=0&retmax=1000&sort=' . $pmc_sort . '&rettype=uilist&tool=I,Librarian&email=i.librarian.software@gmail.com';
 
         $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -374,7 +374,7 @@ if (isset($_SESSION['auth'])) {
 
         if ($count > 0) {
 
-            $request_url = 'http://www.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pmc&WebEnv=' . urlencode($webenv) . '&query_key=' . urlencode($querykey) . '&retmode=XML&retstart=' . $retstart . '&retmax=10&tool=I,Librarian&email=i.librarian.software@gmail.com&version=2.0';
+            $request_url = 'https://www.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pmc&WebEnv=' . urlencode($webenv) . '&query_key=' . urlencode($querykey) . '&retmode=XML&retstart=' . $retstart . '&retmax=10&tool=I,Librarian&email=i.librarian.software@gmail.com&version=2.0';
 
             $xml = proxy_simplexml_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
@@ -502,9 +502,9 @@ if (isset($_SESSION['auth'])) {
                     $result = null;
 
                     print '<div class="items" id="UID-' . urlencode($pmid) . '" data-pmcid="' . urlencode($uid) . '"  style="padding:0">';
-                    
+
                     print '<div class="ui-widget-header" style="border-left:0;border-right:0">';
-                    
+
                     print '<div class="flag ' . (($relation == 1) ? 'ui-state-error-text' : 'ui-priority-secondary') . '" style="float:right;margin:4px"><i class="fa fa-flag"></i></div>';
 
                     print '<div class="titles brief" style="overflow:hidden;margin-right:30px';
@@ -513,7 +513,7 @@ if (isset($_SESSION['auth'])) {
                         print ';color: #777';
 
                     print '">' . $title.'</div>';
-                    
+
                     print '</div>';
 
                     print '<div class="firstcontainer items">';
@@ -533,12 +533,12 @@ if (isset($_SESSION['auth'])) {
                     if (!empty($authors))
                     print '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . htmlspecialchars($authors) . '</div>';
 
-                    print '<a href="' . htmlspecialchars('http://www.ncbi.nlm.nih.gov/pmc/articles/' . urlencode($uid)) . '" target="_blank">PubMed Central</a>';
+                    print '<a href="' . htmlspecialchars('https://www.ncbi.nlm.nih.gov/pmc/articles/' . urlencode($uid)) . '" target="_blank">PubMed Central</a>';
 
-                    print ' <b>&middot;</b> <a href="' . htmlspecialchars('http://www.ncbi.nlm.nih.gov/pmc/articles/' . urlencode($uid) . '/pdf/') . '" target="_blank">Full Text PDF</a>';
+                    print ' <b>&middot;</b> <a href="' . htmlspecialchars('https://www.ncbi.nlm.nih.gov/pmc/articles/' . urlencode($uid) . '/pdf/') . '" target="_blank">Full Text PDF</a>';
 
                     if (!empty($doi))
-                        print ' <b>&middot;</b> <a href="' . htmlspecialchars('http://dx.doi.org/' . urlencode($doi)) . '" target="_blank">Publisher Website</a>';
+                        print ' <b>&middot;</b> <a href="' . htmlspecialchars('https://dx.doi.org/' . urlencode($doi)) . '" target="_blank">Publisher Website</a>';
 
                     print '</div>';
 
@@ -597,7 +597,7 @@ if (isset($_SESSION['auth'])) {
         <div style="text-align: left">
             <form enctype="application/x-www-form-urlencoded" action="download_pmc.php" method="GET" id="download-form">
                 <div class="ui-state-default ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">
-                    <a href="http://www.ncbi.nlm.nih.gov/pmc/" target="_blank" style="display:block"><i class="fa fa-external-link"></i> PubMed Central</a>
+                    <a href="https://www.ncbi.nlm.nih.gov/pmc/" target="_blank" style="display:block"><i class="fa fa-external-link"></i> PubMed Central</a>
                 </div>
                 <div style="clear:both"></div>
                 <table class="threed" style="width:100%">
@@ -610,7 +610,7 @@ if (isset($_SESSION['auth'])) {
                     </tr>
                     <tr>
                         <td class="threed" style="width:14em">
-                            Boolean query: <a href="http://www.ncbi.nlm.nih.gov/books/NBK3825/#pmchelp.Searching_PMC" target="_blank">?</a>
+                            Boolean query: <a href="https://www.ncbi.nlm.nih.gov/books/NBK3825/#pmchelp.Searching_PMC" target="_blank">?</a>
                         </td>
                         <td class="threed">
                             <textarea name="pmc_tagged_query" class="tagged_query" cols="55" rows="6" style="width:99%"><?php print isset($_SESSION['session_download_pmc_tagged_query']) ? htmlspecialchars($_SESSION['session_download_pmc_tagged_query']) : ''; ?></textarea>
@@ -773,8 +773,8 @@ if (isset($_SESSION['auth'])) {
                         </td>
                     </tr>
                 </table>
-                &nbsp;<a href="http://www.ncbi.nlm.nih.gov/books/NBK3825/" target="_blank">Help</a>
-                &nbsp;&nbsp;<a href="http://www.ncbi.nlm.nih.gov/About/disclaimer.html" target="_blank">Disclaimer</a>
+                &nbsp;<a href="https://www.ncbi.nlm.nih.gov/books/NBK3825/" target="_blank">Help</a>
+                &nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/About/disclaimer.html" target="_blank">Disclaimer</a>
             </form>
         </div>
         <?php

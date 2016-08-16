@@ -22,7 +22,7 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     die('mailto:?subject=Paper in I, Librarian&body=' . wordwrap($title, 65, '%0A', true) . '%0A%0A'
             . wordwrap(substr($abstract, 0, 500), 65, '%0A', true)
             . (strlen($abstract) > 500 ? '...' : '') . '%0A%0A'
-            . (!empty($doi) ? 'Publisher link:%0Ahttp://dx.doi.org/' . $doi . '%0A%0A' : '')
+            . (!empty($doi) ? 'Publisher link:%0Ahttps://dx.doi.org/' . $doi . '%0A%0A' : '')
             . 'I, Librarian link:%0A' . IL_URL . '?id=' . $_GET['id'] . '%0A%0A');
 }
 ?>
