@@ -435,17 +435,32 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         if (!empty($_POST['form_new_file_link'])) {
-            $pdf_contents = proxy_file_get_contents($_POST['form_new_file_link'], $proxy_name, $proxy_port, $proxy_username, $proxy_password);
-            if (stripos($pdf_contents, '%PDF') === 0) {
-                $move = file_put_contents(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file, $pdf_contents);
-                if ($move == false)
+
+            $contents = getFromWeb($_POST['form_new_file_link'], $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+
+            if (empty($contents)) {
+
+                $error[] = 'Error! I, Librarian could not connect to the URL. Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>The external service may be temporarily down. Try again later.';
+            }
+
+            if (stripos($contents, '%PDF') === 0) {
+
+                $move = file_put_contents(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file, $contents);
+
+                if ($move == false) {
+
                     $error[] = htmlspecialchars("Error! The PDF file has not been recorded.<br>" . $title);
+                }
+
                 if ($move == true) {
+
                     $message[] = htmlspecialchars("The PDF file has been recorded.<br>" . $title);
                     $hash = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
                 }
+
             } else {
-                $error[] = 'Error! I, Librarian could not find the PDF. Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>The external service may be temporarily down. Try again later.<br><br>The link you provided is not for a PDF.';
+
+                $error[] = 'Error! The link you provided does not lead to a PDF.';
             }
         }
 
@@ -551,15 +566,26 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $error[] = "Error! No PDF was found.";
             }
         }
+
         if (!empty($_POST['form_new_file_link'])) {
-            $pdf_contents = proxy_file_get_contents($_POST['form_new_file_link'], $proxy_name, $proxy_port, $proxy_username, $proxy_password);
-            if (stripos($pdf_contents, '%PDF') === 0) {
-                if (!empty($pdf_contents))
-                    file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . ".pdf", $pdf_contents);
+
+            $contents = getFromWeb($_POST['form_new_file_link'], $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+
+            if (empty($contents)) {
+
+                $error[] = 'Error! I, Librarian could not connect to the URL. Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>The external service may be temporarily down. Try again later.';
+            }
+
+            if (stripos($contents, '%PDF') === 0) {
+
+                file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . ".pdf", $contents);
+
                 $_POST['title'] = $rand . ".pdf";
                 $_POST['tempfile'] = $rand . ".pdf";
+
             } else {
-                die('Error! I, Librarian could not find the PDF. Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>The external service may be temporarily down. Try again later.<br><br>The link you provided is not for a PDF.');
+
+                $error[] = 'Error! The link you provided does not lead to a PDF.';
             }
         }
 

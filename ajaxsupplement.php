@@ -124,9 +124,24 @@ if (isset($_FILES['form_new_file']) && is_uploaded_file($_FILES['form_new_file']
 }
 
 if (!empty($_POST['form_new_file_link'])) {
-    $pdf_contents = proxy_file_get_contents($_POST['form_new_file_link'], $proxy_name, $proxy_port, $proxy_username, $proxy_password);
-    if (empty($pdf_contents))
-        die('Error! I, Librarian could not find the PDF. Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>The external service may be temporarily down. Try again later.<br><br>The link you provided is not for a PDF.');
+
+    $contents = getFromWeb($_POST['form_new_file_link'], $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+
+    if (empty($contents)) {
+
+        die('Error! I, Librarian could not find the PDF. Possible reasons:<br><br>'
+                . 'You access the Web through a proxy server. Enter your proxy details'
+                . ' in Tools->Settings.<br><br>The external service may be temporarily down.'
+                . ' Try again later.<br><br>The link you provided is not for a PDF.');
+    }
+
+    $pdf_contents = strstr($contents, "%PDF");
+
+    if (empty($pdf_contents)) {
+
+        die('Error! This link does not lead to a PDF file.');
+    }
+
     file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $_POST['filename'], $pdf_contents);
 }
 

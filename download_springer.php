@@ -229,12 +229,15 @@ if (!empty($_GET['action'])) {
     if (!file_exists(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
                     . 'springer_' . md5($springer_url) . '.sq3')) {
 
-        $csv_string = '';
-        $csv_string = proxy_file_get_contents($springer_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+        $contents = getFromWeb($springer_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
-//        if (empty($csv_string))
-//            die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
-//            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+        if (empty($contents)) {
+
+            die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+        }
+
+        $csv_string = strstr($contents, "Item Title");
 
         $csv_string = str_replace("\n\"", "{newline}\"", $csv_string);
         $csv_array = explode("{newline}", $csv_string);
@@ -405,7 +408,7 @@ if (!empty($_GET['action'])) {
                 print '<div class="abstract_container" style="display:none"></div>';
 
                 print '<div class="save_container"></div>';
-                
+
                 print '</div>';
             }
         }

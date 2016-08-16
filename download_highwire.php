@@ -223,11 +223,13 @@ if (isset($_SESSION['auth'])) {
 
         $request_url = "http://highwire.stanford.edu/cgi/sru?version=1.1&operation=searchRetrieve&query=$query_string&startRecord=" . ($from - 1) . "&sendit=Search";
 
-        $xml = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+        $xml = getFromWeb($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
-        if ($xml === false)
+        if ($xml === '') {
+            
             die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
             Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+        }
     }
 
 ########## display search result summaries ##############
@@ -566,7 +568,7 @@ if (isset($_SESSION['auth'])) {
                         <td class="threed" style="width:12em">
                             <select name="highwire_selection">
                                 <?php
-                                print ' 
+                                print '
 	<option value="all" ' . ((isset($_SESSION['session_download_highwire_selection']) && $_SESSION['session_download_highwire_selection'] == 'all') ? 'selected' : '') . '>full record</option>
 	<option value="au" ' . ((isset($_SESSION['session_download_highwire_selection']) && $_SESSION['session_download_highwire_selection'] == 'au') ? 'selected' : '') . '>author</option>
 	<option value="ti" ' . ((isset($_SESSION['session_download_highwire_selection']) && $_SESSION['session_download_highwire_selection'] == 'ti') ? 'selected' : '') . '>title</option>

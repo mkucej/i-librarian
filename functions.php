@@ -762,257 +762,61 @@ function select_soffice() {
 
 }
 
-/////////////proxy_file_get_contents//////////////////////
-
-function proxy_file_get_contents($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
-
-    $pdf_string = '';
-
-    if (!parse_url($url, PHP_URL_SCHEME))
-        $url = 'http://' . $url;
-
-    if (isset($proxy_name) && !empty($proxy_name)) {
-
-        $proxy_fp = @fsockopen($proxy_name, $proxy_port);
-
-        if ($proxy_fp) {
-
-            $pdf_string = '';
-            $cookies = array();
-
-            fputs($proxy_fp, "GET $url HTTP/1.0\r\nHost: $proxy_name\r\n");
-            if (!empty($proxy_username))
-                fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n");
-            fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-            while (!feof($proxy_fp)) {
-                $pdf_string .= fgets($proxy_fp, 128);
-            }
-
-            fclose($proxy_fp);
-
-            $pdf = strstr($pdf_string, "%PDF");
-            $csv = strstr($pdf_string, "Item Title");
-            $ris = strstr($pdf_string, "TY  -");
-
-            if (empty($pdf)) {
-
-                $response = array();
-                $response = explode("\r\n", $pdf_string);
-
-                while (list($key, $value) = each($response)) {
-
-                    if (stripos($value, "Location: ") === 0) {
-                        if ($value != $url)
-                            $new_url = trim(substr($value, 10));
-                    }
-
-                    if (stripos($value, "Set-Cookie: ") === 0) {
-                        $cookies[] = trim($value);
-                    }
-                }
-
-                if (!empty($new_url)) {
-
-                    $pdf_string = '';
-
-                    if (stripos($new_url, "http") !== 0)
-                        $new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . $new_url;
-
-                    $proxy_fp = @fsockopen($proxy_name, $proxy_port);
-
-                    fputs($proxy_fp, "GET $new_url HTTP/1.0\r\nHost: $proxy_name\r\n");
-                    foreach ($cookies as $cookie) {
-                        if (!empty($cookie))
-                            fputs($proxy_fp, "Cookie: " . substr($cookie, 12) . "\r\n");
-                    }
-                    if (!empty($proxy_username))
-                        fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n");
-                    fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-                    while (!feof($proxy_fp)) {
-                        $pdf_string .= fgets($proxy_fp, 128);
-                    }
-                    fclose($proxy_fp);
-
-                    $pdf = strstr($pdf_string, "%PDF");
-
-                    if (empty($pdf)) {
-
-                        $response = array();
-                        $response = explode("\r\n", $pdf_string);
-
-                        while (list($key, $value) = each($response)) {
-
-                            if (stripos($value, "Location: ") === 0) {
-                                if ($value != $url)
-                                    $new_url = trim(substr($value, 10));
-                            }
-                            if (stripos($value, "Set-Cookie: ") === 0) {
-                                $cookies[] = trim($value);
-                            }
-                        }
-
-                        if (!empty($new_url)) {
-
-                            $pdf_string = '';
-
-                            if (stripos($new_url, "http") !== 0)
-                                $new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . $new_url;
-
-                            $proxy_fp = @fsockopen($proxy_name, $proxy_port);
-
-                            fputs($proxy_fp, "GET $new_url HTTP/1.0\r\nHost: $proxy_name\r\n");
-                            foreach ($cookies as $cookie) {
-                                if (!empty($cookie))
-                                    fputs($proxy_fp, "Cookie: " . substr($cookie, 12) . "\r\n");
-                            }
-                            if (!empty($proxy_username))
-                                fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n");
-                            fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-                            while (!feof($proxy_fp)) {
-                                $pdf_string .= fgets($proxy_fp, 128);
-                            }
-
-                            fclose($proxy_fp);
-
-                            $pdf = strstr($pdf_string, "%PDF");
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-
-        $host = parse_url($url, PHP_URL_HOST);
-        $path = parse_url($url, PHP_URL_PATH);
-        $query = parse_url($url, PHP_URL_QUERY);
-
-        $proxy_fp = @fsockopen($host, 80);
-
-        if ($proxy_fp) {
-
-            $pdf_string = '';
-            $cookies = array();
-
-            fputs($proxy_fp, "GET $path?$query HTTP/1.0\r\n");
-            fputs($proxy_fp, "Host: $host\r\n");
-            fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-            while (!feof($proxy_fp)) {
-                $pdf_string .= fgets($proxy_fp, 128);
-            }
-
-            fclose($proxy_fp);
-
-            $pdf = strstr($pdf_string, "%PDF");
-            $csv = strstr($pdf_string, "Item Title");
-            $ris = strstr($pdf_string, "TY  -");
-
-            if (empty($pdf)) {
-
-                $response = array();
-                $response = explode("\r\n", $pdf_string);
-
-                while (list($key, $value) = each($response)) {
-
-                    if (stripos($value, "Location: ") === 0) {
-                        if ($value != $url)
-                            $new_url = trim(substr($value, 10));
-                    }
-                    if (stripos($value, "Set-Cookie: ") === 0) {
-                        $cookies[] = trim($value);
-                    }
-                }
-
-                if (!empty($new_url)) {
-
-                    $pdf_string = '';
-
-                    if (stripos($new_url, "http") !== 0)
-                        $new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . $new_url;
-
-                    $host = parse_url($new_url, PHP_URL_HOST);
-                    $path = parse_url($new_url, PHP_URL_PATH);
-                    $query = parse_url($new_url, PHP_URL_QUERY);
-
-                    $proxy_fp = @fsockopen($host, 80);
-
-                    fputs($proxy_fp, "GET $path?$query HTTP/1.0\r\n");
-                    fputs($proxy_fp, "Host: $host\r\n");
-                    foreach ($cookies as $cookie) {
-                        if (!empty($cookie))
-                            fputs($proxy_fp, "Cookie: " . substr($cookie, 12) . "\r\n");
-                    }
-                    fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-                    while (!feof($proxy_fp)) {
-                        $pdf_string .= fgets($proxy_fp, 128);
-                    }
-
-                    fclose($proxy_fp);
-
-                    $pdf = strstr($pdf_string, "%PDF");
-
-                    if (empty($pdf)) {
-
-                        $response = array();
-                        $response = explode("\r\n", $pdf_string);
-
-                        while (list($key, $value) = each($response)) {
-
-                            if (stripos($value, "Location: ") === 0) {
-                                if ($value != $url)
-                                    $new_url = trim(substr($value, 10));
-                            }
-                            if (stripos($value, "Set-Cookie: ") === 0) {
-                                $cookies[] = trim($value);
-                            }
-                        }
-
-                        if (!empty($new_url)) {
-
-                            $pdf_string = '';
-
-                            if (stripos($new_url, "http") !== 0)
-                                $new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . $new_url;
-
-                            $host = parse_url($new_url, PHP_URL_HOST);
-                            $path = parse_url($new_url, PHP_URL_PATH);
-                            $query = parse_url($new_url, PHP_URL_QUERY);
-
-                            $proxy_fp = @fsockopen($host, 80);
-
-                            fputs($proxy_fp, "GET $path?$query HTTP/1.0\r\n");
-                            fputs($proxy_fp, "Host: $host\r\n");
-                            foreach ($cookies as $cookie) {
-                                if (!empty($cookie))
-                                    fputs($proxy_fp, "Cookie: " . substr($cookie, 12) . "\r\n");
-                            }
-                            fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-                            while (!feof($proxy_fp)) {
-                                $pdf_string .= fgets($proxy_fp, 128);
-                            }
-
-                            fclose($proxy_fp);
-
-                            $pdf = strstr($pdf_string, "%PDF");
-                        }
-                    }
-                }
-            }
+/**
+ *
+ * GET request to fetch resources from the web.
+ *
+ * @param string $url
+ * @param string $proxy_name
+ * @param string $proxy_port
+ * @param string $proxy_username
+ * @param string $proxy_password
+ * @return string
+ *
+ */
+function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
+
+    $contents = '';
+    $curl = curl_init();
+
+    if (!empty($proxy_name) && !empty($proxy_port)) {
+
+        // enable NTLM proxy authentication
+        // curl_setopt($curl, CURLOPT_PROXYAUTH, CURLAUTH_NTLM);
+        curl_setopt($curl, CURLOPT_PROXY, "$proxy_name:$proxy_port");
+
+        if (!empty($proxy_username) && !empty($proxy_password)) {
+
+            curl_setopt($curl, CURLOPT_PROXYUSERPWD, "$proxy_username:$proxy_password");
         }
     }
-    if (!empty($pdf)) {
-        return $pdf;
-    } elseif (!empty($csv)) {
-        return $csv;
-    } elseif (!empty($ris)) {
-        return $ris;
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($curl, CURLOPT_USERAGENT,"$_SERVER[HTTP_USER_AGENT]");
+    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_HEADER, 0);
+
+    // Do not verify TLS certificates on OSes where we don't have the certificate bundle.
+    if (PHP_OS !== 'Linux') {
+
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
     }
 
+    $contents = curl_exec($curl);
+
+    curl_close($curl);
+
+    // Curl error.
+    if ($contents === false) {
+
+        return '';
+    }
+
+    return $contents;
 }
 
 /////////////proxy_simplexml_load_file//////////////////////
@@ -1021,156 +825,12 @@ function proxy_simplexml_load_file($url, $proxy_name, $proxy_port, $proxy_userna
 
     $xml = false;
     $xml_string = '';
-    $xml_string2 = '';
 
-    if (isset($proxy_name) && !empty($proxy_name)) {
+    $xml_string = getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
-        $proxy_fp = @fsockopen($proxy_name, $proxy_port, $errno, $errstr, 10);
+    $xml = simplexml_load_string($xml_string);
 
-        if ($proxy_fp) {
-
-            fputs($proxy_fp, "GET $url HTTP/1.0\r\nHost: $proxy_name\r\n");
-            if (!empty($proxy_username))
-                fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n");
-            fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-            while (!feof($proxy_fp)) {
-                $xml_string2 .= fgets($proxy_fp, 128);
-            }
-
-            fclose($proxy_fp);
-
-            $xml_string = strstr($xml_string2, "<?xml");
-            $xml = simplexml_load_string($xml_string);
-            #JSTOR hack
-            if (empty($xml) && strpos($url, 'jstor') !== false) {
-                $xml = new XMLReader();
-                $xml->xml($xml_string);
-            }
-            #NASA PHYS hack
-            if (empty($xml) && strpos($url, 'adsabs') !== false) {
-
-                $response = array();
-                $response = explode("\r\n", $xml_string2);
-
-                while (list($key, $value) = each($response)) {
-
-                    if (stripos($value, "Location: ") === 0) {
-                        $new_url = trim(substr($value, 10));
-                        if ($new_url != $url)
-                            break;
-                    }
-                }
-
-                if (!empty($new_url)) {
-
-                    $xml_string = '';
-
-                    if (stripos($new_url, "http") !== 0)
-                        $new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . $new_url;
-
-                    $proxy_fp = @fsockopen($proxy_name, $proxy_port);
-
-                    fputs($proxy_fp, "GET $new_url HTTP/1.0\r\nHost: $proxy_name\r\n");
-                    if (!empty($proxy_username))
-                        fputs($proxy_fp, "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password") . "\r\n");
-                    fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-                    while (!feof($proxy_fp)) {
-                        $xml_string .= fgets($proxy_fp, 128);
-                    }
-
-                    fclose($proxy_fp);
-
-                    $xml_string = strstr($xml_string, "<?xml");
-                    $xml = simplexml_load_string($xml_string);
-                }
-            }
-        }
-    } else {
-
-        ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
-        $xml = @simplexml_load_file($url);
-//        var_dump($xml);
-//        die();
-        #JSTOR hack
-        if (strpos($url, 'jstor') !== false) {
-            $xml = new XMLReader();
-            $xml->open($url);
-        }
-        #NASA PHYS hack
-        if (empty($xml) && strpos($url, 'adsabs') !== false) {
-            $xml_string2 = '';
-            $host = parse_url($url, PHP_URL_HOST);
-            $path = parse_url($url, PHP_URL_PATH);
-            $query = parse_url($url, PHP_URL_QUERY);
-
-            $proxy_fp = @fsockopen($host, 80);
-
-            if ($proxy_fp) {
-
-                fputs($proxy_fp, "GET $path?$query HTTP/1.0\r\n");
-                fputs($proxy_fp, "Host: $host\r\n");
-                fputs($proxy_fp, "User-Agent: \"$_SERVER[HTTP_USER_AGENT]\"\r\n\r\n");
-
-                while (!feof($proxy_fp)) {
-                    $xml_string2 .= fgets($proxy_fp, 128);
-                }
-
-                fclose($proxy_fp);
-
-                $response = array();
-                $response = explode("\r\n", $xml_string2);
-
-                while (list($key, $value) = each($response)) {
-
-                    if (stripos($value, "Location: ") === 0) {
-                        $new_url = trim(substr($value, 10));
-                        if ($new_url != $url)
-                            break;
-                    }
-                }
-
-                if (!empty($new_url)) {
-
-                    if (stripos($new_url, "http") !== 0)
-                        $new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . $new_url;
-
-                    ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
-                    $xml = @simplexml_load_file($url);
-                }
-            }
-        }
-    }
-//    $xml = false;
     return $xml;
-
-}
-
-function proxy_dom_load_file($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
-
-    $dom = false;
-    $context = null;
-
-    if (isset($proxy_name) && !empty($proxy_name)) {
-
-        $context = array
-            (
-            'http' => array
-                (
-                'proxy' => $proxy_name . ':' . $proxy_port,
-                'request_fulluri' => true,
-                'header' => "Proxy-Authorization: Basic " . base64_encode("$proxy_username:$proxy_password")
-            )
-        );
-
-        $context = stream_context_create($context);
-    }
-    $dom = @file_get_contents($url, false, $context);
-    if ($dom === false)
-        $dom = '';
-    return $dom;
-
 }
 
 //FETCH METADATA FROM NASA ADS
@@ -1409,7 +1069,7 @@ function fetch_from_googlepatents($patent_id) {
 
     $request_url = "http://www.google.com/patents/" . urlencode($patent_id);
 
-    $dom = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+    $dom = getFromWeb($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
     if (empty($dom))
         die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
@@ -1467,7 +1127,7 @@ function fetch_from_ol($ol_id, $isbn) {
 
     $request_url = "http://openlibrary.org/search.json?" . $query;
 
-    $ol = proxy_dom_load_file($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
+    $ol = getFromWeb($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
     if (empty($ol))
         die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
