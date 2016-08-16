@@ -3,4 +3,5 @@ library
 !library/.htaccess
 bin/**
 ilibrarian.conf
+ilibrarian.ini
 unins*

@@ -125,22 +125,25 @@ if (isset($_GET['file'])) {
             print '&nbsp;<i class="star ' . (($paper['rating'] == 3) ? 'ui-state-error-text' : 'ui-priority-secondary') . ' fa fa-star"></i></span>&nbsp;';
         }
 
-        $result = $dbHandle->query("SELECT categoryID,category
-			FROM categories
-			WHERE categoryID IN (SELECT categoryID
-				FROM filescategories
-				WHERE fileID=$query)
-			ORDER BY category COLLATE NOCASE ASC");
+        if (isset($_SESSION['auth'])) {
 
-        while ($categories = $result->fetch(PDO::FETCH_ASSOC)) {
-            $category_array[] = htmlspecialchars($categories['category']);
+            $result = $dbHandle->query("SELECT categoryID,category
+                            FROM categories
+                            WHERE categoryID IN (SELECT categoryID
+                                    FROM filescategories
+                                    WHERE fileID=$query)
+                            ORDER BY category COLLATE NOCASE ASC");
+
+            while ($categories = $result->fetch(PDO::FETCH_ASSOC)) {
+                $category_array[] = htmlspecialchars($categories['category']);
+            }
+
+            if (empty($category_array[0]))
+                $category_array[0] = '!unassigned';
+
+            $category_string = join(", ", $category_array);
+            $category_array = null;
         }
-
-        if (empty($category_array[0]))
-            $category_array[0] = '!unassigned';
-
-        $category_string = join(", ", $category_array);
-        $category_array = null;
 
         if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file']) && isset($_SESSION['auth'])) {
 
@@ -425,10 +428,17 @@ if (isset($_GET['file'])) {
                 </div>
                 <div class="separator" style="margin:0"></div>
                 <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:180px">';
-        if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file']))
-            print '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . $paper['file']) . '" target="_blank">'
+
+        if (isset($_SESSION['auth'])) {
+
+            if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($paper['file']) . DIRECTORY_SEPARATOR . $paper['file'])) {
+
+                print '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&file=' . $paper['file']) . '" target="_blank">'
                     . '<i class="fa fa-external-link" style="color:inherit;margin-right:0.5em"></i></a>'
                     . '<a href="' . htmlspecialchars('pdfcontroller.php?downloadpdf=1&mode=download&file=' . $paper['file']) . '">' . $paper['file'] . '</a><br>';
+            }
+        }
+
         print $url_filename . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%;border-bottom:0">
@@ -484,6 +494,8 @@ if (isset($_GET['file'])) {
             }
         }
 
+        $keywords = (isset($_SESSION['auth'])) ? htmlspecialchars($paper['keywords']) : '';
+
         print '</div>
             </div>
             <div class="file-grid">
@@ -494,7 +506,7 @@ if (isset($_GET['file'])) {
             <div class="file-grid">
                 <div class="ui-dialog-titlebar ui-state-default" style="border:0;border-radius:0">Keywords</div>
                 <div class="separator" style="margin:0"></div>
-                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:160px">' . htmlspecialchars($paper['keywords']) . '</div>
+                <div class="alternating_row" style="padding:4px 10px;overflow:auto;height:160px">' . $keywords . '</div>
             </div>
             <div class="file-grid" style="border-right:0;width:33.33%">
                 <div class="ui-dialog-titlebar ui-state-default" style="border:0;border-radius:0">Miscellaneous</div>
