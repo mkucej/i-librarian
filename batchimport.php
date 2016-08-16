@@ -684,6 +684,7 @@ if (!isset($_GET['commence'])) {
 
                         if (!empty($last_name[0])) {
                             $bibtex_author = utf8_deaccent($last_name[0]);
+                            $bibtex_author = str_replace(' ', '', $bibtex_author);
                         }
 
                         empty($year) ? $bibtex_year = '0000' : $bibtex_year = substr($year, 0, 4);

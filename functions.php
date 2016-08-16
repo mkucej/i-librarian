@@ -1945,6 +1945,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                 $bibtex_author = strip_tags($paper['authors']);
                 $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
                 $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
+                $bibtex_author = str_replace(' ', '', $bibtex_author);
                 if (empty($bibtex_author))
                     $bibtex_author = 'unknown';
 
@@ -2097,6 +2098,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
                     $bibtex_author = strip_tags($paper['authors']);
                     $bibtex_author = substr($bibtex_author, 0, strpos($bibtex_author, ','));
                     $bibtex_author = str_replace(array(' ', '{', '}'), '', $bibtex_author);
+                    $bibtex_author = str_replace(' ', '', $bibtex_author);
                     if (empty($bibtex_author))
                         $bibtex_author = 'unknown';
 

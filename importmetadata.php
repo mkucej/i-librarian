@@ -1483,6 +1483,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             $bibtex_author = substr($author_ascii_array2[0], 3, -1);
                         }
                     }
+                    $bibtex_author = str_replace(' ', '', $bibtex_author);
 
                     empty($year) ? $bibtex_year = '0000' : $bibtex_year = substr($year, 0, 4);
 
