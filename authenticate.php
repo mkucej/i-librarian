@@ -22,9 +22,10 @@ $ldap_opt_referrals = $ini_array['ldap_opt_referrals'];
 $ldap_version = $ini_array['ldap_version'];
 $ldap_server = $ini_array['ldap_server'];
 $ldap_basedn = $ini_array['ldap_basedn'];
-$ldap_binduser_dn = $ini_array['ldap_binduser_dn']; // easier to use DN instead of RDN as RDN 
+$ldap_binduser_dn = $ini_array['ldap_binduser_dn']; // easier to use DN instead of RDN as RDN
 $ldap_binduser_pw = $ini_array['ldap_binduser_pw'];
 $ldap_username_attr = $ini_array['ldap_username_attr'];
+$ldap_userlogin_attr = $ini_array['ldap_userlogin_attr'];
 $ldap_user_rdn = $ini_array['ldap_user_rdn'];
 $ldap_group_rdn = $ini_array['ldap_group_rdn'];
 $ldap_usergroup_cn = $ini_array['ldap_usergroup_cn'];
@@ -61,25 +62,25 @@ if (isset($_POST['form']) && $_POST['form'] == 'signup' && !empty($_POST['user']
 
     // If registration not allowed, exit with error.
     $dbHandle = database_connect(IL_USER_DATABASE_PATH, 'users');
-    
+
     $result = $dbHandle->query("SELECT setting_value as v FROM settings"
             . " WHERE setting_name = 'disallow_signup'");
-    
+
     $disallow_signup = $result->fetchColumn();
 
     $result = null;
     $dbHandle = null;
-    
+
     if ($disallow_signup) {
         sendError('Registration is not allowed.');
     }
-    
+
     // If LDAP is on, registration is not allowed.
     if ($ldap_active) {
         sendError('Only LDAP registered users can access this library.');
     }
 
-    // Password checks.    
+    // Password checks.
     if ($_POST['pass'] !== $_POST['pass2']) {
         sendError('Password typo.');
     }
@@ -195,7 +196,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                 sendError("Failed to set LDAP debug level $ldap_opt_debug_level");
             }
         }
-        
+
         // Connect.
         if (!$ldap_connect = ldap_connect($ldap_server)) {
             sendError("Could not connect to LDAP server");
@@ -255,12 +256,12 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
         }
         // fix characters in ldap_user_dn https://msdn.microsoft.com/en-us/library/aa746475(v=vs.85).aspx
         $ldap_user_dn  = str_replace("*","\\2a", $ldap_user_dn);
-		$ldap_user_dn  = str_replace("(","\\28", $ldap_user_dn);
-		$ldap_user_dn  = str_replace(")","\\29", $ldap_user_dn);
-		$ldap_user_dn  = str_replace("\\","\\5c", $ldap_user_dn);
-		// $ldap_user_dn  = str_replace(null,"\\00", $ldap_user_dn);
-		$ldap_user_dn  = str_replace("/","\\2f", $ldap_user_dn);
-		
+        $ldap_user_dn  = str_replace("(","\\28", $ldap_user_dn);
+        $ldap_user_dn  = str_replace(")","\\29", $ldap_user_dn);
+        $ldap_user_dn  = str_replace("\\","\\5c", $ldap_user_dn);
+        // $ldap_user_dn  = str_replace(null,"\\00", $ldap_user_dn);
+        $ldap_user_dn  = str_replace("/","\\2f", $ldap_user_dn);
+
         // Authorize: Check if user is in admin group.
         // ldap_admingroup_dn could be either set within config our built using cn,rdn,basedn
         if (empty($ldap_admingroup_dn)) {
@@ -292,6 +293,17 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
                 }
             }
         }
+
+        // It is not clear to me why password should be verified second time.
+//        // Verify the given password
+//	$ldap_sr_all_user_attributes = @ldap_search($ldap_connect, '', $ldap_filter_string);
+//	$usersattributes = @ldap_get_entries($ldap_connect, $ldap_sr_all_user_attributes);
+//	// try to connect to ldap using the given attribute and the password
+//	if (!$ldap_bind_check_pass = ldap_bind($ldap_connect, $usersattributes[0][$ldap_userlogin_attr][0], $password)) {
+//            sendError("Failed to authenticate: " . $usersattributes[0][$ldap_userlogin_attr][0]);
+//        } else {
+//            // password is valid!
+//	}
 
         $dbHandle->beginTransaction();
 
