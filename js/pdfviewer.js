@@ -675,7 +675,7 @@ var getBookmarks = {
             $('#reading-bookmarks').remove();
             var pages = '';
             $.each(answer, function (key, rows) {
-                $('#bookmarks').append('<p class="bookmark bookmark-level-' + rows.level + '" id="bookmark-' + key + '" data-page="' + rows.page + '"><span>' + rows.title + '</span></p>');
+                $('#bookmarks').append('<p class="bookmark bookmark-level-' + rows.level + '" id="bookmark-' + key + '" data-page="' + rows.page + '">' + rows.title + '</p>');
                 $('#bookmark-' + key).css('padding-left', 6 * rows.level + 'px');
             });
             // Navigation: click bookmarks.
@@ -699,7 +699,7 @@ var getBookmarks = {
                 }
             });
             // Regexp search.
-            searchnotes.init();
+            searchbookmarks.init();
         });
     }
 };
@@ -733,41 +733,81 @@ var annotations = {
         });
     }
 };
-// Regexp search notes and bookmarks in left panel.
+// Regexp search bookmarks in left panel.
+var searchbookmarks = {
+    init: function () {
+        var filterId;
+        // Highlight function.
+        $('#bookmarks').off().on('highlight', 'p', function (e, re2) {
+            var $t = $(this);
+            $t.addClass('hit').html($t.text().replace(re2, '<span style="background-color:#eea">$1</span>'));
+        });
+        $("#bookmarks .pdf_filter").off().on('keyup', function () {
+            clearTimeout(filterId);
+            filterId = setTimeout(function () {searchbookmarks.filter()}, 300);
+        }).on('focus', function () {
+            $(this).val('');
+            searchbookmarks.reset();
+        });
+    },
+    filter: function () {
+        var str = $("#bookmarks .pdf_filter").val(), $container = $('#bookmarks').find('p');
+        if (str.length > 1) {
+            // Escape all non-alphanum characters in the query.
+            qstr = str.replace(/([^a-zA-Z0-9])/g, '\\$1');
+            var re = new RegExp(qstr, 'i'), re2 = new RegExp('\(' + qstr + '\)', 'gi');
+            // Show only elements with the matching content.
+            $container.hide().filter(function () {
+                return re.test($(this).text());
+            }).trigger('highlight', re2).show();
+        } else {
+            searchbookmarks.reset();
+        }
+    },
+    reset: function () {
+        $('#bookmarks > .hit').each(function () {
+            $(this).html($(this).text());
+        }).removeClass('hit');
+        $('#bookmarks > p').show();
+    }
+};
+// Regexp search notes in left panel.
 var searchnotes = {
     init: function () {
-        $(".pdf_filter").keyup(function () {
-            var str = $(this).val(), $container = $(this).siblings('p, div');
-            if (str.length > 1) {
-                // Escape all non-alphanum characters in the query.
-                qstr = str.replace(/([^a-zA-Z0-9])/g, '\\$1');
-                // Show only elements with the matching content.
-                var re = new RegExp(qstr, 'i');
-                $container.hide().filter(function () {
-                    return re.test($(this).children('span,.alternating_row').text());
-                }).show();
-                var re2 = new RegExp('\(' + qstr + '\)', 'gi');
-                $container.each(function () {
-                    if ($(this).is(':visible')) {
-                        newstr = $(this).children('span,.alternating_row').text().replace(re2, '<span style="background-color:#eea">$1</span>');
-                        $(this).children('span,.alternating_row').html(newstr);
-                    }
-                });
-            } else {
-                $container.show();
-                $container.each(function () {
-                    newstr = $(this).children('span,.alternating_row').text();
-                    $(this).children('span,.alternating_row').text(newstr);
-                });
-            }
-        }).focus(function () {
-            $(this).val('');
-            $(this).siblings('p, div').show();
-            $(this).siblings('p, div').each(function () {
-                newstr = $(this).children('span,.alternating_row').text();
-                $(this).children('span,.alternating_row').text(newstr);
-            });
+        var filterId;
+        // Highlight function.
+        $('#annotations-left').off().on('highlight', '.annotation', function (e, re2) {
+            var $t = $(this), $c = $t.children('.alternating_row');
+            $t.addClass('hit');
+            $c.html($c.text().replace(re2, '<span style="background-color:#eea">$1</span>'));
         });
+        $("#annotations-left .pdf_filter").off().on('keyup', function () {
+            clearTimeout(filterId);
+            filterId = setTimeout(function () {searchnotes.filter();}, 300);
+        }).on('focus', function () {
+            $(this).val('');
+            searchnotes.reset();
+        });
+    },
+    filter: function () {
+        var str = $("#annotations-left .pdf_filter").val(), $container = $('#annotations-left').find('.annotation');
+        if (str.length > 1) {
+            // Escape all non-alphanum characters in the query.
+            qstr = str.replace(/([^a-zA-Z0-9])/g, '\\$1');
+            var re = new RegExp(qstr, 'i'), re2 = new RegExp('\(' + qstr + '\)', 'gi');
+            // Show only elements with the matching content.
+            $container.hide().filter(function () {
+                return re.test($(this).children('.alternating_row').text());
+            }).trigger('highlight', re2).show();
+        } else {
+            searchnotes.reset();
+        }
+    },
+    reset: function () {
+        $('#annotations-left > .hit > .alternating_row').each(function () {
+            $(this).html($(this).text());
+        });
+        $('#annotations-left > .annotation').removeClass('hit').show();
     }
 };
 // Search results in left panel.
@@ -1985,7 +2025,6 @@ $(document).ready(function () {
     $('#pdf-viewer-img-div').clickNScroll();
     // Initial window size.
     var toolbarH = $('#pdf-viewer-controls').outerHeight();
-    console.log(toolbarH);
     if ($('#pdf-viewer-controls').is(':hidden'))
         toolbarH = 0;
     $('#pdf-viewer-div').height($('#pdf-viewer-div').parent().height() - toolbarH);

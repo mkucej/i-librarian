@@ -4329,7 +4329,6 @@ var upload = {
                 if ($sel !== '') {
                     $uidinp.val($sel + ':' + $uidinp.val());
                 }
-                $.jGrowl('Document recording has started. You may continue to work.');
                 timeId = setTimeout(dooverlay, 1000);
                 $.getScript('wpad.php', function () {
                     proxystr = FindProxyForURL('', 'www.crossref.org');
