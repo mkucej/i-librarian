@@ -1201,6 +1201,8 @@ $('#pdf-viewer-copy-text').change(function () {
                         });
                         // Try to remove word hyphenation.
                         txt = txt.replace(/(- )/g, '');
+                        txt = txt.replace(/\s{2,}/g, ' ');
+                        txt = $.trim(txt);
                         if (txt === '')
                             return false;
                         // Insert text to textarea.
