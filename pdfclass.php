@@ -407,7 +407,10 @@ class PDFViewer {
             // Try to repair some malformed files.
             $string = file_get_contents($temp_xml . '.xml');
             // Bad UTF-8 encoding.
-            $string = utf8_encode($string);
+            $is_utf = preg_match('//u', $string);
+            if (!$is_utf) {
+                $string = utf8_encode($string);
+            }
             // Remove invalid XML characters.
             $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]+/u', ' ', $string);
             $string = preg_replace('/\s{2,}/ui', ' ', $string);

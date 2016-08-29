@@ -18,7 +18,7 @@ if (!empty($_GET['file'])) {
     ##########	extract text from pdf	##########
 
     if (is_file($pdf_path . DIRECTORY_SEPARATOR . $filename)) {
-        
+
         $answer = recordFulltext($_GET['file'], $filename);
 
     } else {

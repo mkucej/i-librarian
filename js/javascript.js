@@ -1817,6 +1817,7 @@ var items = {
             $('#items-right iframe').height(0);
             $('#file-panel').height($('#items-right').height());
             $('#items-right iframe').height($('iframe').parent().height());
+            $("#floating-notes").trigger('dragstop');
         });
         $("#items-container .middle-panel").click(function () {
             var $l = $(this).prev();
@@ -2218,6 +2219,14 @@ var notes = {
         }).draggable({
             containment: 'body',
             handle: 'div.ui-widget-header'
+        }).on('dragstop', function () {
+            // On resize the dialog can be out of bounds! Ridiculous jQuery UI bug.
+            if ($("#floating-notes").offset().top > $(window).height()) {
+                $("#floating-notes").css('top', '10px');
+            }
+            if ($("#floating-notes").offset().left > $(window).width()) {
+                $("#floating-notes").css('left', '10px');
+            }
         });
         // copy title to notes window
         $('#floating-notes > .ui-widget-header > div').text($('#items-left').find('.clicked').text());

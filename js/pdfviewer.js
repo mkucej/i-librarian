@@ -219,7 +219,8 @@ $('.pdf-viewer-img').one('unveil', function () {
 });
 // Scroll handling.
 var scrollHandling = {
-    position: 0,
+    position: 0,          // Page container scroll position.
+    pagePositions: [],    // Initial page positions.
     time: 0,
     autoScroll: false,
     fastScroll: false,
@@ -251,34 +252,24 @@ var scrollHandling = {
         return Math.max(1, Math.floor($('#pdf-viewer-img-div').width() / ($('#pdf-viewer-img-1').width() + 8)));
     },
     detectPageChange: function () {
-        var newpage = this.page, parentheight = $('#pdf-viewer-img-div').height(),
-                $t = $('#pdf-viewer-img-' + this.page),
-                imgtop = $t.position().top,
-                imgbottom = imgtop + $t.height();
-        /**
-         * To avoid iterating over all pages when finding their position, we first
-         * estimate, which page is in the viewport by dividing the parent scrollTop
-         * value by the height of the first page. The number 8 is a margin of each
-         * page. We also account for a muticolumn view.
-         */
+        var newpage = this.page, pageBreak = $('#pdf-viewer-img-div').height() / 2,
+            $t = $('#pdf-viewer-img-' + this.page),
+            imgtop = $t.position().top,
+            imgbottom = imgtop + $t.height(),
+            scrollPos = $('#pdf-viewer-img-div').scrollTop();
         // If current page is not in the view.
-        if (imgbottom < parentheight / 2 || imgtop > parentheight / 2) {
-            var columns = this.getColumns(),
-                    estPage = 1 - columns + Math.ceil(1 + ($('#pdf-viewer-img-div').scrollTop() / ($('#pdf-viewer-img-1').height() + 8))) * columns;
-            // Find leftmost page.
-            var minLeft = $('#pdf-viewer-img-1').position().left,
-                    leftImgs = [], $items = $('.pdf-viewer-img');
-            for (var i = Math.max(estPage - 80, 0), j = 0; i < Math.min(estPage + 80, $items.length); i++) {
-                var $t = $($items[i]), tTop = $t.position().top;
-                if ($t.position().left <= minLeft
-                        && ((tTop > 0 && tTop < (parentheight / 2)) || (tTop + $t.height()) > (parentheight / 2))) {
-                    leftImgs[j] = i + 1;
-                    j++;
+        if (imgbottom < pageBreak || imgtop > pageBreak) {
+            var curPage = 1, newpage = 1;
+            for (var i = 0; i < scrollHandling.pagePositions.length; i++) {
+                if ((scrollPos + pageBreak) < scrollHandling.pagePositions[i]) {
+                    curPage = i;
+                    break;
                 }
+                // Last page.
+                curPage = i + 1;
             }
-            if (leftImgs.length > 0) {
-                newpage = Math.min.apply(Math, leftImgs);
-            }
+            // Find the leftmost page (there can be multiple page columns).
+            newpage = scrollHandling.pagePositions.indexOf(scrollHandling.pagePositions[curPage - 1]) + 1;
         }
         // If page changed, return it.
         if (newpage !== this.page) {
@@ -481,18 +472,15 @@ var getText = {
             if (getText.callerID.button("instance") !== undefined) {
                 getText.callerID.button('enable');
             }
-            // Remove text layer.
-            var $textdivs = $('#pdf-viewer-img-div').find('.text-container');
-            if ($textdivs.selectable('instance') !== undefined) {
-                $textdivs.selectable('destroy');
-            }
-            $textdivs.remove();
+            $('#pdf-viewer-img-div').find('.text-container').empty();
             // Assemble and insert the divs with text.
             var divs = '';
             $.each(answer, function (key, rows) {
                 if (from !== parseInt(rows.p)) {
                     // Append divs to the page.
-                    $('#pdf-viewer-img-' + from).append('<div class="text-container"></div>');
+                    if ($('#pdf-viewer-img-' + from + ' > .text-container').length === 0) {
+                        $('#pdf-viewer-img-' + from).append('<div class="text-container"></div>');
+                    }
                     $('#pdf-viewer-img-' + from + ' > .text-container').show().html(divs);
                     // Start new page.
                     from = parseInt(rows.p);
@@ -502,7 +490,9 @@ var getText = {
                 }
             });
             // Append divs to the last page.
-            $('#pdf-viewer-img-' + from).append('<div class="text-container"></div>');
+            if ($('#pdf-viewer-img-' + from + ' > .text-container').length === 0) {
+                $('#pdf-viewer-img-' + from).append('<div class="text-container"></div>');
+            }
             $('#pdf-viewer-img-' + from + ' > .text-container').html(divs);
             // We are done. Call function f().
             if (typeof f === 'function') {
@@ -872,7 +862,8 @@ $(window).resize(function () {
         $('#size1').click();
     } else if (zoom === 'w') {
         $('#size2').click();
-    } else {
+    } else if (!isNaN(zoom)) {
+        $("#zoom").trigger('slidestop');
         $('#pdf-viewer-img-div').trigger('scroll');
     }
     overlay.resize();
@@ -912,40 +903,55 @@ $('#save').button().click(function () {
 $('#size1').click(function () {
     $(this).blur();
     var page = scrollHandling.page,
-            imgtop = $('#pdf-viewer-img-' + page).position().top;
+        scrollTop = $('#pdf-viewer-img-div').scrollTop(),
+        imgtop = $('#pdf-viewer-img-' + page).position().top;
+    // Change page sizes.
     $('.pdf-viewer-img').each(function () {
         var $t = $(this);
         $t[0].style.width = $t.data('width') + 'px';
         $t[0].style.height = $t.data('height') + 'px';
+    });
+    // Save new page positions.
+    scrollHandling.pagePositions = [];
+    $('#pdf-viewer-img-div').find('.pdf-viewer-img').each(function (i) {
+        scrollHandling.pagePositions[i] = $(this).position().top + scrollTop;
     });
     $('#zoom').slider("value", 100);
     $('#zoom').next().text('100%');
     localStorage.setItem('zoom', 'o');
     //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
     var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
-    $('#pdf-viewer-img-div').scrollTop($('#pdf-viewer-img-div').scrollTop() + imgtop2 - imgtop);
+    $('#pdf-viewer-img-div').scrollTop(scrollTop + imgtop2 - imgtop);
 }).button().button('widget').click(function () {
     $(this).removeClass('ui-state-focus');
 }).tipsy();
 // Zoom to screen width.
 $('#size2').click(function (e, f) {
     $(this).blur();
-    var piw, page = scrollHandling.page,
-            parentw = $('#pdf-viewer-img-div').width(),
-            imgtop = $('#pdf-viewer-img-' + page).position().top;
-    $('.pdf-viewer-img').each(function (i) {
+    var page = scrollHandling.page,
+        parentw = $('#pdf-viewer-img-div').width(),
+        scrollTop = $('#pdf-viewer-img-div').scrollTop(),
+        imgtop = $('#pdf-viewer-img-' + page).position().top,
+        imgw = $('#pdf-viewer-img-' + page).data('width'),
+        iw = Math.min((parentw - 30), imgw),
+        piw = Math.round(100 * iw / imgw);
+    // Change page sizes.
+    $('#pdf-viewer-img-div').find('.pdf-viewer-img').each(function () {
         var $t = $(this),
                 imgw = $t.data('width'),
                 imgh = $t.data('height'),
-                iw = -30 + parentw;
-        iw = Math.min(iw, imgw);
+                iw = imgw * piw / 100;
         var ih = imgh * iw / imgw;
-        piw = 100 * iw / imgw;
         $t[0].style.width = iw + 'px';
         $t[0].style.height = ih + 'px';
     });
+    // Save new page positions.
+    scrollHandling.pagePositions = [];
+    $('#pdf-viewer-img-div').find('.pdf-viewer-img').each(function (i) {
+        scrollHandling.pagePositions[i] = $(this).position().top + scrollTop;
+    });
     $('#zoom').slider("value", piw);
-    $('#zoom').next().text(Math.round(piw) + '%');
+    $('#zoom').next().text(piw + '%');
     localStorage.setItem('zoom', 'w');
     if (typeof f === 'function') {
         // This function is executed when PDF is first loaded.
@@ -953,7 +959,7 @@ $('#size2').click(function (e, f) {
     } else {
         //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
         var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
-        $('#pdf-viewer-img-div').scrollTop($('#pdf-viewer-img-div').scrollTop() + imgtop2 - imgtop);
+        $('#pdf-viewer-img-div').scrollTop(scrollTop + imgtop2 - imgtop);
     }
 }).button().button('widget').click(function () {
     $(this).removeClass('ui-state-focus');
@@ -963,24 +969,29 @@ $('#zoom').slider({
     min: 50,
     max: 150,
     value: 100,
-    step: 5,
-    slide: function (e, ui) {
-        var page = scrollHandling.page,
-                imgtop = $('#pdf-viewer-img-' + page).position().top;
-        $('.pdf-viewer-img').each(function () {
-            var $t = $(this);
-            $t[0].style.width = (ui.value * $t.data('width') / 100) + 'px';
-            $t[0].style.height = (ui.value * $t.data('height') / 100) + 'px';
-        });
-        $(this).next().text(Math.round(ui.value) + '%');
-        localStorage.setItem('zoom', ui.value);
-        //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
-        var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
-        $('#pdf-viewer-img-div').scrollTop($('#pdf-viewer-img-div').scrollTop() + imgtop2 - imgtop);
-        //WHEN SECOND PAGE POPS IN ON THE RIGHT
-        if (imgtop2 - imgtop === 0)
-            $('#pdf-viewer-img-div').trigger('scroll');
+    step: 5
+}).on("slide", function(e, ui) {
+    var page = scrollHandling.page,
+        imgtop = $('#pdf-viewer-img-' + page).position().top;
+    $('.pdf-viewer-img').each(function () {
+        this.style.width = (ui.value * $(this).data('width') / 100) + 'px';
+        this.style.height = (ui.value * $(this).data('height') / 100) + 'px';
+    });
+    $(this).next().text(ui.value + '%');
+    localStorage.setItem('zoom', ui.value);
+    //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
+    var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
+    $('#pdf-viewer-img-div').scrollTop($('#pdf-viewer-img-div').scrollTop() + imgtop2 - imgtop);
+    //WHEN SECOND PAGE POPS IN ON THE RIGHT
+    if (imgtop2 - imgtop === 0) {
+        $('#pdf-viewer-img-div').trigger('scroll');
     }
+}).on("slidestop", function() {
+    // Save new page positions.
+    scrollHandling.pagePositions = [];
+    $('#pdf-viewer-img-div').find('.pdf-viewer-img').each(function (i) {
+        scrollHandling.pagePositions[i] = $(this).position().top + $('#pdf-viewer-img-div').scrollTop();
+    });
 });
 /**
  * Page navigation.
@@ -1226,8 +1237,7 @@ $('#pdf-viewer-copy-text').change(function () {
                     }
                 });
             } else {
-                errorHandling.display('This PDF has no text layer.');
-                getText.callerID.prop('checked', false).trigger('change').button('refresh');
+                $.jGrowl('This PDF or PDF page has no text layer.');
             }
         });
     } else {
@@ -2033,7 +2043,7 @@ $(document).ready(function () {
     // Initial zoom is window width.
     $('#size2').trigger('click', function () {
         // Immmediately scroll into the requested page.
-        var pgpos = $('#pdf-viewer-img-' + pg).position().top + $('#pdf-viewer-img-div').scrollTop();
+        var pgpos = $('#pdf-viewer-img-' + pg).position().top;
         $('#pdf-viewer-img-div').scrollTop(pgpos);
         // Load pages.
         scrollHandling.loadPage();

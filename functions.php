@@ -79,6 +79,12 @@ function get_subfolder($file, $dir = null) {
 
     $id = substr($file, 0, 5);
 
+    // If just numeric id is passed.
+    if (is_numeric($id) && strlen($id) < 5) {
+
+        $id = str_pad($id, 5, '0', STR_PAD_LEFT);
+    }
+
     if (is_numeric($id) && strlen($id) === 5) {
 
         $level_1 = substr($id, 0, 1);
