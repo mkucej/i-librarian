@@ -298,7 +298,7 @@ var scrollHandling = {
         // Fetch images for current pages on scroll.
         $('#pdf-viewer-img-' + this.page).trigger('unveil');
         var columns = this.getColumns();
-        for (var i = this.page - 2 * columns; i <= this.page + 2 * columns; i++) {
+        for (var i = parseInt(this.page) - 2 * columns; i <= parseInt(this.page) + 2 * columns; i++) {
             if (i !== this.page) {
                 $('#pdf-viewer-img-' + i).trigger('unveil');
             }
@@ -513,7 +513,7 @@ var getText = {
  */
 var getLinks = {
     linkHistory: '',
-    init: function (f) {
+    init: function () {
         $.getJSON('pdfcontroller.php?getlinks=1&file=' + fileName).done(function (answer) {
             // Assemble search results.
             var page = '', parser = document.createElement('a');
@@ -536,7 +536,7 @@ var getLinks = {
                     page = row.p;
                 }
             });
-            $('.pdfviewer-link').click(function () {
+            $('#pdf-viewer-img-div').on('click', '.pdfviewer-link', function () {
                 var href = $(this).data('href');
                 if (href.substring(0,4) === 'http') {
                     // External link. TODO: confirm dialog.
@@ -552,27 +552,23 @@ var getLinks = {
                     var parser = document.createElement('a');
                     parser.href = href;
                     // Scroll to destination page.
-                    var pg = parser.hash.substring(1);
+                    var pg = parseInt(parser.hash.substring(1));
                     scrollHandling.page = pg;
                     var pgpos = $('#pdf-viewer-img-' + pg).position().top + $('#pdf-viewer-img-div').scrollTop();
                     $('#pdf-viewer-img-div').animate(
-                            {scrollTop: pgpos},
-                            {
-                                duration: 400,
-                                start: function () {
-                                    scrollHandling.autoScroll = true;
-                                },
-                                always: function () {
-                                    scrollHandling.autoScroll = false;
-                                }
+                        {scrollTop: pgpos},
+                        {
+                            duration: 400,
+                            start: function () {
+                                scrollHandling.autoScroll = true;
+                            },
+                            always: function () {
+                                scrollHandling.autoScroll = false;
                             }
+                        }
                     );
                 }
             });
-            // We are done. Call function f().
-            if (typeof f === 'function') {
-                f();
-            }
         });
     }
 };
@@ -926,7 +922,7 @@ $('#size1').click(function () {
     $(this).removeClass('ui-state-focus');
 }).tipsy();
 // Zoom to screen width.
-$('#size2').click(function (e, f) {
+$('#size2').on('click', function () {
     $(this).blur();
     var page = scrollHandling.page,
         parentw = $('#pdf-viewer-img-div').width(),
@@ -952,15 +948,9 @@ $('#size2').click(function (e, f) {
     });
     $('#zoom').slider("value", piw);
     $('#zoom').next().text(piw + '%');
-    localStorage.setItem('zoom', 'w');
-    if (typeof f === 'function') {
-        // This function is executed when PDF is first loaded.
-        f();
-    } else {
-        //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
-        var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
-        $('#pdf-viewer-img-div').scrollTop(scrollTop + imgtop2 - imgtop);
-    }
+    //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
+    var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
+    $('#pdf-viewer-img-div').scrollTop(scrollTop + imgtop2 - imgtop);
 }).button().button('widget').click(function () {
     $(this).removeClass('ui-state-focus');
 }).tipsy();
@@ -2043,15 +2033,17 @@ $(document).ready(function () {
     // Set initial page number.
     scrollHandling.page = pg;
     // Initial zoom is window width.
-    $('#size2').trigger('click', function () {
-        // Immmediately scroll into the requested page.
-        var pgpos = $('#pdf-viewer-img-' + pg).position().top;
-        $('#pdf-viewer-img-div').scrollTop(pgpos);
-        // Load pages.
-        scrollHandling.loadPage();
-        // Everything is ready, bind scrollController.
-        $('#pdf-viewer-img-div').on('scroll', scrollController);
-    });
+    $('#size2').trigger('click');
+    /*
+     * Immmediately scroll into the requested page. Use native offsetTop,
+     * because jQuery position() bugs out here.
+     */
+    var pgpos = $('#pdf-viewer-img-' + pg)[0].offsetTop - 4;
+    $('#pdf-viewer-img-div').scrollTop(pgpos);
+    // Load pages.
+    scrollHandling.loadPage();
+    // Everything is ready, bind scrollController.
+    $('#pdf-viewer-img-div').on('scroll', scrollController);
     // Open left navigation.
     if (preview === false) {
         if (localStorage.getItem('pageprev-button') === 'On')
