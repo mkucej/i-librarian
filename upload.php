@@ -447,7 +447,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
             if (stripos($contents, '%PDF') === 0) {
 
-                $move = file_put_contents(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file, $contents);
+                $move = file_put_contents(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file, $contents);
 
                 if ($move == false) {
 
@@ -499,7 +499,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $supplement_filename = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $supplement_filename);
                     $supplement_filename = sprintf("%05d", $new_file) . $supplement_filename;
 
-                    $move = move_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $supplement_filename);
+                    $move = move_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . $supplement_filename);
                     if ($move == false)
                         $error[] = "Error! The supplementary file " . $_FILES['form_supplementary_file']['name'][$i] . " has not been recorded.";
                     if ($move == true)

@@ -80,7 +80,7 @@ if (!empty($_FILES['form_supplementary_file']['name'])) {
             $new_name = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $new_name);
             $new_name = sprintf("%05d", intval($_POST['file'])) . $new_name;
 
-            move_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name) . DIRECTORY_SEPARATOR . $new_name);
+            move_uploaded_file($_FILES['form_supplementary_file']['tmp_name'][$i], IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_name, IL_SUPPLEMENT_PATH) . DIRECTORY_SEPARATOR . $new_name);
         }
     }
 }
