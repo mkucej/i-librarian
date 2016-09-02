@@ -38,10 +38,10 @@ echo '<h3>Batch PDF re-indexing.</h3>';
 echo '<h4>Error log:</h4>';
 
 // Iterate all PDF files.
-$glob = new GlobIterator(IL_PDF_PATH . DIRECTORY_SEPARATOR . '[0-9][0-9]' . DIRECTORY_SEPARATOR . '*.pdf');
+$glob = new GlobIterator(IL_PDF_PATH . DIRECTORY_SEPARATOR . '[0-9]' . DIRECTORY_SEPARATOR . '[0-9]' . DIRECTORY_SEPARATOR . '*.pdf');
 
 foreach ($glob as $pdf) {
-    
+
     $answer = array();
 
     $file_path = $pdf->getPathname();
@@ -51,13 +51,13 @@ foreach ($glob as $pdf) {
     // Extract text from PDF.
 
     if (is_readable($file_path)) {
-        
+
         $answer[] = recordFulltext($file_id, $file_name);
 
     } else {
         $answer[] = "File not found.";
     }
-    
+
     $answer = array_filter($answer);
 
     $answers = join('<br>' . PHP_EOL, $answer);

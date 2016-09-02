@@ -193,7 +193,7 @@ if (isset($_GET['browse'])) {
 
         if (array_key_exists('No PDF', $_GET['browse'])) {
 
-            $glob = new GlobIterator(IL_PDF_PATH . DIRECTORY_SEPARATOR . '[0-9][0-9]' . DIRECTORY_SEPARATOR . '*.pdf');
+            $glob = new GlobIterator(IL_PDF_PATH . DIRECTORY_SEPARATOR . '[0-9]' . DIRECTORY_SEPARATOR . '[0-9]' . DIRECTORY_SEPARATOR . '*.pdf');
             foreach ($glob as $pdf) {
                 $pds_arr[] = intval(basename($pdf->getFilename(), '.pdf'));
             }
@@ -255,7 +255,7 @@ if (isset($_GET['browse'])) {
                     perform_search("SELECT id FROM library $all_in $where id IN (" . $category_sql . ") $ordering");
             }
         } else {
-            
+
             perform_search("SELECT id FROM library $all_in $where $browse_string $ordering");
         }
     }
@@ -381,7 +381,7 @@ if (isset($_GET['browse'])) {
             print ' &raquo; ' . htmlspecialchars($query_display_string);
 
         print '</div>';
-        
+
         if ($rows > 0) {
 
             $items_from = $from + 1;
