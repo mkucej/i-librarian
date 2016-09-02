@@ -59,6 +59,7 @@ You may wish to alter who has access (e.g. to allow access from more IP numbers 
   - **php5 (may be named php)**: *I, Librarian* requires PHP5.4.
   - **php5-sqlite (may be named php-pdo)**: SQLite database for PHP5.
   - **php5-gd (may be named php-gd)**: GD library for PHP5.
+  - **php5-curl (may be named php-curl)**: curl library for PHP5.
   - **poppler-utils**: required for PDF indexing and for the built-in PDF viewer.
   - **ghostscript**: required for the built-in PDF viewer.
   - **tesseract-ocr**: required for OCR.
