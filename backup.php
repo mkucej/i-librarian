@@ -202,16 +202,12 @@ if (isset($_SESSION['auth']) && $_SESSION['permissions'] == 'A') {
                     die('Error! Access denied or directory does not exist.');
 
                 if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
-                    exec("del /q \"" . IL_LIBRARY_PATH . "\"");
-                    exec("rmdir \"" . IL_DATABASE_PATH . "\" /s/q");
-                    exec("rmdir \"" . IL_SUPPLEMENT_PATH . "\" /s/q");
-                    exec("rmdir \"" . IL_IMAGE_PATH . "\" /s/q");
+                    exec("rmdir \"" . IL_LIBRARY_PATH . "\" /s/q");
+                    mkdir(IL_LIBRARY_PATH);
                     exec("xcopy \"" . $directory . "\" \"" . IL_LIBRARY_PATH . "\" /c /v /q /s /e /h /y", $a);
                 } else {
-                    exec("rm -f \"" . IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . "*.*\"");
-                    exec("rm -rf \"" . IL_DATABASE_PATH . "\"");
-                    exec("rm -rf \"" . IL_SUPPLEMENT_PATH . "\"");
-                    exec("rm -rf \"" . IL_IMAGE_PATH . "\"");
+                    exec("rm -rf \"" . IL_LIBRARY_PATH . "\"");
+                    mkdir(IL_LIBRARY_PATH, 0755);
                     exec(escapeshellcmd("cp -r \"" . $directory . "\" \"" . IL_LIBRARY_PATH . DIRECTORY_SEPARATOR . "\""));
                 }
                 die('Done');
