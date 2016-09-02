@@ -227,7 +227,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
             $ldap_filter_string = '(&(|(objectClass=user)(objectClass=iNetOrgPerson))' .
                     '(' . $ldap_username_attr . '=' . $username . '))';
 
-            if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_base_dn, $ldap_filter_string, array($ldap_username_attr))) {
+            if (!$ldap_sr = @ldap_search($ldap_connect, $ldap_basedn, $ldap_filter_string, array($ldap_username_attr))) {
                 sendError("Bad username or password.");
             }
 
