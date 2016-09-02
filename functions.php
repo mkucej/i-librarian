@@ -1810,21 +1810,26 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
             while (list($key, $url) = each($urls)) {
 
-                if (preg_match('/pubmed\.org/', $url)) {
+                if (strpos($url, 'pubmed.org') !== false || strpos($url, '/pubmed/') !== false) {
 
-                    $pmid_url = $url;
-                } elseif (preg_match('/pubmedcentral\.nih\.gov/', $url) || preg_match('/\/pmc\//', $url)) {
+                    $pmid_url = str_replace('pubmed.org', 'ncbi.nlm.nih.gov/pubmed', $url);
+
+                } elseif (strpos($url, 'pubmedcentral.nih.gov') !== false || strpos($url, '/pmc/') !== false) {
 
                     $pmcid_url = $url;
-                } elseif (preg_match('/adsabs\.harvard\.edu/', $url)) {
+
+                } elseif (strpos($url, 'adsabs.harvard.edu') !== false) {
 
                     $nasaads_url = $url;
-                } elseif (preg_match('/arxiv\.org/', $url)) {
+
+                } elseif (strpos($url, 'arxiv.org') !== false) {
 
                     $arxiv_url = $url;
-                } elseif (preg_match('/jstor\.org/', $url)) {
+
+                } elseif (strpos($url, 'jstor.org') !== false) {
 
                     $jstor_url = $url;
+
                 } else {
 
                     $other_urls[] = $url;
