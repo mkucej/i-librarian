@@ -47,7 +47,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
     if ($_GET['format'] == 'zip') {
         $zip = new ZipArchive;
-        $zip->open(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip', ZIPARCHIVE::OVERWRITE);
+        $zip->open(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . 'test.zip', ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
     }
 
     $orderby = 'id DESC';
