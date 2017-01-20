@@ -8,31 +8,32 @@ database_connect(IL_DATABASE_PATH, 'library');
 $file_query = $dbHandle->quote(intval($_GET['file']));
 $result = $dbHandle->query("SELECT file FROM library WHERE id=$file_query LIMIT 1");
 $file = $result->fetchColumn();
+$tmp_file_prefix = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file;
 $dbHandle = null;
 
 if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file)) {
 
-    exec(select_ghostscript() . ' -dSAFER -dBATCH -dNOPAUSE -sDEVICE=bmp16m -r300 -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE -o "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.%03d.bmp" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file . '"');
+    exec(select_ghostscript() . ' -dSAFER -dBATCH -dNOPAUSE -sDEVICE=bmp16m -r300 -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE -o "' . $tmp_file_prefix . '.%03d.bmp" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file . '"');
 
-    $file_arr = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . '*.bmp');
+    $file_arr = glob($tmp_file_prefix . '*.bmp');
 
     if (is_array($file_arr)) {
 
         set_time_limit(600);
 
         for ($i = 0; $i < count($file_arr); $i++) {
-            exec(select_tesseract() . ' "' . $file_arr[$i] . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '"');
-            if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt')) {
-                file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . 'final.txt', file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt'), FILE_APPEND);
-                unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt');
+            exec(select_tesseract() . ' "' . $file_arr[$i] . '" "' . $tmp_file_prefix . '.' . $i . '"');
+            if (is_file($tmp_file_prefix . '.' . $i . '.txt')) {
+                file_put_contents($tmp_file_prefix . 'final.txt', file_get_contents($tmp_file_prefix . '.' . $i . '.txt'), FILE_APPEND);
+                unlink($tmp_file_prefix . '.' . $i . '.txt');
                 unlink($file_arr[$i]);
             } else {
                 die('OCR software not functional.');
             }
         }
 
-        $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . 'final.txt');
-        unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . 'final.txt');
+        $string = file_get_contents($tmp_file_prefix . 'final.txt');
+        unlink($tmp_file_prefix . 'final.txt');
 
         $string = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
         $string = trim($string);
