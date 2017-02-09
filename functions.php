@@ -483,6 +483,8 @@ function cache_name() {
         $clipboard[] = $_SESSION['orderby'];
     if (isset($_SESSION['display']))
         $clipboard[] = $_SESSION['display'];
+    if (isset($_SESSION['pdfviewer']))
+        $clipboard[] = $_SESSION['pdfviewer'];
     $md5_cache_array = array_merge($_POST, $_GET, $clipboard);
     unset($md5_cache_array['_']);
     unset($md5_cache_array['proxystr']);
