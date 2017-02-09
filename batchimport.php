@@ -14,7 +14,7 @@ if ($hosted == true)
     die();
 
 if (!empty($_GET['user']))
-    $user = $_GET['user'];
+    $user = md5($_GET['user']);
 if (!empty($_GET['userID']))
     $userID = $_GET['userID'];
 
@@ -329,7 +329,7 @@ if (!isset($_GET['commence'])) {
     include_once 'functions.php';
 
     ########create log file###########
-    $log = IL_TEMP_PATH . DIRECTORY_SEPARATOR . md5($_GET['user']) . '-librarian-import.log';
+    $log = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $user . '-librarian-import.log';
     file_put_contents($log, '');
 
     $database_pubmed = '';
@@ -431,7 +431,7 @@ if (!isset($_GET['commence'])) {
             $title_ascii = '';
             $abstract_ascii = '';
             $unpacked_files = array();
-            $temp_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_GET['user'] . "_librarian_temp" . $i . ".txt";
+            $temp_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $user . "_librarian_temp" . $i . ".txt";
 
             if (file_exists($temp_file))
                 unlink($temp_file);
@@ -799,7 +799,7 @@ if (!isset($_GET['commence'])) {
     ###### clean the temp directory ########
     for ($j = $i; $j >= 1; $j--) {
 
-        $temp_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_GET['user'] . "_librarian_temp" . $j . ".txt";
+        $temp_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $user . "_librarian_temp" . $j . ".txt";
         if (file_exists($temp_file))
             unlink($temp_file);
     }
