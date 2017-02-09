@@ -12,6 +12,6 @@ if (preg_match('/^lib_\S{15}\.pdf$/i', $_GET['tempfile']) > 0 && file_exists(IL_
     readfile(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_GET['tempfile']);
 } else {
 
-    print "File $_GET[tempfile] does not exist.";
+    print htmlspecialchars("File $_GET[tempfile] does not exist.");
 }
 ?>
