@@ -1,7 +1,13 @@
 <?php
 
 // I, Librarian version
-$version = '4.6';
+$version = '4.7';
+
+/*
+ * This flag must be true, if access is open to the Internet. Otherwise, you
+ * leave your server vulnerable to a remote directory browsing.
+ */
+$hosted = false;
 
 // initial PHP settings
 ini_set('user_agent', $_SERVER['HTTP_USER_AGENT']);
@@ -230,6 +236,3 @@ if (!empty($_SESSION['zone'])) {
 // create user specific directory for caching
 if (!is_dir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id()))
     mkdir(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id(), 0700);
-
-// hosting specific
-$hosted = false;
