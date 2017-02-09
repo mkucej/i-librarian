@@ -284,7 +284,7 @@ if (isset($_GET['file'])) {
 
             foreach ($other_urls as $another_url) {
                 $url_host = htmlspecialchars(parse_url($another_url, PHP_URL_HOST));
-                print "&nbsp;<b>&middot;</b> <a href=\"" . htmlspecialchars($another_url) . "\" target=\"_blank\" class=\"anotherurl\" title=\"$url_host\">Link</a>";
+                print "&nbsp;<b>&middot;</b> <a href=\"" . htmlspecialchars($another_url) . "\" target=\"_blank\" class=\"anotherurl\">" . $url_host . "</a>";
             }
         }
 

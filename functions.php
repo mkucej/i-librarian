@@ -1764,7 +1764,6 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         $jstor_url = '';
         $other_urls = '';
         $urls = '';
-        $other_urls = '';
         $uids = array();
         $pmid = '';
         $pmid_related_url = '';
@@ -2185,7 +2184,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
                 if (!empty($other_urls)) {
                     foreach ($other_urls as $another_url) {
-                        print '<a href="' . htmlspecialchars($another_url) . '" target="_blank" class="anotherurl" title="' . htmlspecialchars(parse_url($another_url, PHP_URL_HOST)) . '">Link</a> <b style="margin:0 0.5em">&middot;</b> ';
+                        print '<a href="' . htmlspecialchars($another_url) . '" target="_blank" class="anotherurl">' . htmlspecialchars(parse_url($another_url, PHP_URL_HOST)) . '</a> <b style="margin:0 0.5em">&middot;</b> ';
                     }
                 }
 
