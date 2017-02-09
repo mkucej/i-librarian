@@ -948,6 +948,7 @@ $('#size2').on('click', function () {
     });
     $('#zoom').slider("value", piw);
     $('#zoom').next().text(piw + '%');
+    localStorage.setItem('zoom', 'w');
     //KEEP ZOOMED PAGE IN THE SAME VERTICAL POSITION
     var imgtop2 = $('#pdf-viewer-img-' + page).position().top;
     $('#pdf-viewer-img-div').scrollTop(scrollTop + imgtop2 - imgtop);
