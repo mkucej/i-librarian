@@ -4,6 +4,13 @@
 
 ignore_user_abort(true);
 
+echo <<<EOT
+    <script type="text/javascript">
+        var div = parent.document.getElementById('first-loader').childNodes[1];
+        div.innerHTML = div.innerHTML + '<p style="font-size: 26px;">Please wait, upgrading&hellip;</p>';
+    </script>
+EOT;
+
 include_once 'data.php';
 include_once 'functions.php';
 
@@ -44,10 +51,3 @@ $dbHandle->exec("CREATE INDEX addition_date_ind ON library (addition_date)");
 $dbHandle->commit();
 $dbHandle = null;
 ?>
-<html>
-    <body>
-        <script type="text/javascript">
-            top.location='<?php print $url ?>';
-        </script>
-    </body>
-</html>

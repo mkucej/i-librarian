@@ -4,6 +4,13 @@
 
 ignore_user_abort(true);
 
+echo <<<EOT
+    <script type="text/javascript">
+        var div = parent.document.getElementById('first-loader').childNodes[1];
+        div.innerHTML = div.innerHTML + '<p style="font-size: 26px;">Please wait, upgrading&hellip;</p>';
+    </script>
+EOT;
+
 include_once 'data.php';
 include_once 'functions.php';
 
@@ -20,15 +27,15 @@ $tables = array('annotations','categories','filescategories','flagged','library'
 foreach ($tables as $table) {
     $dbHandle->exec("INSERT INTO library_log (ch_table,ch_time)
                     VALUES('".$table."',strftime('%s','now'))");
-    $dbHandle->exec("CREATE TRIGGER trigger_".$table."_delete AFTER DELETE ON ".$table." 
+    $dbHandle->exec("CREATE TRIGGER trigger_".$table."_delete AFTER DELETE ON ".$table."
                     BEGIN
                         UPDATE library_log SET ch_time=strftime('%s','now') WHERE ch_table='".$table."';
                     END;");
-    $dbHandle->exec("CREATE TRIGGER trigger_".$table."_insert AFTER INSERT ON ".$table." 
+    $dbHandle->exec("CREATE TRIGGER trigger_".$table."_insert AFTER INSERT ON ".$table."
                     BEGIN
                         UPDATE library_log SET ch_time=strftime('%s','now') WHERE ch_table='".$table."';
                     END;");
-    $dbHandle->exec("CREATE TRIGGER trigger_".$table."_update AFTER UPDATE ON ".$table." 
+    $dbHandle->exec("CREATE TRIGGER trigger_".$table."_update AFTER UPDATE ON ".$table."
                     BEGIN
                         UPDATE library_log SET ch_time=strftime('%s','now') WHERE ch_table='".$table."';
                     END;");
@@ -60,10 +67,3 @@ $dbHandle->exec("CREATE TRIGGER trigger_fulltext_update AFTER UPDATE ON full_tex
 $dbHandle->commit();
 $dbHandle = null;
 ?>
-<html>
-    <body>
-        <script type="text/javascript">
-            top.location='<?php print $url ?>';
-        </script>
-    </body>
-</html>
