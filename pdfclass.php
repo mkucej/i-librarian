@@ -265,8 +265,8 @@ class PDFViewer {
                     . " -sDEVICE=jpeg -dJPEGQ=75 -r" . $this->thumb_resolution
                     . " -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE"
                     . " -dFirstPage=$from -dLastPage=" . ($from + 9)
-                    . " -o " . escapeshellarg($this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t-%d-.jpg-" . $unique)
-                    . " " . escapeshellarg($this->pdf_full_path));
+                    . " -o \"" . $this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t-%d-.jpg-" . $unique
+                    . "\" " . escapeshellarg($this->pdf_full_path));
 
             for ($i = 1; $i <= 10; $i++) {
                 rename($this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t-$i-.jpg-" . $unique, $this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t" . ($from + $i - 1) . ".jpg");
