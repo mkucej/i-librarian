@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * No directory browsing is allowed in hosted version.
+ */
+if ($hosted === true) {
+
+    exit;
+}
+
 $_POST['dir'] = urldecode($_POST['dir']);
 $_POST['dir'] = str_replace("\\", "/", $_POST['dir']);
 
