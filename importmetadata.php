@@ -341,7 +341,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     $result = null;
                     copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
-                    system(select_pdftotext() . ' -enc UTF-8 "' . $file_to_copy . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
+                    system(select_pdftotext() . ' -enc UTF-8 ' . escapeshellarg($file_to_copy) . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt'));
 
                     if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
 
@@ -680,7 +680,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $result = null;
                         copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
-                        system(select_pdftotext() . ' -enc UTF-8 "' . $file_to_copy . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
+                        system(select_pdftotext() . ' -enc UTF-8 ' . escapeshellarg($file_to_copy) . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt'));
 
                         if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
 
@@ -1302,7 +1302,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             $result = null;
                             copy($file_to_copy, IL_PDF_PATH . DIRECTORY_SEPARATOR . $pdf_filename);
 
-                            system(select_pdftotext() . ' -enc UTF-8 "' . $file_to_copy . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt"');
+                            system(select_pdftotext() . ' -enc UTF-8 ' . escapeshellarg($file_to_copy) . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . '.txt'));
 
                             if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $pdf_filename . ".txt")) {
 

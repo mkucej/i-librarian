@@ -442,7 +442,7 @@ if (!isset($_GET['commence'])) {
             if (in_array($file_extension, array('doc', 'docx', 'vsd', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp'))) {
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=' . IL_TEMP_PATH);
-                exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . IL_TEMP_PATH . '" "' . $file . '"');
+                exec(select_soffice() . ' --headless --convert-to pdf --outdir ' . escapeshellarg(IL_TEMP_PATH) . ' ' . escapeshellarg($file));
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=""');
                 //copy file to temp to add it to supplement later
@@ -454,7 +454,7 @@ if (!isset($_GET['commence'])) {
 
             ##########	extract text from pdf	##########
 
-            system(select_pdftotext() . ' -enc UTF-8 -f 1 -l 3 "' . $file . '" "' . $temp_file . '"');
+            system(select_pdftotext() . ' -enc UTF-8 -f 1 -l 3 ' . escapeshellarg($file) . ' ' . escapeshellarg($temp_file));
 
             if (file_exists($temp_file))
                 $string = file_get_contents($temp_file);
@@ -771,7 +771,7 @@ if (!isset($_GET['commence'])) {
 
                         $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
                         mkdir($unpack_dir);
-                        exec(select_pdfdetach() . ' -saveall -o "' . $unpack_dir . '" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file . '"');
+                        exec(select_pdfdetach() . ' -saveall -o ' . escapeshellarg($unpack_dir) . ' ' . escapeshellarg(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file));
                         $unpacked_files = scandir($unpack_dir);
                         foreach ($unpacked_files as $unpacked_file) {
                             if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file))

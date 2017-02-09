@@ -12,7 +12,7 @@ $dbHandle = null;
 
 if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file)) {
 
-    exec(select_ghostscript() . ' -dSAFER -dBATCH -dNOPAUSE -sDEVICE=bmp16m -r300 -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE -o "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.%03d.bmp" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file . '"');
+    exec(select_ghostscript() . ' -dSAFER -dBATCH -dNOPAUSE -sDEVICE=bmp16m -r300 -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE -o ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.%03d.bmp') . ' ' . escapeshellarg(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY_SEPARATOR . $file));
 
     $file_arr = glob(IL_TEMP_PATH . DIRECTORY_SEPARATOR . '*.bmp');
 
@@ -21,7 +21,7 @@ if (is_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file) . DIRECTORY
         set_time_limit(600);
 
         for ($i = 0; $i < count($file_arr); $i++) {
-            exec(select_tesseract() . ' "' . $file_arr[$i] . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '"');
+            exec(select_tesseract() . ' ' . escapeshellarg($file_arr[$i]) . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i));
             if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt')) {
                 file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . 'final.txt', file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt'), FILE_APPEND);
                 unlink(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file . '.' . $i . '.txt');

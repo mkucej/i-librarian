@@ -36,7 +36,7 @@ class PDFViewer {
         $output = array();
 
         // Get number and sizes of all pages.
-        exec(select_pdfinfo() . ' -f 1 -l 100000 "' . $this->pdf_full_path . '"', $output);
+        exec(select_pdfinfo() . ' -f 1 -l 100000 ' . escapeshellarg($this->pdf_full_path), $output);
 
         foreach ($output as $line) {
 
@@ -232,8 +232,8 @@ class PDFViewer {
                     . " -sDEVICE=jpeg -dJPEGQ=75 -r" . $this->page_resolution
                     . " -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE"
                     . " -dFirstPage=$page -dLastPage=" . $page
-                    . " -o \"" . $image_full_path . "\""
-                    . " \"" . $this->pdf_full_path . "\"");
+                    . " -o " . escapeshellarg($image_full_path)
+                    . " " . escapeshellarg($this->pdf_full_path));
 
             // Delete lock file.
             unlink($lock_file);
@@ -265,8 +265,8 @@ class PDFViewer {
                     . " -sDEVICE=jpeg -dJPEGQ=75 -r" . $this->thumb_resolution
                     . " -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dDOINTERPOLATE"
                     . " -dFirstPage=$from -dLastPage=" . ($from + 9)
-                    . " -o \"" . $this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t-%d-.jpg-" . $unique . "\""
-                    . " \"" . $this->pdf_full_path . "\"");
+                    . " -o " . escapeshellarg($this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t-%d-.jpg-" . $unique)
+                    . " " . escapeshellarg($this->pdf_full_path));
 
             for ($i = 1; $i <= 10; $i++) {
                 rename($this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t-$i-.jpg-" . $unique, $this->image_path . DIRECTORY_SEPARATOR . $this->file_name . ".t" . ($from + $i - 1) . ".jpg");
@@ -287,7 +287,7 @@ class PDFViewer {
         // Pdftohtml.
         // XML output file not found. Create one.
         if (!file_exists($temp_xml . '.xml') || filemtime($temp_xml . '.xml') < filemtime($this->pdf_full_path)) {
-            system(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -f 1 -l 1 -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
+            system(select_pdftohtml() . ' -q -enc UTF-8 -nomerge -i -f 1 -l 1 -xml ' . escapeshellarg($this->pdf_full_path) . ' ' . escapeshellarg($temp_xml));
         }
 
         // Try to repair some malformed files.
@@ -393,7 +393,7 @@ class PDFViewer {
 
             // XML output file not found. Create one.
             if (!file_exists($temp_xml . '.xml')) {
-                exec(select_pdftohtml() . ' -nodrm -q -enc UTF-8 -nomerge -i -hidden -xml "' . $this->pdf_full_path . '" "' . $temp_xml . '"');
+                exec(select_pdftohtml() . ' -nodrm -q -enc UTF-8 -nomerge -i -hidden -xml ' . escapeshellarg($this->pdf_full_path) . ' ' . escapeshellarg($temp_xml));
             }
 
             if (!file_exists($temp_xml . '.xml')) {
@@ -881,7 +881,7 @@ class PDFViewer {
             $temp_file = $this->temp_path . DIRECTORY_SEPARATOR
                     . $this->file_name . $watermark . '.pdf';
 
-            exec(select_ghostscript() . ' -o "' . $temp_file . '" -dPDFSETTINGS=/prepress -sDEVICE=pdfwrite "' . $pdfmark_file . '" "' . $this->pdf_full_path . '"');
+            exec(select_ghostscript() . ' -o ' . escapeshellarg($temp_file) . ' -dPDFSETTINGS=/prepress -sDEVICE=pdfwrite ' . escapeshellarg($pdfmark_file) . ' ' . escapeshellarg($this->pdf_full_path));
 
             $this->pdf_full_path = $temp_file;
         }
@@ -999,7 +999,7 @@ class PDFViewer {
 
                 $temp_file = $this->temp_path . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . $this->file_name . '-annotated.pdf';
 
-                exec(select_ghostscript() . ' -o "' . $temp_file . '" -dPDFSETTINGS=/prepress -sDEVICE=pdfwrite "' . $this->pdf_full_path . '" "' . $pdfmark_file . '"');
+                exec(select_ghostscript() . ' -o ' . escapeshellarg($temp_file) . ' -dPDFSETTINGS=/prepress -sDEVICE=pdfwrite ' . escapeshellarg($this->pdf_full_path) . ' ' . escapeshellarg($pdfmark_file));
 
                 $this->pdf_full_path = $temp_file;
             }

@@ -62,7 +62,7 @@ if (!empty($_FILES)) {
             $move = move_uploaded_file($file, IL_TEMP_PATH . DIRECTORY_SEPARATOR . $orig_filename);
             if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                 putenv('HOME=' . IL_TEMP_PATH);
-            exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . IL_TEMP_PATH . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $orig_filename . '"');
+            exec(select_soffice() . ' --headless --convert-to pdf --outdir ' . escapeshellarg(IL_TEMP_PATH) . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $orig_filename));
             if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                 putenv('HOME=""');
             $file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . basename($orig_filename, '.' . $file_extension) . '.pdf';
@@ -113,7 +113,7 @@ if (!empty($_FILES)) {
 
             ##########	extract text from pdf	##########
 
-            system(select_pdftotext() . ' -enc UTF-8 -f 1 -l 3 "' . $file . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'librarian_temp' . $i . '.txt"', $ret);
+            system(select_pdftotext() . ' -enc UTF-8 -f 1 -l 3 ' . escapeshellarg($file) . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'librarian_temp' . $i . '.txt'), $ret);
 
             if (file_exists(IL_TEMP_PATH . DIRECTORY_SEPARATOR . "librarian_temp" . $i . ".txt"))
                 $string = file_get_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . "librarian_temp" . $i . ".txt");
@@ -403,7 +403,7 @@ if (!empty($_FILES)) {
 
                         $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
                         mkdir($unpack_dir);
-                        exec(select_pdfdetach() . ' -saveall -o "' . $unpack_dir . '" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file . '"');
+                        exec(select_pdfdetach() . ' -saveall -o ' . escapeshellarg($unpack_dir) . ' ' . escapeshellarg(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file));
                         $unpacked_files = scandir($unpack_dir);
                         foreach ($unpacked_files as $unpacked_file) {
                             if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file))

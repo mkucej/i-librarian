@@ -418,7 +418,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 $move = move_uploaded_file($_FILES['form_new_file']['tmp_name'], IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']);
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=' . IL_TEMP_PATH);
-                exec(select_soffice() . ' --headless --convert-to pdf --outdir "' . IL_TEMP_PATH . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name'] . '"');
+                exec(select_soffice() . ' --headless --convert-to pdf --outdir ' . escapeshellarg(IL_TEMP_PATH) . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $_FILES['form_new_file']['name']));
                 if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
                     putenv('HOME=""');
                 $converted_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . basename($_FILES['form_new_file']['name'], '.' . $file_extension) . '.pdf';
@@ -511,7 +511,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         if (file_exists(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file)) {
             $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
             mkdir($unpack_dir);
-            exec(select_pdfdetach() . ' -saveall -o "' . $unpack_dir . '" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file . '"');
+            exec(select_pdfdetach() . ' -saveall -o ' . escapeshellarg($unpack_dir) . ' ' . escapeshellarg(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file));
             $unpacked_files = scandir($unpack_dir);
             foreach ($unpacked_files as $unpacked_file) {
                 if (is_file($unpack_dir . DIRECTORY_SEPARATOR . $unpacked_file))
@@ -595,7 +595,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
             ##########	try to find DOI on the first page	##########
 
-            system(select_pdftotext() . ' -enc UTF-8 -l 1 "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.pdf" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.txt"', $ret);
+            system(select_pdftotext() . ' -enc UTF-8 -l 1 ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.pdf') . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.txt'), $ret);
 
             if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . ".txt")) {
 
@@ -642,7 +642,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
                 ##########	try to find DOI in the whole PDF	##########
 
-                system(select_pdftotext() . ' -enc UTF-8 "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.pdf" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.txt"', $ret);
+                system(select_pdftotext() . ' -enc UTF-8 ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.pdf') . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . '.txt'), $ret);
 
                 if (is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . ".txt")) {
 

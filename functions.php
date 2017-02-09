@@ -9,9 +9,9 @@ function recordFulltext($id, $file_name) {
 
     $file_name = preg_replace('/[^a-zA-z0-9\_\.pdf]/', '', $file_name);
 
-    system(select_pdftotext() . ' -enc UTF-8 "'
-        . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file_name) . DIRECTORY_SEPARATOR . $file_name
-        . '" "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . '.txt"');
+    system(select_pdftotext() . ' -enc UTF-8 '
+        . escapeshellarg(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($file_name) . DIRECTORY_SEPARATOR . $file_name)
+        . ' ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . '.txt'));
 
     if (!is_file(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $file_name . ".txt")) {
         return "No text found in this PDF.";
@@ -1728,7 +1728,7 @@ function record_unknown($dbHandle, $title, $file, $userID) {
 
     $unpack_dir = IL_TEMP_PATH . DIRECTORY_SEPARATOR . $new_file;
     mkdir($unpack_dir);
-    exec(select_pdfdetach() . ' -saveall -o "' . $unpack_dir . '" "' . IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file . '"');
+    exec(select_pdfdetach() . ' -saveall -o ' . escapeshellarg($unpack_dir) . ' ' . escapeshellarg(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file));
     $unpacked_files = array();
     $unpacked_files = scandir($unpack_dir);
     foreach ($unpacked_files as $unpacked_file) {

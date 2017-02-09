@@ -25,7 +25,7 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
     if (in_array($file_extension, array('doc', 'docx', 'odt'))) {
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=' . IL_TEMP_PATH);
-        exec(select_soffice() . ' --headless --convert-to rtf --outdir "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . '" "' . $temp_file . '"');
+        exec(select_soffice() . ' --headless --convert-to pdf --outdir ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id()) . ' ' . escapeshellarg($temp_file));
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=""');
         unlink($temp_file);
@@ -217,7 +217,7 @@ if (!empty($_POST['bibliography']) && count($_POST['cites']) > 0 && !empty($_POS
             . basename(str_replace('\\', '/', urldecode($_POST['rtfname'])), '.' . $file_extension) . '.rtf';
     $output_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR
             . 'formatted-' . basename(str_replace('\\', '/', urldecode($_POST['rtfname'])));
-    
+
     //READ RTF TO VARIABLE
     $rtf_string = file_get_contents($temp_file);
     if (empty($rtf_string)) {
@@ -243,7 +243,7 @@ if (!empty($_POST['bibliography']) && count($_POST['cites']) > 0 && !empty($_POS
     if (in_array($file_extension, array('doc', 'docx', 'odt'))) {
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=' . IL_TEMP_PATH);
-        exec(select_soffice() . ' --headless --convert-to ' . $file_extension . ' --outdir "' . IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . '" "' . $temp_file . '"');
+        exec(select_soffice() . ' --headless --convert-to ' . $file_extension . ' --outdir ' . escapeshellarg(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id()) . ' ' . escapeshellarg($temp_file));
         if (PHP_OS == 'Linux' || PHP_OS == 'Darwin')
             putenv('HOME=""');
         rename(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', urldecode($_POST['rtfname']))), $output_file);
@@ -254,7 +254,7 @@ if (!empty($_POST['bibliography']) && count($_POST['cites']) > 0 && !empty($_POS
             die($content);
         }
     }
-    
+
     //WRITE MODIFIED FILE
     $put = file_put_contents($output_file, $rtf_string);
     if (!$put) {
