@@ -4,7 +4,7 @@
  * Upgrade to 4.4 - change PDFs and supplements folder structure.
  */
 
-ignore_user_abort();
+ignore_user_abort(true);
 
 include_once 'data.php';
 include_once 'functions.php';

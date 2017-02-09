@@ -2,7 +2,7 @@
 //THIS SCRIPT UPGRADES I, LIBRARIAN DATABASES FROM 2.7 to 2.8 FORMAT
 //ADD TABLE LOG INTO LIBRARY AND FULLTEXT PLUS TRIGGERS
 
-ignore_user_abort();
+ignore_user_abort(true);
 
 include_once 'data.php';
 include_once 'functions.php';

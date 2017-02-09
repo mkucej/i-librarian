@@ -2,7 +2,7 @@
 //THIS SCRIPT UPGRADES I, LIBRARIAN DATABASES FROM 2.1 to 2.4 FORMAT
 //ADD BIBTEX COLUMN TO TABLE LIBRARY AND SOME INDECES, UPGRADE AUTHORS
 
-ignore_user_abort();
+ignore_user_abort(true);
 
 include_once 'data.php';
 include_once 'functions.php';

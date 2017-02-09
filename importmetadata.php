@@ -1,5 +1,5 @@
 <?php
-ignore_user_abort();
+ignore_user_abort(true);
 include_once 'data.php';
 session_write_close();
 $url = '';

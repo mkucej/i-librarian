@@ -1,7 +1,7 @@
 <?php
 //THIS SCRIPT UPGRADES I, LIBRARIAN DATABASES FROM 2.0 to 2.1 FORMAT
 die("Upgrading from version <2.1 is no longer supported.");
-ignore_user_abort();
+ignore_user_abort(true);
 
 include_once 'data.php';
 include_once 'functions.php';
