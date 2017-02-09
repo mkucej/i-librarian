@@ -820,6 +820,7 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
 
     curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
     curl_setopt($curl, CURLOPT_USERAGENT,"$_SERVER[HTTP_USER_AGENT]");
     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
     curl_setopt($curl, CURLOPT_TIMEOUT, 30);
