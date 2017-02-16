@@ -539,19 +539,19 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
             }
 
             if ($item['reference_type'] == 'conference' || $item['reference_type'] == 'chapter') {
-                unset($bibtex_translation['journal = ']);
+                unset($bibtex_translation['journal   = ']);
                 $bibtex_translation['booktitle = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'book') {
-                unset($bibtex_translation['journal = ']);
+                unset($bibtex_translation['journal   = ']);
                 $bibtex_translation['series    = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'thesis') {
-                unset($bibtex_translation['journal = ']);
+                unset($bibtex_translation['journal   = ']);
                 $bibtex_translation['school    = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'manual') {
-                unset($bibtex_translation['journal = ']);
+                unset($bibtex_translation['journal   = ']);
                 $bibtex_translation['section   = '] = 'secondary_title';
             } elseif ($item['reference_type'] == 'patent') {
-                unset($bibtex_translation['journal = ']);
+                unset($bibtex_translation['journal   = ']);
                 $bibtex_translation['source    = '] = 'secondary_title';
             }
 
