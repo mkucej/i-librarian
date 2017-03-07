@@ -454,6 +454,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                 "title     = " => "title",
                 "journal   = " => "journal",
                 "year      = " => "year",
+                "month     = " => "month",
                 "volume    = " => "volume",
                 "number    = " => "issue",
                 "pages     = " => "pages",
@@ -528,7 +529,8 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
 
             if (isset($add_item['year'])) {
 
-                if (!is_numeric($add_item['year'])) {
+                if (!empty($add_item['year']) && !is_numeric($add_item['year'])) {
+                    $add_item['month'] = date('n', strtotime($add_item['year']));
                     $add_item['year'] = substr($add_item['year'], 0, 4);
                 }
             }
