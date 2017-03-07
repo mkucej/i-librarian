@@ -566,15 +566,15 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             $month = $date_array[1];
                         if (!empty($date_array[2]))
                             $day = $date_array[2];
-                        if (!is_int($year)) {
+                        if (!is_numeric($year)) {
                             $year = '';
                         }
-                        if (!empty($year) && is_int($year)) {
+                        if (!empty($year) && is_numeric($year)) {
                             $year = $year . '-' . $month . '-' . $day;
                         }
                         if (empty($year)) {
                             preg_match('/\d{4}/u', $year_match[0], $year_match2);
-                            if (!empty($year_match2[0]) && is_int($year_match2[0]))
+                            if (!empty($year_match2[0]) && is_numeric($year_match2[0]))
                                 $year = $year_match2[0] . '-01-01';
                         }
                     }
