@@ -31,7 +31,7 @@ if (isset($_FILES['manuscript']) && is_uploaded_file($_FILES['manuscript']['tmp_
         unlink($temp_file);
         $converted_file = IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR . basename($_FILES['manuscript']['name'], '.' . $file_extension) . '.rtf';
         if (!is_file($converted_file)) {
-            $error[] = "Error! Conversion to RTF failed.";
+            $errors[] = "Error! Conversion to RTF failed.";
             $response['errors'] = $errors;
             $content = json_encode($response, JSON_HEX_APOS);
             die($content);
