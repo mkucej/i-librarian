@@ -1762,7 +1762,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         $nasaads_url = '';
         $arxiv_url = '';
         $jstor_url = '';
-        $other_urls = '';
+        $other_urls = array();
         $urls = '';
         $uids = array();
         $pmid = '';
