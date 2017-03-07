@@ -159,6 +159,9 @@ You may wish to alter who has access (e.g. to allow access from more IP numbers 
 * Open your web browser and go to [http://127.0.0.1/librarian](http://127.0.0.1/librarian).
 
 ### First use
+* Note on security: These installation instructions allow access to your library only from local computer
+  or an internal network. If you open access from the Internet you must change `$hosted` value to `true`
+  in data.php, line 10. Failure to do so may open your computer to various attacks.
 * In order to start *I, Librarian*, open your web browser, and visit:
   [http://127.0.0.1/librarian](http://127.0.0.1/librarian)
 * Replace `127.0.0.1` with your static IP, or qualified server domain name, if you have either one.
