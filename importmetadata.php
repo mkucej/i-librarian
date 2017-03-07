@@ -335,7 +335,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                     die('No records found.');
                 }
 
-                if (is_file($file_to_copy) && is_readable($file_to_copy)) {
+                if ($hosted === false && is_file($file_to_copy) && is_readable($file_to_copy)) {
                     $result = $dbHandle->query("SELECT file FROM library WHERE id=" . $last_id);
                     $pdf_filename = $result->fetchColumn();
                     $result = null;
@@ -674,7 +674,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                         $insert = null;
                     }
 
-                    if (!empty($title) && is_file($file_to_copy) && is_readable($file_to_copy)) {
+                    if ($hosted === false && !empty($title) && is_file($file_to_copy) && is_readable($file_to_copy)) {
                         $result = $dbHandle->query("SELECT file FROM library WHERE id=" . $last_id);
                         $pdf_filename = $result->fetchColumn();
                         $result = null;
@@ -1296,7 +1296,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                             $file_to_copy = str_replace("\\", "/", $file_to_copy);
                         }
 
-                        if (is_file($file_to_copy) && is_readable($file_to_copy)) {
+                        if ($hosted === false && is_file($file_to_copy) && is_readable($file_to_copy)) {
                             $result = $dbHandle->query("SELECT file FROM library WHERE id=" . $last_id);
                             $pdf_filename = $result->fetchColumn();
                             $result = null;
@@ -1494,7 +1494,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                 }
 
                 //RENAME TEMP PDFS
-                if (is_writable(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'])) {
+                if ($hosted === false && is_writable(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'])) {
                     $dbHandle->exec("UPDATE tempfdb.full_text SET fileID=" . $new_id . " WHERE fileID=" . $tmprow['id']);
                     copy(IL_PDF_PATH . DIRECTORY_SEPARATOR . $tmprow['file'], IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file);
                     $hashes[$new_id] = md5_file(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file) . DIRECTORY_SEPARATOR . $new_file);
