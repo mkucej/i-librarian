@@ -233,8 +233,8 @@ if (!empty($_GET['action'])) {
 
         if (empty($contents)) {
 
-            die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
-            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+            die('Error! I, Librarian could not connect with Springer. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively, Springer may be temporarily down. Try again later.');
         }
 
         $csv_string = strstr($contents, "Item Title");

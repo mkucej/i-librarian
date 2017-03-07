@@ -132,7 +132,7 @@ if (!empty($_POST['form_new_file_link'])) {
         die('Error! I, Librarian could not find the PDF. Possible reasons:<br><br>'
                 . 'You access the Web through a proxy server. Enter your proxy details'
                 . ' in Tools->Settings.<br><br>The external service may be temporarily down.'
-                . ' Try again later.<br><br>The link you provided is not for a PDF.');
+                . ' Try again later.<br><br>The link you provided is invalid, or is not for a PDF.');
     }
 
     $pdf_contents = strstr($contents, "%PDF");

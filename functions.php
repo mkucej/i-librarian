@@ -805,6 +805,16 @@ function select_soffice() {
  */
 function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
 
+    // Prevent IP based addresses and localhost.
+    $host = parse_url($url, PHP_URL_HOST);
+
+    if ($host === 'localhost'
+            || !filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED)
+            || filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+
+        return '';
+    }
+
     $contents = '';
     $curl = curl_init();
 
@@ -1102,8 +1112,8 @@ function fetch_from_googlepatents($patent_id) {
     $dom = getFromWeb($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
     if (empty($dom))
-        die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
-            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+        die('Error! I, Librarian could not connect with Google Patents. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively, Google Patents may be temporarily down. Try again later.');
 
     preg_match_all('/(\<meta name=\"DC\.contributor\" content=\")(.+)(\")/Ui', $dom, $authors);
 
@@ -1160,8 +1170,8 @@ function fetch_from_ol($ol_id, $isbn) {
     $ol = getFromWeb($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
     if (empty($ol))
-        die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
-            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+        die('Error! I, Librarian could not connect with Open Library. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively,  Open Library may be temporarily down. Try again later.');
 
     $ol = json_decode($ol, true);
 

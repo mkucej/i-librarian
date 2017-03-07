@@ -442,10 +442,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
             if (empty($contents)) {
 
-                $error[] = 'Error! I, Librarian could not connect to the URL. Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>The external service may be temporarily down. Try again later.';
-            }
+                $error[] = 'Error! I, Librarian could not connect to the URL.'
+                        . ' Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>'
+                        . ' The external service may be temporarily down. Try again later.<br><br>'
+                        . ' IP-based URLs are not allowed.';
 
-            if (stripos($contents, '%PDF') === 0) {
+            } elseif (stripos($contents, '%PDF') === 0) {
 
                 $move = file_put_contents(IL_PDF_PATH . DIRECTORY_SEPARATOR . get_subfolder($new_file, IL_PDF_PATH) . DIRECTORY_SEPARATOR . $new_file, $contents);
 
@@ -575,10 +577,12 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
             if (empty($contents)) {
 
-                $error[] = 'Error! I, Librarian could not connect to the URL. Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>The external service may be temporarily down. Try again later.';
-            }
+                $error[] = 'Error! I, Librarian could not connect to the URL.'
+                        . ' Possible reasons:<br><br>You access the Web through a proxy server. Enter your proxy details in Tools->Settings.<br><br>'
+                        . ' The external service may be temporarily down. Try again later.<br><br>'
+                        . ' IP-based URLs are not allowed.';
 
-            if (stripos($contents, '%PDF') === 0) {
+            } elseif (stripos($contents, '%PDF') === 0) {
 
                 file_put_contents(IL_TEMP_PATH . DIRECTORY_SEPARATOR . $rand . ".pdf", $contents);
 

@@ -226,9 +226,9 @@ if (isset($_SESSION['auth'])) {
         $xml = getFromWeb($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
         if ($xml === '') {
-            
-            die('Error! I, Librarian could not connect with an external web service. This usually indicates that you access the Web through a proxy server.
-            Enter your proxy details in Tools->Settings. Alternatively, the external service may be temporarily down. Try again later.');
+
+            die('Error! I, Librarian could not connect with Highwire Press. This usually indicates that you access the Web through a proxy server.
+            Enter your proxy details in Tools->Settings. Alternatively, Highwire Press may be temporarily down. Try again later.');
         }
     }
 
