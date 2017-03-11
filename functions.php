@@ -1844,7 +1844,7 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
 
                 } else {
 
-                    $other_urls[] = $url;
+                    $other_urls = $url;
                 }
             }
         }
