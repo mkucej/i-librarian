@@ -33,7 +33,7 @@ if (isset($_SESSION['auth'])) {
     }
 
     // DELETE A USER
-    if (!empty($_GET['delete']) && !empty($_GET['id'])) {
+    if ($_SESSION['permissions'] === 'A' && !empty($_GET['delete']) && !empty($_GET['id'])) {
 
         database_connect(IL_DATABASE_PATH, 'library');
         $dbHandle->exec("ATTACH DATABASE '" . IL_USER_DATABASE_PATH . DIRECTORY_SEPARATOR . "users.sq3' AS userdatabase");
@@ -76,11 +76,11 @@ if (isset($_SESSION['auth'])) {
     }
 
     // CREATE NEW USER
-    if (!empty($_GET['create_user']) && !empty($_GET['username']) && !empty($_GET['permissions'])) {
+    if ($_SESSION['permissions'] === 'A' && !empty($_GET['create_user']) && !empty($_GET['username']) && !empty($_GET['permissions'])) {
 
         if (empty($_GET['password']))
             die('Error! User was not created. Password required.');
-        
+
         $slashes = array("/","\\");
         $_GET['username'] = str_replace($slashes, "", $_GET['username']);
 
@@ -99,7 +99,7 @@ if (isset($_SESSION['auth'])) {
     }
 
     // CHANGE USER'S PERMISSIONS
-    if (!empty($_GET['change_permissions']) && !empty($_GET['id'])) {
+    if ($_SESSION['permissions'] === 'A' && !empty($_GET['change_permissions']) && !empty($_GET['id'])) {
 
         if ($_GET['new_permissions'] == 'A') {
             $new_permissions = 'A';
@@ -118,8 +118,8 @@ if (isset($_SESSION['auth'])) {
     }
 
     // RENAME USER
-    if (!empty($_GET['rename']) && !empty($_GET['id']) && !empty($_GET['username'])) {
-        
+    if ($_SESSION['permissions'] === 'A' && !empty($_GET['rename']) && !empty($_GET['id']) && !empty($_GET['username'])) {
+
         $slashes = array("/","\\");
         $_GET['username'] = str_replace($slashes, "", $_GET['username']);
 
@@ -135,7 +135,7 @@ if (isset($_SESSION['auth'])) {
     }
 
     // FORCE NEW PASSWORD FOR EXISTING USER
-    if (!empty($_GET['force_password']) && !empty($_GET['id']) && !empty($_GET['new_password'])) {
+    if ($_SESSION['permissions'] === 'A' && !empty($_GET['force_password']) && !empty($_GET['id']) && !empty($_GET['new_password'])) {
 
         database_connect(IL_USER_DATABASE_PATH, 'users');
         $id_query = $dbHandle->quote($_GET['id']);
