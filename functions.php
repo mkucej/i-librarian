@@ -1788,15 +1788,12 @@ function show_search_results($result, $select, $shelf_files, $desktop_projects, 
         if (!empty($search_term)) {
             $search_words = explode(' ', $search_term);
             $search_words = array_filter($search_words);
-            foreach ($search_words as $search_word) {
-                foreach ($paper as $key => $value) {
-                    if ($key !== 'authors' && $key !== 'title' && $key !== 'abstract') {
-                        continue;
-                    }
-                    if (stristr($value, $search_word) !== FALSE) {
-                        $paper[$key] = preg_replace("/($search_word)/ui", '<span class="highlight-search">$1</span>', $value);
-                    }
+            $search_words_str = join('|', $search_words);
+            foreach ($paper as $key => $value) {
+                if ($key !== 'authors' && $key !== 'title' && $key !== 'abstract') {
+                    continue;
                 }
+                $paper[$key] = preg_replace("/($search_words_str)/ui", '<span class="highlight-search">$1</span>', $value);
             }
             $pdf_search_term = $search_words[0];
         }
