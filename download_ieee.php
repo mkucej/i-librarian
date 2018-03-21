@@ -1,4 +1,6 @@
 <?php
+exit;
+
 include_once 'data.php';
 
 if (isset($_SESSION['auth'])) {
@@ -208,9 +210,9 @@ if (isset($_SESSION['auth'])) {
             if (!empty($_GET['ieee_year_to'])) {
                 $year_to = $_GET['ieee_year_to'];
             }
-        
+
             $year_string = 'pys=' . $year_from . '&pye=' . $year_to;
-        
+
             $url_string .= '&ieee_range=range&'
                     . 'ieee_year_from=' . urlencode($_GET['ieee_year_from']) . '&'
                     . 'ieee_year_to=' . urlencode($_GET['ieee_year_to']);
@@ -475,31 +477,31 @@ if (isset($_SESSION['auth'])) {
 
                     // Abstract.
                     $abstract = (string) $item->abstract;
-                    
+
                     // Reference type.
                     $reference_type = (string) $item->pubtype;
 
                     if ($reference_type == 'Conference Publications') {
-                        
+
                         $reference_type = 'conference';
-                        
+
                     } elseif ($reference_type == 'Journals & Magazines') {
-                        
+
                         $reference_type = 'article';
-                        
+
                     } elseif ($reference_type == 'Books & eBooks') {
-                        
+
                         $reference_type = 'chapter';
-                        
+
                     } elseif ($reference_type == 'Early Access Articles') {
-                        
+
                         $reference_type = 'article';
-                        
+
                     } elseif ($reference_type == 'Standards') {
-                        
+
                         $reference_type = 'manual';
                     }
-                    
+
                     // PDF link.
                     $pdflink = (string) $item->pdf;
 
@@ -528,18 +530,18 @@ if (isset($_SESSION['auth'])) {
                         print '<div class="firstcontainer items">';
 
                         print htmlspecialchars($secondary_title);
-                        
+
                         if (!empty($authors)) {
                             print '<div class="authors"><i class="author_expander fa fa-plus-circle"></i> ' . htmlspecialchars($authors) . '</div>';
                         }
 
                         if ($year != '')
                             print " ($year)";
-                        
+
                         print '<br>';
 
                         print '<a href="' . htmlspecialchars('http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=' . $id) . '" target="_blank">IEEE</a>';
-                        
+
                         if (!empty($doi)) {
                             print ' <b>&middot;</b> <a href="' . htmlspecialchars("http://dx.doi.org/" . urlencode($doi)) . '" target="_blank">Publisher Website</a>';
                         }
@@ -549,7 +551,7 @@ if (isset($_SESSION['auth'])) {
                         }
 
                         print '</div>';
-                        
+
                         print '<div class="abstract_container" style="display:none">';
 
                         ##########	print results into table	##########
@@ -671,7 +673,7 @@ if (isset($_SESSION['auth'])) {
 
 ########## input table ##############
         ?>
-        <form enctype="application/x-www-form-urlencoded" action="download_ieee.php" method="GET" id="download-form">	
+        <form enctype="application/x-www-form-urlencoded" action="download_ieee.php" method="GET" id="download-form">
             <input type="hidden" value="" name="rowsPerPage">
             <input type="hidden" value="search" name="action">
             <div class="ui-state-default ui-corner-all" style="float:left;margin:4px 4px 2px 4px;padding:1px 4px">

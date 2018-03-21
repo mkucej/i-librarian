@@ -1225,6 +1225,9 @@ function fetch_from_ol($ol_id, $isbn) {
 //FETCH METADATA FROM IEEE XPLORE
 function fetch_from_ieee($doi, $ieee_id) {
 
+    // Remove IEEE search.
+    return '';
+
     if (!empty($doi)) {
         $query = "doi=" . urlencode($doi);
     } elseif (!empty($ieee_id)) {

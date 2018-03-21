@@ -71,7 +71,7 @@ if (isset($_SESSION['auth'])) {
             if (!empty($_GET['watermarks'])) {
                 $new_settings['global_watermarks'] = $_GET['watermarks'];
             }
-            
+
             $new_settings['global_signin_mode'] = '';
             if ($_GET['signin_mode'] == 'textinput') {
                 $new_settings['global_signin_mode'] = $_GET['signin_mode'];
@@ -96,22 +96,22 @@ if (isset($_SESSION['auth'])) {
             if (!empty($_GET['custom2'])) {
                 $new_settings['global_custom2'] = filter_var($_GET['custom2'], FILTER_SANITIZE_STRING);
             }
-            
+
             $new_settings['global_custom3'] = '';
             if (!empty($_GET['custom3'])) {
                 $new_settings['global_custom3'] = filter_var($_GET['custom3'], FILTER_SANITIZE_STRING);
             }
-            
+
             $new_settings['global_custom4'] = '';
             if (!empty($_GET['custom4'])) {
                 $new_settings['global_custom4'] = filter_var($_GET['custom4'], FILTER_SANITIZE_STRING);
             }
-            
+
             $new_settings['global_connection'] = '';
             if (isset($_GET['connection']) && $_GET['connection'] !== 'direct') {
                 $new_settings['global_connection'] = $_GET['connection'];
             }
-            
+
             $new_settings['global_wpad_url'] = '';
             if (isset($_GET['wpad_url'])) {
                 $new_settings['global_wpad_url'] = $_GET['wpad_url'];
@@ -136,7 +136,7 @@ if (isset($_SESSION['auth'])) {
             if (isset($_GET['proxy_password']) && isset($new_settings['global_proxy_name'])) {
                 $new_settings['global_proxy_password'] = $_GET['proxy_password'];
             }
-            
+
             $new_settings['global_zone'] = '';
             if (isset($_GET['zone'])) {
                 $new_settings['global_zone'] = $_GET['zone'];
@@ -272,10 +272,7 @@ if (isset($_SESSION['auth'])) {
                         <input type="checkbox" name="database_links[]" value="arxiv" <?php print !empty($remove_arxiv) ? '' : 'checked'  ?>>arXiv<br>
                     </div>
                     <div style="float:left">
-                        <input type="checkbox" name="database_links[]" value="ieee" <?php print !empty($remove_ieee) ? '' : 'checked'  ?>>IEEE Xplore<br>
-                        <input type="checkbox" name="database_links[]" value="highwire" <?php print !empty($remove_highwire) ? '' : 'checked'  ?>>HighWire Press
-                    </div>
-                    <div style="float:left">
+                        <input type="checkbox" name="database_links[]" value="highwire" <?php print !empty($remove_highwire) ? '' : 'checked'  ?>>HighWire Press<br>
                         <input type="checkbox" name="database_links[]" value="springer" <?php print !empty($remove_springer) ? '' : 'checked'  ?>>Springer<br>
                     </div>
                 </td>

@@ -549,6 +549,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 ?>
                                        NASA
                             </td>
+                            <?php
+                            // Remove IEEE.
+                            /*
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="ieee"
                                 <?php
@@ -561,6 +564,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                 ?>
                                        IEEE
                             </td>
+                             */
+                            ?>
                             <td class="select_span" style="padding:0.4em">
                                 <input type="radio" style="display:none" name="database" value="crossref"
                                 <?php

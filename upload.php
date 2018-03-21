@@ -752,10 +752,10 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
         }
 
         // FETCH FROM IEEE
-        if (empty($response) && (!empty($ieee_id) || (isset($_POST['fetch-ieee']) && !empty($doi) && empty($pmid) && empty($nasa_id)))) {
-            fetch_from_ieee($doi, $ieee_id);
-            $_POST = array_replace_recursive($_POST, $response);
-        }
+//        if (empty($response) && (!empty($ieee_id) || (isset($_POST['fetch-ieee']) && !empty($doi) && empty($pmid) && empty($nasa_id)))) {
+//            fetch_from_ieee($doi, $ieee_id);
+//            $_POST = array_replace_recursive($_POST, $response);
+//        }
 
         // FETCH FROM CROSSREF
         if (empty($response) && (isset($_POST['fetch-crossref']) && !empty($doi) && empty($pmid) && empty($nasa_id) && empty($ieee_id))) {
@@ -907,7 +907,6 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                             <option value="">--</option>
                                             <option value="ARXIV">ArXiv</option>
                                             <option value="PAT">Google Patents</option>
-                                            <option value="IEEE">IEEE Xplore</option>
                                             <option value="ISBN">ISBN</option>
                                             <option value="NASAADS">NASA ADS</option>
                                             <option value="OL">Open Library</option>
@@ -951,7 +950,8 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
                                         </td>
                                         <?php
                                     }
-                                    if (!isset($_SESSION['remove_ieee'])) {
+                                    // Remove IEEE.
+                                    if (false) {
 
                                         ?>
                                         <td class="select_span" style="line-height:22px;padding-right:1em">

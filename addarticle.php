@@ -216,7 +216,8 @@ if (isset($_SESSION['permissions']) && ($_SESSION['permissions'] == 'A' || $_SES
                             reset($searchnames);
                             print '</div>';
                         }
-                        if (!isset($_SESSION['remove_ieee'])) {
+//                        if (!isset($_SESSION['remove_ieee'])) {
+                        if (false) {
                             ?>
                             <button id="ieeelink" title="Search over 3 million records">IEEE Xplore</button>
                             <div id="ieee-container" style="margin-top:0.5em;padding-left: 10px;width:190px">
