@@ -223,7 +223,7 @@ if (!empty($_GET['action'])) {
         $showall = '&showAll=false';
 
     // FINAL URL
-    $springer_url = 'http://link.springer.com/search/csv?sortOrder=newestFirst' . $showall . $query . $title . $author . $year_mode . $year_start . $year_end . $discipline;
+    $springer_url = 'https://link.springer.com/search/csv?sortOrder=newestFirst' . $showall . $query . $title . $author . $year_mode . $year_start . $year_end . $discipline;
 
     // IF NO STORAGE, SEARCH SPRINGER AND SAVE RESULTS
     if (!file_exists(IL_TEMP_PATH . DIRECTORY_SEPARATOR . 'lib_' . session_id() . DIRECTORY_SEPARATOR

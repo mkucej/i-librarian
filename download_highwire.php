@@ -221,7 +221,7 @@ if (isset($_SESSION['auth'])) {
 
         ########## search highwire ##############
 
-        $request_url = "http://highwire.stanford.edu/cgi/sru?version=1.1&operation=searchRetrieve&query=$query_string&startRecord=" . ($from - 1) . "&sendit=Search";
+        $request_url = "http://openurl.highwire.org/sru?version=1.1&operation=searchRetrieve&query=$query_string&startRecord=" . ($from - 1) . "&sendit=Search";
 
         $xml = getFromWeb($request_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password);
 
