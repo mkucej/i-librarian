@@ -395,7 +395,7 @@ var browsedirs = {
         }, function (file) {
             if ($('#win-drive').length === 1 && $('#win-drive').length !== '') {
                 $('#filetree-input').val($('#win-drive').val() + ':' + file);
-                
+
             } else {
                 $('#filetree-input').val(file);
             }
@@ -6200,7 +6200,7 @@ var rtfscan = {
                 $('#last-style-td').parent().show();
             },
             success: function (answer) {
-                localStorage.setItem('rtfname', $('#rtfscanform').find('input[name="manuscript"]').val());
+                localStorage.setItem('rtfname', $('#rtfscanform').find('input[name="manuscript"]').val().split('\\').pop().split('/').pop());
                 var answer = JSON.parse(answer);
                 $.ajax({
                     url: 'js/csl/citeproc.min.js',
@@ -6274,7 +6274,7 @@ var rtfscan = {
                                 $('#rtfscan-results').html($('#rtfscan-results').html()
                                         + 'Finished in ' + time
                                         + ' sec.<br><br><a id="rtf-download" href="attachment.php?rtf=formatted-'
-                                        + localStorage.getItem('rtfname').split('\\').pop()
+                                        + localStorage.getItem('rtfname').replace(/\..*$/, '.rtf')
                                         + '">Download formatted manuscript</a>');
                                 $('#rtf-download').button();
                             }
