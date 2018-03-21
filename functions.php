@@ -793,6 +793,55 @@ function select_soffice() {
 
 /**
  *
+ * Check if URL is safe.
+ *
+ * @param  string $url
+ * @return boolean
+ *
+ */
+function isSafeUrl($url) {
+
+    $url = trim($url);
+
+    $host = parse_url($url, PHP_URL_HOST);
+
+    // Host required.
+    if ($host === null) {
+        return false;
+    }
+
+    // Prevent IP based addresses and localhost.
+    if ($host === 'localhost'
+        || !filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED)
+        || filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+        || filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+
+        return false;
+    }
+
+    // Deal with wildcard DNS.
+    $ip = gethostbyname($host);
+    $ip = ip2long($ip);
+
+    if($ip === false){
+        return false;
+    }
+
+    $is_inner_ipaddress =
+        ip2long('127.0.0.0')   >> 24 === $ip >> 24 or
+        ip2long('10.0.0.0')    >> 24 === $ip >> 24 or
+        ip2long('172.16.0.0')  >> 20 === $ip >> 20 or
+        ip2long('192.168.0.0') >> 16 === $ip >> 16;
+
+    if($is_inner_ipaddress){
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ *
  * GET request to fetch resources from the web.
  *
  * @param string $url
@@ -803,19 +852,18 @@ function select_soffice() {
  * @return string
  *
  */
-function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password) {
+function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_password, $referer = '', $number = 0) {
 
-    // Prevent IP based addresses and localhost.
-    $host = parse_url($url, PHP_URL_HOST);
-
-    if ($host === 'localhost'
-            || !filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED)
-            || filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-
+    // Check URL.
+    if (isSafeUrl($url) === false) {
         return '';
     }
 
-    $contents = '';
+    // Max number of redirects.
+    if ($number > 5) {
+        return '';
+    }
+
     $curl = curl_init();
 
     if (!empty($proxy_name) && !empty($proxy_port)) {
@@ -831,13 +879,15 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
     }
 
     curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
     curl_setopt($curl, CURLOPT_USERAGENT,"$_SERVER[HTTP_USER_AGENT]");
     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
     curl_setopt($curl, CURLOPT_TIMEOUT, 30);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($curl, CURLOPT_HEADER, 0);
+    curl_setopt($curl, CURLOPT_HEADER, 1);
+
+    if ($referer != '') {
+        curl_setopt($curl, CURLOPT_REFERER, $referer);
+    }
 
     // Do not verify TLS certificates on OSes where we don't have the certificate bundle.
     if (PHP_OS !== 'Linux') {
@@ -846,17 +896,29 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
     }
 
-    $contents = curl_exec($curl);
+    $response = curl_exec($curl);
 
     curl_close($curl);
 
     // Curl error.
-    if ($contents === false) {
+    if ($response === false) {
 
         return '';
     }
 
-    return $contents;
+    // Split response to headers and body.
+    $response_parts = explode("\r\n\r\n", $response);
+
+    // Redirect if Location found.
+    if (strpos($response_parts[0], 'Location:') !== false) {
+
+        preg_match('/(Location:)(.*)/', $response_parts[0], $matches);
+        $new_url = trim($matches[2]);
+        return getFromWeb($new_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password, $url, $number + 1);
+    }
+
+    // Return response body.
+    return $response_parts[1];
 }
 
 /////////////proxy_simplexml_load_file//////////////////////
