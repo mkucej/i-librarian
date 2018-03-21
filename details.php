@@ -249,6 +249,16 @@ if (isset($_SESSION['auth']) && isset($_SESSION['permissions']) && $_SESSION['pe
             print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
         }
 
+        print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to PDF cache:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_PDF_CACHE_PATH  . "</td>";
+
+        if (is_writable(IL_PDF_CACHE_PATH) && @file_exists(IL_PDF_CACHE_PATH . DIRECTORY_SEPARATOR . '.')) {
+
+            print "<td class=\"details\" style=\"white-space: nowrap\">writable, executable</td><td class=\"details\" style=\" font-weight: bold\">OK</td></tr>";
+        } else {
+
+            print "<td class=\"details\" style=\"white-space: nowrap\">not writable or executable</td><td class=\"details\" style=\" font-weight: bold\">!!!</td></tr>";
+        }
+
         print "<tr><td class=\"details\" style=\"white-space: nowrap\">Path to supplementary files:</td><td class=\"details\" style=\"font-size: 11px\">" . IL_SUPPLEMENT_PATH . "</td>";
 
         if (is_writable(IL_SUPPLEMENT_PATH) && @file_exists(IL_SUPPLEMENT_PATH . DIRECTORY_SEPARATOR . '.')) {
