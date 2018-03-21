@@ -1,4 +1,9 @@
 <?php
+
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    exit;
+}
+
 include_once 'data.php';
 include_once 'functions.php';
 include_once 'index.inc.php';
@@ -11,10 +16,8 @@ include_once 'index.inc.php';
 </div>
 <div style="clear:both"></div>
 <?php
-if (isset($_GET['id'])) {
-    $_GET['file'] = $_GET['id'];
-    include 'file_top.php';
-}
+$_GET['file'] = $_GET['id'];
+include 'file_top.php';
 ?>
 <script type="text/javascript">
 filetop.init();
