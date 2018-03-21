@@ -134,6 +134,9 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         if ($_POST['file_type'] == "endnote") {
 
+            // XXE prevention.
+            libxml_disable_entity_loader(true);
+
             if (isset($_FILES['form_import_file']) && is_uploaded_file($_FILES['form_import_file']['tmp_name'])) {
                 try {
                     if (!$xml = @simplexml_load_file($_FILES['form_import_file']['tmp_name'])) {
