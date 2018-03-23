@@ -1,7 +1,7 @@
 <?php
 
 // I, Librarian version
-$version = '4.9';
+$version = '4.10';
 
 /*
  * This flag must be true, if access is open to the Internet. Otherwise, you
