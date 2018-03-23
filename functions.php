@@ -831,6 +831,7 @@ function isSafeUrl($url) {
         ip2long('127.0.0.0')   >> 24 === $ip >> 24 or
         ip2long('10.0.0.0')    >> 24 === $ip >> 24 or
         ip2long('172.16.0.0')  >> 20 === $ip >> 20 or
+        ip2long('169.254.0.0') >> 16 === $ip >> 16 or
         ip2long('192.168.0.0') >> 16 === $ip >> 16;
 
     if($is_inner_ipaddress){
@@ -912,8 +913,40 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
     // Redirect if Location found.
     if (strpos($response_parts[0], 'Location:') !== false) {
 
+        // Extract location.
         preg_match('/(Location:)(.*)/', $response_parts[0], $matches);
-        $new_url = trim($matches[2]);
+        $location = trim($matches[2]);
+
+        // Check if Location is relative.
+        if (parse_url($location, PHP_URL_HOST) === null) {
+
+            // Combine new relative URL ($location) with the previous URL ($url).
+
+            // Is there a user:password?
+            $user_pass = '';
+            $url_user = parse_url($url, PHP_URL_USER);
+            $url_pass = parse_url($url, PHP_URL_PASS);
+
+            if ($url_user !== null && $url_pass !== null) {
+
+                $user_pass = "$url_user:$url_pass@";
+            }
+
+            // Is there a port?
+            $port = parse_url($url, PHP_URL_PORT) === null ? '' : ':' . parse_url($url, PHP_URL_PORT);
+
+            // Assemble new URL.
+            $new_url = parse_url($url, PHP_URL_SCHEME) . '://'
+                . $user_pass
+                . parse_url($url, PHP_URL_HOST)
+                . $port
+                . $location;
+
+        } else {
+
+            $new_url = $location;
+        }
+
         return getFromWeb($new_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password, $url, $number + 1);
     }
 
