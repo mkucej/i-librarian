@@ -917,7 +917,7 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
         preg_match('/(Location:)(.*)/', $response_parts[0], $matches);
         $location = trim($matches[2]);
 
-        // Check if Location is relative.
+        // Check if Location is a relative URL.
         if (parse_url($location, PHP_URL_HOST) === null) {
 
             // Combine new relative URL ($location) with the previous URL ($url).
@@ -944,7 +944,17 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
 
         } else {
 
-            $new_url = $location;
+            // Check if Location is a protocol-relative link.
+            if (parse_url($location, PHP_URL_SCHEME) === null) {
+
+                // Add scheme from the previous URL ($url).
+                $new_url = parse_url($url, PHP_URL_SCHEME) . ":$location";
+
+            } else {
+
+                // New URL is a fully qualified URL.
+                $new_url = $location;
+            }
         }
 
         return getFromWeb($new_url, $proxy_name, $proxy_port, $proxy_username, $proxy_password, $url, $number + 1);
