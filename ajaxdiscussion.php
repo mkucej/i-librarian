@@ -10,6 +10,30 @@ if (!empty($_GET['project'])) {
     die();
 }
 
+// Check if the user is in this project.
+
+database_connect(IL_DATABASE_PATH, 'library');
+
+$stmt = $dbHandle->prepare("SELECT projects.project as p"
+        . " FROM projects LEFT OUTER JOIN projectsusers ON projectsusers.projectID=projects.projectID"
+        . " WHERE projects.projectID=:projectID AND (projectsusers.userID=:userID OR projects.userID=:userID)");
+
+$stmt->bindParam(':userID', $_SESSION['user_id'], PDO::PARAM_INT);
+$stmt->bindParam(':projectID', $projectID, PDO::PARAM_INT);
+
+$stmt->execute();
+
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (empty($result['p'])) {
+
+    displayError('You are not authorized to see this project.');
+}
+
+$dbHandle = null;
+
+// Modify discussions.
+
 database_connect(IL_DATABASE_PATH, 'discussions');
 
 if(isset($_POST['newmessage']) && !empty($_POST['newmessage'])) {
