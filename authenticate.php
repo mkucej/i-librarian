@@ -183,7 +183,7 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
     $username_quoted = $dbHandle->quote($username);
 
     // LDAP authentication.
-    if ($ldap_active) {
+    if (($ldap_active) && ($username != 'admin')) {
         // Verify if ldap was enabled within php.
         if ($ldap_libcheck = function_exists("ldap_connect")) {
             // "LDAP CONNECT function is available.";
