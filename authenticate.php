@@ -296,11 +296,11 @@ if (isset($_POST['form']) && $_POST['form'] == 'signin' && !empty($_POST['user']
 
         if (!empty($ldap_binduser_dn)) {
             // Verify the given password
-            $ldap_sr_all_user_attributes = @ldap_search($ldap_connect, '', $ldap_filter_string);
+            $ldap_sr_all_user_attributes = @ldap_search($ldap_connect, $ldap_basedn, $ldap_filter_string);
             $usersattributes = @ldap_get_entries($ldap_connect, $ldap_sr_all_user_attributes);
             // try to connect to ldap using the given attribute and the password
-            if (!$ldap_bind_check_pass = ldap_bind($ldap_connect, $usersattributes[0][$ldap_userlogin_attr][0], $password)) {
-                sendError("Failed to authenticate: " . $usersattributes[0][$ldap_userlogin_attr][0]);
+            if (!$ldap_bind_check_pass = ldap_bind($ldap_connect, is_array($usersattributes[0][$ldap_userlogin_attr]) ? $usersattributes[0][$ldap_userlogin_attr][0] : $usersattributes[0][$ldap_userlogin_attr], $password)) {
+                sendError("Failed to authenticate: " . $usersattributes[0][$ldap_username_attr][0]);
             } else {
                 // password is valid!
             }
