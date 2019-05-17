@@ -899,22 +899,23 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
 
     $response = curl_exec($curl);
 
-    curl_close($curl);
-
     // Curl error.
     if ($response === false) {
 
         return '';
     }
 
-    // Split response to headers and body.
-    $response_parts = explode("\r\n\r\n", $response);
+    $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+    $header = substr( $response, 0, $header_size );
+    $body = substr( $response, $header_size );
+
+    curl_close($curl);
 
     // Redirect if Location found.
-    if (strpos($response_parts[0], 'Location:') !== false) {
+    if (strpos($header, 'Location:') !== false) {
 
         // Extract location.
-        preg_match('/(Location:)(.*)/', $response_parts[0], $matches);
+        preg_match('/(Location:)(.*)/', $header, $matches);
         $location = trim($matches[2]);
 
         // Check if Location is a relative URL.
@@ -961,7 +962,7 @@ function getFromWeb($url, $proxy_name, $proxy_port, $proxy_username, $proxy_pass
     }
 
     // Return response body.
-    return $response_parts[1];
+    return $body;
 }
 
 /////////////proxy_simplexml_load_file//////////////////////
