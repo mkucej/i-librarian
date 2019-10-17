@@ -489,7 +489,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         if (!empty($first)) {
                             $new_authors[] = $last . ', ' . $first;
                         } else {
-                            $new_authors[] = $last;
+                            $new_authors[] = '{' . $last; . '}'
                         }
                     }
                 }
@@ -527,7 +527,7 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                         if (!empty($first)) {
                             $new_authors[] = $last . ', ' . $first;
                         } else {
-                            $new_authors[] = $last;
+                            $new_authors[] = '{' . $last . '}';
                         }
                     }
                 }
