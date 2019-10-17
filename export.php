@@ -486,7 +486,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             $first = trim($array2[1]);
                             $first = substr($array2[1], 3, -1);
                         }
-                        $new_authors[] = $last . ', ' . $first;
+                        if (!empty($first)) {
+                            $new_authors[] = $last . ', ' . $first;
+                        } else {
+                            $new_authors[] = '{' . $last; . '}'
+                        }
                     }
                 }
                 $authors = join(" and ", $new_authors);
@@ -520,7 +524,11 @@ if (!empty($_GET['export_files']) && isset($_GET['export'])) {
                             $first = trim($array2[1]);
                             $first = substr($array2[1], 3, -1);
                         }
-                        $new_authors[] = $last . ', ' . $first;
+                        if (!empty($first)) {
+                            $new_authors[] = $last . ', ' . $first;
+                        } else {
+                            $new_authors[] = '{' . $last . '}';
+                        }
                     }
                 }
                 $authors = join(" and ", $new_authors);
