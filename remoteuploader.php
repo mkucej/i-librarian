@@ -261,7 +261,7 @@ if (!empty($_FILES)) {
 
                         $query = "INSERT INTO library (file, authors, affiliation, title, journal, year, addition_date, abstract, rating, uid, volume, issue,
                             pages, secondary_title, tertiary_title, editor, url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by)
-                            VALUES 'no.pdf', :authors, :affiliation, :title, :journal, :year, :addition_date, :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
+                            VALUES ('no.pdf', :authors, :affiliation, :title, :journal, :year, :addition_date, :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
                             :url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by)";
 
                         $stmt = $dbHandle->prepare($query);

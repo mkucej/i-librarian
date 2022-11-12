@@ -120,7 +120,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $query = "INSERT INTO library (file, authors, affiliation, title, journal, year, addition_date, abstract, rating, uid, volume, issue, pages, secondary_title, tertiary_title, editor,
 					url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by, custom1, custom2, custom3, custom4, bibtex, bibtex_type)
-		 VALUES 'no.pdf', :authors, :affiliation, :title, :journal, :year, :addition_date,
+		 VALUES ('no.pdf', :authors, :affiliation, :title, :journal, :year, :addition_date,
                  :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
 			:url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by, :custom1, :custom2, :custom3, :custom4, :bibtex, :bibtex_type)";
 
