@@ -260,10 +260,8 @@ if (!empty($_FILES)) {
                         ##########	record publication data, table library	##########
 
                         $query = "INSERT INTO library (file, authors, affiliation, title, journal, year, addition_date, abstract, rating, uid, volume, issue,
-                            pages, secondary_title, tertiary_title, editor,
-                            url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by)
-                            VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(file)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')), :authors, :affiliation,
-                            :title, :journal, :year, :addition_date, :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
+                            pages, secondary_title, tertiary_title, editor, url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by)
+                            VALUES 'no.pdf', :authors, :affiliation, :title, :journal, :year, :addition_date, :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
                             :url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by)";
 
                         $stmt = $dbHandle->prepare($query);
@@ -302,11 +300,18 @@ if (!empty($_FILES)) {
                         $id = $dbHandle->lastInsertId();
                         $new_file = str_pad($id, 5, "0", STR_PAD_LEFT) . '.pdf';
 
-                        // Save citation key.
-                        $stmt6 = $dbHandle->prepare("UPDATE library SET bibtex=:bibtex WHERE id=:id");
+                        // save filename
+                        $stmt = $dbHandle->prepare("UPDATE library SET file=:new_file WHERE id=:id");
+                        $stmt->bindParam(':new_file', $new_file, PDO::PARAM_STR);
+                        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                        $stmt->execute();
+                        $stmt = null;
 
-                        $stmt6->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
-                        $stmt6->bindParam(':id', $id, PDO::PARAM_INT);
+                        // Save citation key.
+                        $stmt = $dbHandle->prepare("UPDATE library SET bibtex=:bibtex WHERE id=:id");
+
+                        $stmt->bindParam(':bibtex', $bibtex, PDO::PARAM_STR);
+                        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
                         $bibtex_author = 'unknown';
 
@@ -320,7 +325,7 @@ if (!empty($_FILES)) {
 
                         $bibtex = $bibtex_author . '-' . $bibtex_year . '-ID' . $id;
 
-                        $insert = $stmt6->execute();
+                        $insert = $stmt->execute();
                         $insert = null;
 
                         if (isset($_GET['shelf']) && !empty($userID)) {
