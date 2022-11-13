@@ -120,7 +120,7 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $query = "INSERT INTO library (file, authors, affiliation, title, journal, year, addition_date, abstract, rating, uid, volume, issue, pages, secondary_title, tertiary_title, editor,
 					url, reference_type, publisher, place_published, keywords, doi, authors_ascii, title_ascii, abstract_ascii, added_by, custom1, custom2, custom3, custom4, bibtex, bibtex_type)
-		 VALUES ((SELECT IFNULL((SELECT SUBSTR('0000' || CAST(MAX(file)+1 AS TEXT) || '.pdf',-9,9) FROM library),'00001.pdf')), :authors, :affiliation, :title, :journal, :year, :addition_date,
+		 VALUES ('no.pdf', :authors, :affiliation, :title, :journal, :year, :addition_date,
                  :abstract, :rating, :uid, :volume, :issue, :pages, :secondary_title, :tertiary_title, :editor,
 			:url, :reference_type, :publisher, :place_published, :keywords, :doi, :authors_ascii, :title_ascii, :abstract_ascii, :added_by, :custom1, :custom2, :custom3, :custom4, :bibtex, :bibtex_type)";
 
@@ -271,6 +271,13 @@ if (isset($_SESSION['auth']) && ($_SESSION['permissions'] == 'A' || $_SESSION['p
 
         $id = $dbHandle->lastInsertId();
         $new_file = str_pad($id, 5, "0", STR_PAD_LEFT) . '.pdf';
+	    
+	// save filename
+        $stmt = $dbHandle->prepare("UPDATE library SET file=:new_file WHERE id=:id");
+        $stmt->bindParam(':new_file', $new_file, PDO::PARAM_STR);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $stmt = null;
 
         // Save default citation key.
         if (empty($_POST['bibtex'])) {
